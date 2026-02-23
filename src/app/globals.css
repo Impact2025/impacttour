@@ -1,0 +1,141 @@
+@import "tailwindcss";
+/* Fonts worden geladen via next/font/google in layout.tsx */
+
+@theme {
+  /* ── Design System Kleuren ── */
+  --color-electric-green: #00E676;
+  --color-green-dark: #00C853;
+  --color-green-mint: #F0FDF4;
+  --color-green-light: #DCFCE7;
+  --color-navy: #0F172A;
+  --color-dark-card: #1A2744;
+  --color-gold: #F59E0B;
+  --color-silver: #94A3B8;
+  --color-bronze: #B45309;
+
+  /* ── Legacy / Merk kleuren (backward compat) ── */
+  --color-impact-green: #2D9B4E;
+  --color-impact-green-dark: #1E6E37;
+  --color-impact-yellow: #F5C842;
+  --color-impact-blue: #1E6FA8;
+  --color-impact-orange: #E87722;
+
+  /* ── Tailwind v4 semantische tokens ── */
+  --color-background: oklch(100% 0 0);
+  --color-foreground: #0F172A;
+  --color-primary: #00E676;
+  --color-primary-foreground: #0F172A;
+  --color-muted: oklch(97% 0.003 264);
+  --color-muted-foreground: #64748B;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #00E676;
+  --color-destructive: oklch(63% 0.24 27);
+  --radius: 0.75rem;
+
+  /* ── Typografie ── */
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* PWA: full height op mobiel */
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  /* Verberg scrollbar op mobile */
+  ::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+}
+
+/* ── Keyframes ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(0, 230, 118, 0); }
+}
+
+@keyframes checkpoint-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5); }
+  50%       { box-shadow: 0 0 0 12px rgba(0, 230, 118, 0); }
+}
+
+/* ── Animatie utilities ── */
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 0.3s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger delays voor lijstitems */
+.stagger-1  { animation-delay: 50ms; }
+.stagger-2  { animation-delay: 100ms; }
+.stagger-3  { animation-delay: 150ms; }
+.stagger-4  { animation-delay: 200ms; }
+.stagger-5  { animation-delay: 250ms; }
+.stagger-6  { animation-delay: 300ms; }
+.stagger-7  { animation-delay: 350ms; }
+.stagger-8  { animation-delay: 400ms; }
+
+/* ── Safe Area Utilities ── */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Font Display helper ── */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* ── Touch press: interactieve kaarten ── */
+.card-pressable {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-pressable:active {
+  transform: scale(0.97);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
