@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server'
 /**
  * GET /api/game/preview?code=ABC123
  * Publieke preview van een sessie op basis van join code.
- * Geeft variant en tour naam terug — geen gevoelige data.
+ * Geeft variant, tour naam en vooraf aangemaakte teams terug — geen gevoelige data.
  * Gebruikt door de join-pagina om variant-specifieke UI te tonen.
  */
 export async function GET(req: Request) {
@@ -19,7 +19,10 @@ export async function GET(req: Request) {
 
   const session = await db.query.gameSessions.findFirst({
     where: eq(gameSessions.joinCode, code),
-    with: { tour: { columns: { name: true } } },
+    with: {
+      tour: { columns: { name: true } },
+      teams: { columns: { name: true } },
+    },
   })
 
   if (!session || session.status === 'cancelled') {
@@ -30,5 +33,6 @@ export async function GET(req: Request) {
     variant: session.variant,
     tourName: session.tour?.name ?? '',
     status: session.status,
+    preCreatedTeams: session.teams.map((t) => t.name),
   })
 }

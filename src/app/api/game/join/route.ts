@@ -41,30 +41,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'De tocht is nog niet gestart. Wacht op je spelleider.' }, { status: 400 })
   }
 
-  // Controleer max teams
-  const tour = await db.query.tours.findFirst({ where: eq(tours.id, session.tourId) })
-  if (tour && session.teams.length >= (tour.maxTeams ?? 20)) {
-    return NextResponse.json({ error: 'Het maximale aantal teams is bereikt.' }, { status: 400 })
-  }
-
-  // Controleer of teamnaam al bestaat in deze sessie
-  const nameExists = session.teams.some(
+  // Als het team al bestaat (spelleider heeft het vooraf aangemaakt) → sluit je aan bij dat team
+  const existingTeam = session.teams.find(
     (t) => t.name.toLowerCase() === teamName.toLowerCase()
   )
-  if (nameExists) {
-    return NextResponse.json({ error: 'Deze teamnaam is al in gebruik. Kies een andere naam.' }, { status: 400 })
-  }
 
-  // Maak team aan
-  const teamToken = generateTeamToken()
-  const [team] = await db
-    .insert(teams)
-    .values({
-      gameSessionId: session.id,
-      name: teamName,
-      teamToken,
-    })
-    .returning()
+  let team: { id: string; teamToken: string }
+
+  if (existingTeam) {
+    team = existingTeam
+  } else {
+    // Controleer max teams alleen bij het aanmaken van een nieuw team
+    const tour = await db.query.tours.findFirst({ where: eq(tours.id, session.tourId) })
+    if (tour && session.teams.length >= (tour.maxTeams ?? 20)) {
+      return NextResponse.json({ error: 'Het maximale aantal teams is bereikt.' }, { status: 400 })
+    }
+
+    // Zelf team aanmaken (vrije deelname zonder vooraf aangemaakt team)
+    const teamToken = generateTeamToken()
+    const [newTeam] = await db
+      .insert(teams)
+      .values({
+        gameSessionId: session.id,
+        name: teamName,
+        teamToken,
+      })
+      .returning()
+    team = newTeam
+  }
 
   return NextResponse.json({
     teamId: team.id,

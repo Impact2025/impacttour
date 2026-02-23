@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Navigation, Target } from 'lucide-react'
 
 const VOETBALCLUB_NAMEN = [
@@ -9,15 +9,24 @@ const VOETBALCLUB_NAMEN = [
   'FC Utrecht', 'Heracles', 'NEC', 'Twente', 'Heerenveen',
 ]
 
-export default function JoinPage() {
-  const [code, setCode] = useState('')
-  const [teamName, setTeamName] = useState('')
+type SessionPreview = {
+  variant: string
+  tourName: string
+  status: string
+  preCreatedTeams: string[]
+}
+
+function JoinForm() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const [code, setCode] = useState(
+    (searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+  )
+  const [teamName, setTeamName] = useState(searchParams.get('team') ?? '')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [sessionPreview, setSessionPreview] = useState<{
-    variant: string; tourName: string; status: string
-  } | null>(null)
-  const router = useRouter()
+  const [sessionPreview, setSessionPreview] = useState<SessionPreview | null>(null)
 
   useEffect(() => {
     if (code.length !== 6) {
@@ -26,11 +35,20 @@ export default function JoinPage() {
     }
     fetch(`/api/game/preview?code=${code}`)
       .then((r) => r.ok ? r.json() : null)
-      .then((data) => setSessionPreview(data))
+      .then((data: SessionPreview | null) => {
+        setSessionPreview(data)
+        // Als er vooraf aangemaakte teams zijn en de URL had een ?team= param → laat dat staan
+        // Anders: reset teamnaam zodat gebruiker een keuze maakt
+        if (data?.preCreatedTeams?.length && !searchParams.get('team')) {
+          setTeamName('')
+        }
+      })
       .catch(() => setSessionPreview(null))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code])
 
   const isFootball = sessionPreview?.variant === 'voetbalmissie'
+  const hasPreCreatedTeams = (sessionPreview?.preCreatedTeams?.length ?? 0) > 0
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,7 +105,9 @@ export default function JoinPage() {
             </p>
           )}
           <p className={`mt-1 text-sm ${isFootball ? 'text-green-600' : 'text-[#94A3B8]'}`}>
-            {isFootball
+            {hasPreCreatedTeams
+              ? 'Kies jouw team'
+              : isFootball
               ? 'Kies een clubnaam voor jullie team'
               : 'Voer de code in die je spelleider heeft gegeven'}
           </p>
@@ -119,44 +139,76 @@ export default function JoinPage() {
               />
             </div>
 
-            <div>
-              <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
-                isFootball ? 'text-green-500' : 'text-[#64748B]'
-              }`}>
-                {isFootball ? 'Clubnaam van jullie team' : 'Teamnaam'}
-              </label>
-              <input
-                type="text"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                placeholder={isFootball ? 'Ajax, PSV, Feyenoord...' : 'Team Avontuur'}
-                maxLength={30}
-                required
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
-                  isFootball
-                    ? 'bg-[#0A1A0A] border-green-800 text-white focus:ring-green-600 placeholder-green-900'
-                    : 'border-[#E2E8F0] focus:ring-[#00E676]/30 text-[#0F172A]'
-                }`}
-              />
-              {isFootball && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {VOETBALCLUB_NAMEN.map((club) => (
+            {/* Teamkeuze: lijst van vooraf aangemaakte teams */}
+            {hasPreCreatedTeams ? (
+              <div>
+                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
+                  isFootball ? 'text-green-500' : 'text-[#64748B]'
+                }`}>
+                  Jouw team
+                </label>
+                <div className="space-y-2">
+                  {sessionPreview!.preCreatedTeams.map((name) => (
                     <button
-                      key={club}
+                      key={name}
                       type="button"
-                      onClick={() => setTeamName(club)}
-                      className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                        teamName === club
-                          ? 'bg-green-500 border-green-500 text-black font-bold'
-                          : 'border-green-800 text-green-500 hover:bg-green-900'
+                      onClick={() => setTeamName(name)}
+                      className={`w-full px-4 py-3 rounded-xl border-2 text-left font-semibold text-sm transition-all ${
+                        teamName === name
+                          ? isFootball
+                            ? 'bg-green-500 border-green-500 text-black'
+                            : 'bg-[#00E676] border-[#00E676] text-[#0F172A]'
+                          : isFootball
+                            ? 'bg-[#0A1A0A] border-green-800 text-green-300 hover:border-green-600'
+                            : 'bg-white border-[#E2E8F0] text-[#0F172A] hover:border-[#00E676]/50'
                       }`}
                     >
-                      {club}
+                      {name}
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Vrije teamnaam invoer (geen vooraf aangemaakte teams) */
+              <div>
+                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
+                  isFootball ? 'text-green-500' : 'text-[#64748B]'
+                }`}>
+                  {isFootball ? 'Clubnaam van jullie team' : 'Teamnaam'}
+                </label>
+                <input
+                  type="text"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder={isFootball ? 'Ajax, PSV, Feyenoord...' : 'Team Avontuur'}
+                  maxLength={30}
+                  required
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                    isFootball
+                      ? 'bg-[#0A1A0A] border-green-800 text-white focus:ring-green-600 placeholder-green-900'
+                      : 'border-[#E2E8F0] focus:ring-[#00E676]/30 text-[#0F172A]'
+                  }`}
+                />
+                {isFootball && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {VOETBALCLUB_NAMEN.map((club) => (
+                      <button
+                        key={club}
+                        type="button"
+                        onClick={() => setTeamName(club)}
+                        className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                          teamName === club
+                            ? 'bg-green-500 border-green-500 text-black font-bold'
+                            : 'border-green-800 text-green-500 hover:bg-green-900'
+                        }`}
+                      >
+                        {club}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
@@ -184,5 +236,17 @@ export default function JoinPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="w-8 h-8 border-2 border-[#00E676] border-t-transparent rounded-full animate-spin" />
+      </main>
+    }>
+      <JoinForm />
+    </Suspense>
   )
 }
