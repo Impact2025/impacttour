@@ -238,6 +238,8 @@ export const gameSessions = pgTable('game_sessions', {
   paidAt: timestamp('paid_at'),
   // Herkomst
   source: text('source').notNull().default('direct'), // 'direct' | 'marketplace'
+  // Test mode: GPS-check overslaan (spelleider kan testen zonder te lopen)
+  isTestMode: boolean('is_test_mode').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

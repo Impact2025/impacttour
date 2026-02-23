@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Checkpoint al voltooid' }, { status: 400 })
   }
 
-  // GPS afstandscheck: Haversine
+  // GPS afstandscheck: Haversine (overgeslagen in test mode)
   const distance = haversineDistance(
     latitude,
     longitude,
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     checkpoint.longitude
   )
 
-  if (distance > checkpoint.unlockRadiusMeters) {
+  if (!session.isTestMode && distance > checkpoint.unlockRadiusMeters) {
     return NextResponse.json(
       {
         error: `Te ver van checkpoint (${Math.round(distance)}m, max ${checkpoint.unlockRadiusMeters}m)`,

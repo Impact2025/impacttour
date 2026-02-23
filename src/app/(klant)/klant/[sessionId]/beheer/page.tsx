@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   Play, Pause, Square, Copy, CheckCircle2, Users,
   Trophy, MapPin, Loader2, Navigation, RefreshCw,
-  BarChart2, Clock
+  BarChart2, Clock, FlaskConical
 } from 'lucide-react'
 
 type TeamStatus = {
@@ -23,6 +23,7 @@ type BeheerData = {
   joinCode: string
   joinLink: string
   status: string
+  isTestMode: boolean
   customSessionName: string | null
   scheduledAt: string | null
   tour: { name: string; variant: string; estimatedDurationMin: number } | null
@@ -79,6 +80,7 @@ export default function BeheerPage() {
       setData({
         ...d,
         joinLink: `${appUrl}/join?code=${d.joinCode}`,
+        isTestMode: d.isTestMode ?? false,
         teams: teamsData,
         checkpointCount: d.tour?.checkpoints?.length ?? 0,
       })
@@ -105,6 +107,21 @@ export default function BeheerPage() {
     const interval = setInterval(load, 15000)
     return () => clearInterval(interval)
   }, [load])
+
+  const handleToggleTestMode = async () => {
+    if (!data) return
+    setIsActioning('testmode')
+    try {
+      await fetch(`/api/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isTestMode: !data.isTestMode }),
+      })
+      await load()
+    } finally {
+      setIsActioning(null)
+    }
+  }
 
   const handleAction = async (action: 'start' | 'pause' | 'resume' | 'complete') => {
     setIsActioning(action)
@@ -309,6 +326,24 @@ export default function BeheerPage() {
               </button>
             )}
           </div>
+        )}
+
+        {/* Test mode toggle — handig voor demo/testen zonder GPS */}
+        {!isCompleted && (
+          <button
+            onClick={handleToggleTestMode}
+            disabled={isActioning !== null}
+            className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 border-2 transition-colors ${
+              data.isTestMode
+                ? 'bg-[#FEF3C7] border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]'
+                : 'bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#94A3B8]'
+            }`}
+          >
+            {isActioning === 'testmode'
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <FlaskConical className="w-4 h-4" />}
+            {data.isTestMode ? '🧪 Test mode AAN — klik om uit te zetten' : 'Test mode (spelen zonder GPS)'}
+          </button>
         )}
 
         {/* Teams live overzicht */}

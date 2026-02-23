@@ -91,6 +91,7 @@ export async function GET(
     status: session.status,
     variant: session.variant,
     joinCode: session.joinCode,
+    isTestMode: session.isTestMode,
     geofencePolygon: session.geofencePolygon,
     tour: {
       name: session.tour?.name,

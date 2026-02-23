@@ -89,6 +89,7 @@ export default function GamePage() {
   const [chatOpen, setChatOpen] = useState(false)
   const [nearbyCheckpoint, setNearbyCheckpoint] = useState<CheckpointInfo | null>(null)
   const [activeCheckpoint, setActiveCheckpoint] = useState<CheckpointInfo | null>(null)
+  const [isTestMode, setIsTestMode] = useState(false)
 
   const { position, error: gpsError, isWatching, startWatching } = useGPS({
     onPosition: useCallback(
@@ -108,10 +109,14 @@ export default function GamePage() {
         if (!team) return
         const current = checkpoints.find((c) => c.isCurrent)
         if (!current) return
-        const dist = haversineDistance(pos.latitude, pos.longitude, current.latitude, current.longitude)
-        setNearbyCheckpoint(dist <= current.unlockRadiusMeters ? current : null)
+        if (isTestMode) {
+          setNearbyCheckpoint(current)
+        } else {
+          const dist = haversineDistance(pos.latitude, pos.longitude, current.latitude, current.longitude)
+          setNearbyCheckpoint(dist <= current.unlockRadiusMeters ? current : null)
+        }
       },
-      [sessionId, teamToken, team, checkpoints]
+      [sessionId, teamToken, team, checkpoints, isTestMode]
     ),
     minDistance: 3,
     maxAccuracy: 50,
@@ -162,6 +167,7 @@ export default function GamePage() {
         setTourName(data.tour?.name ?? '')
         setStoryFrame(data.tour?.storyFrame ?? null)
         setJoinCode(data.joinCode ?? '')
+        setIsTestMode(data.isTestMode ?? false)
         setCheckpoints(data.checkpoints ?? [])
         setTeam(data.team)
         setScoreboard(data.scoreboard ?? [])
@@ -180,13 +186,23 @@ export default function GamePage() {
     if (!isLoading && teamToken && !isWatching) startWatching()
   }, [isLoading, teamToken, isWatching, startWatching])
 
+  // Test mode: unlock knop direct tonen zonder GPS beweging
+  useEffect(() => {
+    if (!isTestMode) return
+    const current = checkpoints.find((c) => c.isCurrent)
+    setNearbyCheckpoint(current ?? null)
+  }, [isTestMode, checkpoints])
+
   const handleCheckpointUnlock = async () => {
-    if (!nearbyCheckpoint || !teamToken || !position) return
+    if (!nearbyCheckpoint || !teamToken) return
+    // In test mode mag je unlocken zonder GPS; gebruik checkpoint-coördinaten als fallback
+    const lat = position?.latitude ?? nearbyCheckpoint.latitude
+    const lng = position?.longitude ?? nearbyCheckpoint.longitude
     try {
       const res = await fetch('/api/game/checkpoint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, teamToken, checkpointId: nearbyCheckpoint.id, latitude: position.latitude, longitude: position.longitude }),
+        body: JSON.stringify({ sessionId, teamToken, checkpointId: nearbyCheckpoint.id, latitude: lat, longitude: lng }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || 'Unlock mislukt'); return }
@@ -387,11 +403,16 @@ export default function GamePage() {
 
           {/* Rechts: GPS + score */}
           <div className="flex items-center gap-3 shrink-0">
-            {gpsError ? (
+            {isTestMode && (
+              <span className="flex items-center gap-1 text-[9px] font-semibold text-[#F59E0B] bg-[#FEF3C7] px-2 py-1 rounded-full">
+                🧪 TEST
+              </span>
+            )}
+            {!isTestMode && gpsError ? (
               <span className="flex items-center gap-1 text-[9px] font-semibold text-[#F59E0B] bg-[#FEF3C7] px-2 py-1 rounded-full">
                 <Radio className="w-3 h-3" /> GPS: off
               </span>
-            ) : isWatching ? (
+            ) : !isTestMode && isWatching ? (
               <span className="flex items-center gap-1 text-[9px] font-semibold text-[#00C853] bg-[#DCFCE7] px-2 py-1 rounded-full">
                 <Navigation className="w-3 h-3" /> GPS
               </span>

@@ -10,6 +10,7 @@ const updateSchema = z.object({
   status: z.enum(['lobby', 'active', 'paused', 'completed', 'cancelled']).optional(),
   geofencePolygon: z.array(z.object({ lat: z.number(), lng: z.number() })).nullable().optional(),
   scheduledAt: z.string().nullable().optional(),
+  isTestMode: z.boolean().optional(),
 })
 
 /** GET /api/sessions/[id] — Haal sessie op met teams */
@@ -58,6 +59,9 @@ export async function PUT(
   }
   if (parsed.data.scheduledAt !== undefined) {
     updates.scheduledAt = parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : null
+  }
+  if (parsed.data.isTestMode !== undefined) {
+    updates.isTestMode = parsed.data.isTestMode
   }
 
   const [updated] = await db
