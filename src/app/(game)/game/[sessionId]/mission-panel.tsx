@@ -133,22 +133,36 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
     return (
       <div className="h-full overflow-y-auto bg-[#F0FDF4]">
         <div className="px-4 pt-10 pb-8 flex flex-col items-center text-center">
-          {/* Score cirkel */}
-          <div className={`w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg mb-5 ${isHighImpact ? 'bg-[#00E676] shadow-[#00E676]/30' : 'bg-white border-2 border-[#E2E8F0]'}`}>
-            <Star className={`w-6 h-6 mb-0.5 ${isHighImpact ? 'text-[#0F172A]' : 'text-[#94A3B8]'}`} fill={isHighImpact ? '#0F172A' : 'none'} />
-            <span className={`text-2xl font-black leading-none ${isHighImpact ? 'text-[#0F172A]' : 'text-[#0F172A]'}`}
-              style={{ fontFamily: 'var(--font-display)' }}>
-              {score}
-            </span>
+          {/* Score cirkel met confetti */}
+          <div className="relative inline-flex mb-5">
+            {isHighImpact && (
+              <>
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '-12px', left: 'calc(50% - 16px)', width: '8px', height: '8px', background: '#00E676', animation: 'confetti-drop 0.85s ease-out 0.05s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '-8px', left: 'calc(50% + 8px)', width: '6px', height: '10px', background: '#F59E0B', animation: 'confetti-drop 0.85s ease-out 0.12s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '4px', left: '-14px', width: '8px', height: '6px', background: '#6366F1', animation: 'confetti-drop 0.85s ease-out 0.18s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '-4px', left: 'calc(50% + 22px)', width: '6px', height: '8px', background: '#EC4899', animation: 'confetti-drop 0.85s ease-out 0.24s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '8px', right: '-14px', width: '10px', height: '6px', background: '#00E676', animation: 'confetti-drop 0.85s ease-out 0.3s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '-10px', left: 'calc(50% - 30px)', width: '8px', height: '10px', background: '#A855F7', animation: 'confetti-drop 0.85s ease-out 0.36s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '14px', left: '-18px', width: '6px', height: '8px', background: '#F59E0B', animation: 'confetti-drop 0.85s ease-out 0.42s both' }} />
+                <span className="absolute pointer-events-none rounded-sm" style={{ top: '6px', right: '-20px', width: '8px', height: '6px', background: '#10B981', animation: 'confetti-drop 0.85s ease-out 0.48s both' }} />
+              </>
+            )}
+            <div className={`animate-counter-pop w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-lg ${isHighImpact ? 'bg-[#00E676] shadow-[#00E676]/30 animate-pulse-glow' : 'bg-white border-2 border-[#E2E8F0]'}`}>
+              <Star className={`w-6 h-6 mb-0.5 ${isHighImpact ? 'text-[#0F172A]' : 'text-[#94A3B8]'}`} fill={isHighImpact ? '#0F172A' : 'none'} />
+              <span className="text-2xl font-black leading-none text-[#0F172A]"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                {score}
+              </span>
+            </div>
           </div>
 
-          <h2 className="text-2xl font-black text-[#0F172A] mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+          <h2 className="text-2xl font-black text-[#0F172A] mb-1 animate-fade-in" style={{ fontFamily: 'var(--font-display)' }}>
             {isHighImpact ? '🌟 Hoge Impact!' : 'Goed gedaan!'}
           </h2>
-          <p className="text-[#64748B] text-sm mb-6 max-w-xs leading-relaxed">{result.aiFeedback}</p>
+          <p className="text-[#64748B] text-sm mb-6 max-w-xs leading-relaxed animate-fade-in stagger-1">{result.aiFeedback}</p>
 
           {/* GMS punten */}
-          <div className="bg-white rounded-2xl shadow-sm w-full p-5 mb-3">
+          <div className="bg-white rounded-2xl shadow-sm w-full p-5 mb-3 animate-slide-up-fade stagger-2">
             <p className="text-[9px] text-[#94A3B8] font-bold uppercase tracking-widest mb-1">Verdiend</p>
             <div className="text-5xl font-black text-[#0F172A]" style={{ fontFamily: 'var(--font-display)' }}>
               +{result.gmsEarned}
@@ -158,7 +172,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
 
           {/* Bonus punten */}
           {(result.bonusEarned ?? 0) > 0 && (
-            <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-2xl w-full p-4 mb-3">
+            <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-2xl w-full p-4 mb-3 animate-slide-up-fade stagger-3">
               <div className="text-3xl font-black text-[#D97706]" style={{ fontFamily: 'var(--font-display)' }}>
                 +{result.bonusEarned}
               </div>
@@ -172,7 +186,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
               {gmsLabels.map((label, i) => {
                 const val = Object.values(result.gmsBreakdown!)[i]
                 return (
-                  <div key={label} className={`rounded-xl p-3 text-left ${gmsColors[i]}`}>
+                  <div key={label} className={`rounded-xl p-3 text-left animate-slide-up-fade stagger-${i + 1} ${gmsColors[i]}`}>
                     <div className="text-xl font-black leading-none" style={{ fontFamily: 'var(--font-display)' }}>{val}</div>
                     <div className="text-[10px] font-semibold opacity-80 mt-0.5">{label}</div>
                   </div>
@@ -183,7 +197,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
 
           <button
             onClick={onClose}
-            className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-base shadow-lg shadow-[#00E676]/20 active:scale-95 transition-transform flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-base shadow-lg shadow-[#00E676]/20 active:scale-95 transition-transform flex items-center justify-center gap-2 animate-slide-up-fade stagger-4"
           >
             <ChevronLeft className="w-5 h-5" />
             Terug naar de kaart

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Navigation, Target } from 'lucide-react'
+import { Navigation, Target, CheckCircle2, XCircle } from 'lucide-react'
 
 const VOETBALCLUB_NAMEN = [
   'Ajax', 'Feyenoord', 'PSV', 'AZ', 'Vitesse',
@@ -16,6 +16,8 @@ type SessionPreview = {
   preCreatedTeams: string[]
 }
 
+type RecoveredTeam = { teamName: string; sessionId: string }
+
 function JoinForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -27,23 +29,45 @@ function JoinForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [sessionPreview, setSessionPreview] = useState<SessionPreview | null>(null)
+  const [previewStatus, setPreviewStatus] = useState<'idle' | 'loading' | 'found' | 'not-found'>('idle')
+  const [recoveredTeam, setRecoveredTeam] = useState<RecoveredTeam | null>(null)
+
+  // Token recovery: check sessionStorage on mount
+  useEffect(() => {
+    const token = sessionStorage.getItem('teamToken')
+    const storedSessionId = sessionStorage.getItem('sessionId')
+    if (!token || !storedSessionId) return
+    fetch(`/api/game/session/${storedSessionId}`, { headers: { 'x-team-token': token } })
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .then((data) => {
+        if (data?.team?.name) setRecoveredTeam({ teamName: data.team.name, sessionId: storedSessionId })
+      })
+      .catch(() => {
+        sessionStorage.removeItem('teamToken')
+        sessionStorage.removeItem('sessionId')
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (code.length !== 6) {
       setSessionPreview(null)
+      setPreviewStatus('idle')
       return
     }
+    setPreviewStatus('loading')
     fetch(`/api/game/preview?code=${code}`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((data: SessionPreview | null) => {
-        setSessionPreview(data)
-        // Als er vooraf aangemaakte teams zijn en de URL had een ?team= param → laat dat staan
-        // Anders: reset teamnaam zodat gebruiker een keuze maakt
-        if (data?.preCreatedTeams?.length && !searchParams.get('team')) {
-          setTeamName('')
-        }
+      .then((r) => {
+        if (!r.ok) { setPreviewStatus('not-found'); return null }
+        return r.json()
       })
-      .catch(() => setSessionPreview(null))
+      .then((data: SessionPreview | null) => {
+        if (!data) return
+        setSessionPreview(data)
+        setPreviewStatus('found')
+        if (data?.preCreatedTeams?.length && !searchParams.get('team')) setTeamName('')
+      })
+      .catch(() => { setSessionPreview(null); setPreviewStatus('not-found') })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code])
 
@@ -71,6 +95,7 @@ function JoinForm() {
 
       sessionStorage.setItem('teamToken', data.teamToken)
       sessionStorage.setItem('teamId', data.teamId)
+      sessionStorage.setItem('sessionId', data.sessionId)
 
       router.push(`/game/${data.sessionId}`)
     } catch {
@@ -83,6 +108,40 @@ function JoinForm() {
   const Icon = isFootball ? Target : Navigation
   const iconBg = isFootball ? 'bg-green-500/15' : 'bg-[#00E676]/15'
   const iconColor = isFootball ? 'text-green-400' : 'text-[#00E676]'
+
+  // Token recovery card
+  if (recoveredTeam) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-4 bg-[#F8FAFC]">
+        <div className="max-w-md w-full animate-scale-in">
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-6 h-6 text-[#00C853]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[#0F172A]">Welkom terug!</h2>
+                <p className="text-sm text-[#64748B]">Team: <strong className="text-[#0F172A]">{recoveredTeam.teamName}</strong></p>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push(`/game/${recoveredTeam.sessionId}`)}
+              className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-xl font-bold text-sm uppercase tracking-wide mb-3 active:scale-95 transition-transform"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              Verdergaan met tocht
+            </button>
+            <button
+              onClick={() => setRecoveredTeam(null)}
+              className="w-full py-3 text-center text-[#94A3B8] text-sm hover:text-[#64748B] transition-colors"
+            >
+              Ander team / andere tocht
+            </button>
+          </div>
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className={`min-h-screen flex items-center justify-center p-4 transition-colors ${
@@ -124,19 +183,40 @@ function JoinForm() {
               }`}>
                 Teamcode
               </label>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                placeholder="ABC123"
-                maxLength={6}
-                required
-                className={`w-full px-4 py-4 text-center text-3xl font-bold tracking-widest border-2 rounded-xl focus:outline-none uppercase transition-colors ${
-                  isFootball
-                    ? 'bg-[#0A1A0A] border-green-800 text-white focus:border-green-500 placeholder-green-900'
-                    : 'border-[#E2E8F0] focus:border-[#00E676] text-[#0F172A]'
-                }`}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  placeholder="ABC123"
+                  maxLength={6}
+                  required
+                  className={`w-full px-4 py-4 pr-12 text-center text-3xl font-bold tracking-widest border-2 rounded-xl focus:outline-none uppercase transition-colors ${
+                    isFootball
+                      ? 'bg-[#0A1A0A] border-green-800 text-white focus:border-green-500 placeholder-green-900'
+                      : previewStatus === 'found'
+                      ? 'border-[#00E676] text-[#0F172A]'
+                      : previewStatus === 'not-found'
+                      ? 'border-red-300 text-[#0F172A]'
+                      : 'border-[#E2E8F0] focus:border-[#00E676] text-[#0F172A]'
+                  }`}
+                />
+                {previewStatus === 'loading' && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <div className={`w-5 h-5 border-2 rounded-full animate-spin ${isFootball ? 'border-green-700 border-t-green-400' : 'border-[#E2E8F0] border-t-[#00E676]'}`} />
+                  </div>
+                )}
+                {previewStatus === 'found' && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none animate-fade-in">
+                    <CheckCircle2 className={`w-5 h-5 ${isFootball ? 'text-green-400' : 'text-[#00C853]'}`} />
+                  </div>
+                )}
+                {previewStatus === 'not-found' && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none animate-fade-in">
+                    <XCircle className="w-5 h-5 text-red-400" />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Teamkeuze: lijst van vooraf aangemaakte teams */}

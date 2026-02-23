@@ -90,6 +90,8 @@ export default function GamePage() {
   const [nearbyCheckpoint, setNearbyCheckpoint] = useState<CheckpointInfo | null>(null)
   const [activeCheckpoint, setActiveCheckpoint] = useState<CheckpointInfo | null>(null)
   const [isTestMode, setIsTestMode] = useState(false)
+  const [isUnlockCelebrating, setIsUnlockCelebrating] = useState(false)
+  const [celebratingCheckpoint, setCelebratingCheckpoint] = useState<CheckpointInfo | null>(null)
 
   const { position, error: gpsError, isWatching, startWatching } = useGPS({
     onPosition: useCallback(
@@ -206,17 +208,23 @@ export default function GamePage() {
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || 'Unlock mislukt'); return }
-      toast.success(`Checkpoint ${nearbyCheckpoint.orderIndex + 1} bereikt!`)
-      setActiveCheckpoint(nearbyCheckpoint)
+      const cpToShow = nearbyCheckpoint
       setNearbyCheckpoint(null)
-      setActiveView('mission')
-      const refresh = await fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
-      if (refresh.ok) {
-        const d = await refresh.json()
-        setCheckpoints(d.checkpoints ?? [])
-        setTeam(d.team)
-        setScoreboard(d.scoreboard ?? [])
-      }
+      setCelebratingCheckpoint(cpToShow)
+      setIsUnlockCelebrating(true)
+      // Refresh game data in background during celebration
+      fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (d) { setCheckpoints(d.checkpoints ?? []); setTeam(d.team); setScoreboard(d.scoreboard ?? []) }
+        })
+        .catch(() => {})
+      // After 1.2s celebration, open mission
+      setTimeout(() => {
+        setIsUnlockCelebrating(false)
+        setActiveCheckpoint(cpToShow)
+        setActiveView('mission')
+      }, 1200)
     } catch {
       toast.error('Verbindingsfout')
     }
@@ -453,7 +461,7 @@ export default function GamePage() {
       {gpsError && (
         <div className="bg-[#FEF3C7] text-[#92400E] px-4 py-2 text-xs text-center shrink-0 flex items-center justify-center gap-1.5">
           <Radio className="w-3.5 h-3.5 shrink-0" />
-          {gpsError} · Controleer locatietoegang in browserinstellingen
+          Locatie niet beschikbaar — controleer je browserinstellingen
         </div>
       )}
       {team?.isOutsideGeofence && (
@@ -556,6 +564,25 @@ export default function GamePage() {
               <FileText className="w-3.5 h-3.5" />
               Open missie
             </button>
+          </div>
+        )}
+
+        {/* ── UNLOCK CELEBRATION OVERLAY ── */}
+        {isUnlockCelebrating && celebratingCheckpoint && (
+          <div className="absolute inset-0 z-[2000] bg-[#00E676] flex items-center justify-center animate-fade-in">
+            <div className="text-center animate-scale-in">
+              <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
+                <span className="text-5xl font-black text-[#0F172A] leading-none"
+                  style={{ fontFamily: 'var(--font-display)' }}>
+                  {celebratingCheckpoint.orderIndex + 1}
+                </span>
+              </div>
+              <div className="text-3xl font-black text-[#0F172A] tracking-widest uppercase"
+                style={{ fontFamily: 'var(--font-display)' }}>
+                ONTGRENDELD!
+              </div>
+              <p className="text-[#0F172A]/60 text-sm font-semibold mt-2">{celebratingCheckpoint.name}</p>
+            </div>
           </div>
         )}
 

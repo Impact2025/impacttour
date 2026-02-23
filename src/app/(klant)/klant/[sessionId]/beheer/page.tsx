@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   Play, Pause, Square, Copy, CheckCircle2, Users,
   Trophy, MapPin, Loader2, Navigation, RefreshCw,
-  BarChart2, Clock, FlaskConical
+  BarChart2, Clock, FlaskConical, X,
 } from 'lucide-react'
 
 type TeamStatus = {
@@ -16,6 +16,7 @@ type TeamStatus = {
   currentCheckpointIndex: number
   isActive: boolean
   isOutsideGeofence: boolean
+  lastPositionAt?: string | null
 }
 
 type BeheerData = {
@@ -60,6 +61,7 @@ export default function BeheerPage() {
   const [copied, setCopied] = useState<string | null>(null)
   const [isActioning, setIsActioning] = useState<string | null>(null)
   const [elapsed, setElapsed] = useState(0)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -92,6 +94,17 @@ export default function BeheerPage() {
   }, [sessionId, router])
 
   useEffect(() => { load() }, [load])
+
+  // Onboarding strip: toon eenmalig per sessie
+  useEffect(() => {
+    if (!sessionId) return
+    if (!localStorage.getItem(`beheer_onboarded_${sessionId}`)) setShowOnboarding(true)
+  }, [sessionId])
+
+  const dismissOnboarding = () => {
+    localStorage.setItem(`beheer_onboarded_${sessionId}`, '1')
+    setShowOnboarding(false)
+  }
 
   // Elapsed timer
   useEffect(() => {
@@ -273,6 +286,30 @@ export default function BeheerPage() {
           </p>
         </div>
 
+        {/* ONBOARDING STRIP — eerste keer */}
+        {showOnboarding && isLobby && (
+          <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 animate-fade-in">
+            <div className="flex items-start justify-between mb-2.5">
+              <p className="text-sm font-bold text-[#1E40AF]">Zo werkt het</p>
+              <button onClick={dismissOnboarding} className="text-[#93C5FD] hover:text-[#1E40AF] transition-colors -mt-0.5">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <ol className="space-y-2">
+              {[
+                'Deel de teamcode met deelnemers',
+                'Wacht tot alle teams zijn ingelogd',
+                'Druk op START DE TOCHT',
+              ].map((step, i) => (
+                <li key={i} className="flex items-center gap-2.5 text-sm text-[#3B82F6]">
+                  <span className="w-5 h-5 bg-[#BFDBFE] text-[#1D4ED8] rounded-full text-xs flex items-center justify-center font-bold shrink-0">{i + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
         {/* HOOFD ACTIEKNOP */}
         {!isCompleted && (
           <div>
@@ -353,12 +390,21 @@ export default function BeheerPage() {
               <Users className="w-4 h-4 text-[#00E676]" />
               Teams live
             </h3>
-            {isActive && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
-                <span className="text-xs text-[#00C853] font-medium">Live</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {isActive && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+                  <span className="text-xs text-[#00C853] font-medium">Live</span>
+                </div>
+              )}
+              <button
+                onClick={load}
+                className="p-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors text-[#94A3B8] hover:text-[#64748B]"
+                title="Vernieuwen"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {sortedTeams.length === 0 ? (
@@ -373,6 +419,10 @@ export default function BeheerPage() {
                 const progress = data.checkpointCount > 0
                   ? Math.round((team.currentCheckpointIndex / data.checkpointCount) * 100)
                   : 0
+                const isDone = data.checkpointCount > 0 && team.currentCheckpointIndex >= data.checkpointCount
+                const isOnline = team.lastPositionAt
+                  ? Date.now() - new Date(team.lastPositionAt).getTime() < 120_000
+                  : false
                 return (
                   <div key={team.id} className={`rounded-xl p-3 border ${team.isOutsideGeofence ? 'border-red-200 bg-red-50' : 'border-[#F1F5F9] bg-[#F8FAFC]'}`}>
                     <div className="flex items-center gap-3 mb-2">
@@ -386,7 +436,10 @@ export default function BeheerPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-[#0F172A] text-sm truncate">{team.name}</span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {isOnline && <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shrink-0" title="Online" />}
+                            <span className="font-semibold text-[#0F172A] text-sm truncate">{team.name}</span>
+                          </div>
                           <span className="text-[#00E676] font-black text-sm shrink-0"
                             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
                             {team.totalGmsScore} pt
@@ -402,13 +455,20 @@ export default function BeheerPage() {
                         </div>
                       </div>
                     </div>
-                    {/* Progress bar */}
-                    <div className="h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-[#00E676] rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
+                    {/* Progress bar of Klaar-badge */}
+                    {isDone ? (
+                      <div className="flex items-center gap-1.5 text-xs text-[#00C853] font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Klaar!
+                      </div>
+                    ) : (
+                      <div className="h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#00E676] rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )
               })}
