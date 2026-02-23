@@ -8,14 +8,17 @@
 
 import OpenAI from 'openai'
 
-const openrouter = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_API_KEY!,
-  defaultHeaders: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://impacttocht.nl',
-    'X-Title': 'ImpactTocht',
-  },
-})
+// Lazy init — voorkomt build-time crash als OPENROUTER_API_KEY ontbreekt
+function getOpenRouter() {
+  return new OpenAI({
+    baseURL: 'https://openrouter.ai/api/v1',
+    apiKey: process.env.OPENROUTER_API_KEY || 'missing',
+    defaultHeaders: {
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://impacttocht.nl',
+      'X-Title': 'ImpactTocht',
+    },
+  })
+}
 
 // Zwaar model voor narratieven, tour-generatie en complexe JSON (A, E, F, G)
 const DEFAULT_MODEL =
@@ -40,7 +43,7 @@ export async function aiComplete(
     temperature?: number
   }
 ): Promise<string> {
-  const response = await openrouter.chat.completions.create({
+  const response = await getOpenRouter().chat.completions.create({
     model: options?.model ?? DEFAULT_MODEL,
     messages,
     max_tokens: options?.maxTokens ?? 1024,
@@ -58,7 +61,7 @@ export async function aiCompleteJSON<T = unknown>(
     maxTokens?: number
   }
 ): Promise<T> {
-  const response = await openrouter.chat.completions.create({
+  const response = await getOpenRouter().chat.completions.create({
     model: options?.model ?? DEFAULT_MODEL,
     messages,
     max_tokens: options?.maxTokens ?? 2048,
