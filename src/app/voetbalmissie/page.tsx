@@ -1,0 +1,348 @@
+import Link from 'next/link'
+import { Navigation, ArrowRight, CheckCircle2, Quote, Shield, Timer, Camera, Star } from 'lucide-react'
+
+const CHECKPOINTS = [
+  {
+    nr: '01',
+    title: 'Warming-up buurt',
+    desc: 'Teams verkennen de buurt rondom het veld en interviewen een bewoner.',
+    type: 'sociale opdracht',
+    color: '#3B82F6',
+  },
+  {
+    nr: '02',
+    title: 'Teamfoto missie',
+    desc: 'Maak een teamfoto met een onbekende volwassene. +50 bonuspunten!',
+    type: 'foto-opdracht',
+    color: '#EC4899',
+  },
+  {
+    nr: '03',
+    title: 'Fair Play Quiz',
+    desc: 'Dilemma-vragen over sportiviteit en eerlijk spel. AI beoordeelt jullie antwoord.',
+    type: 'kennisquiz',
+    color: '#8B5CF6',
+  },
+  {
+    nr: '04',
+    title: 'Klus voor de club',
+    desc: '8 minuten om een kleine klus te doen voor de accommodatie. Klok tikt!',
+    type: 'tijdmissie · 8 min',
+    color: '#F59E0B',
+  },
+  {
+    nr: '05',
+    title: 'Impact Finale',
+    desc: 'Welke impact heeft jullie team gemaakt? Reflecteer en presenteer aan de groep.',
+    type: 'debriefing',
+    color: '#00E676',
+  },
+]
+
+export default function VoetbalmissiePage() {
+  return (
+    <main className="min-h-screen bg-white">
+
+      {/* ── Navbar ─────────────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E2E8F0]">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#00E676] flex items-center justify-center">
+              <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
+            </div>
+            <span
+              className="font-black text-[#0F172A] text-sm tracking-tight"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              IMPACTTOCHT
+            </span>
+            <span className="text-[#64748B] text-xs ml-1 hidden md:inline">/ VoetbalMissie</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="hidden md:block text-sm font-medium text-[#64748B] hover:text-[#0F172A] px-3 py-1.5 transition-colors"
+            >
+              Alle varianten
+            </Link>
+            <Link
+              href="/tochten"
+              className="text-xs font-bold bg-[#00E676] text-[#0F172A] px-4 py-2 rounded-xl hover:bg-[#00C853] transition-colors"
+            >
+              Boek VoetbalMissie
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── Hero ───────────────────────────────────────────────────── */}
+      <section className="bg-[#0F172A] px-4 md:px-8 py-12 md:py-20">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:gap-16">
+          <div className="flex-1 mb-10 md:mb-0">
+            <span className="inline-block text-[10px] font-bold text-[#00E676] bg-[#00E676]/10 border border-[#00E676]/20 rounded-full px-3 py-1 mb-5 uppercase tracking-widest">
+              ⚽ VoetbalMissie · 9-12 jaar
+            </span>
+
+            <h1
+              className="text-[2.6rem] md:text-6xl font-black italic text-white leading-[1.05] mb-4"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              Maak impact<br />
+              <span className="text-[#00E676]">op en naast het veld.</span>
+            </h1>
+
+            <p className="text-[#94A3B8] text-sm md:text-base leading-relaxed mb-6 max-w-md">
+              VoetbalMissie verbindt voetbal met sociale impact. Kinderen van 9-12 jaar
+              verkennen de buurt, voltooien 5 checkpoints en leren empathie terwijl
+              ze keihard spelen.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-5">
+              <Link
+                href="/tochten"
+                className="inline-flex items-center justify-center gap-2 bg-[#00E676] text-[#0F172A] font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-[#00C853] transition-colors"
+              >
+                Boek voor jouw club
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/join"
+                className="inline-flex items-center justify-center gap-2 border border-white/10 text-[#94A3B8] font-medium text-sm px-6 py-3.5 rounded-2xl hover:bg-white/5 transition-colors"
+              >
+                Doe mee als team
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-4 text-xs text-[#64748B]">
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-[#00E676]" /> 5 checkpoints</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-[#00E676]" /> 90 minuten</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-[#00E676]" /> Vanaf €6/kind</span>
+              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-[#00E676]" /> AVG-veilig</span>
+            </div>
+          </div>
+
+          {/* Stats grid — desktop */}
+          <div className="grid grid-cols-2 gap-3 md:w-[320px] shrink-0">
+            {[
+              { label: 'Prijs per kind', value: '€6', sub: 'Schooltarief' },
+              { label: 'Duur', value: '90 min', sub: '5 checkpoints' },
+              { label: 'Leeftijd', value: '9-12', sub: 'jaar' },
+              { label: 'Max GMS', value: '100', sub: 'per checkpoint' },
+            ].map(({ label, value, sub }) => (
+              <div key={label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <div
+                  className="text-2xl font-black text-white mb-0.5"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  {value}
+                </div>
+                <div className="text-[#94A3B8] text-[10px]">{sub}</div>
+                <div className="text-[#64748B] text-[10px] mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Checkpoints ────────────────────────────────────────────── */}
+      <section className="bg-white px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">De route</p>
+          <h2
+            className="text-3xl md:text-5xl font-black text-[#0F172A] mb-10"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            5 sociale missies.
+          </h2>
+
+          <div className="space-y-4">
+            {CHECKPOINTS.map(({ nr, title, desc, type, color }) => (
+              <div
+                key={nr}
+                className="flex gap-4 md:gap-6 bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/30 transition-colors"
+              >
+                <div
+                  className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm"
+                  style={{ backgroundColor: `${color}15`, color }}
+                >
+                  {nr}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 mb-1">
+                    <h3 className="font-bold text-[#0F172A] text-sm">{title}</h3>
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest shrink-0"
+                      style={{ color }}
+                    >
+                      {type}
+                    </span>
+                  </div>
+                  <p className="text-[#64748B] text-xs leading-relaxed">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features specifiek ─────────────────────────────────────── */}
+      <section className="bg-[#F8FAFC] px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Ingebouwde functies</p>
+          <h2
+            className="text-2xl md:text-4xl font-black text-[#0F172A] mb-10"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Alles voor een perfecte clubdag.
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                Icon: Timer,
+                iconColor: '#F59E0B',
+                iconBg: '#F59E0B15',
+                title: 'Countdown timer',
+                desc: 'Checkpoint 4 heeft een 8-minuten tijdlimiet. Spanning gegarandeerd.',
+              },
+              {
+                Icon: Camera,
+                iconColor: '#EC4899',
+                iconBg: '#EC489915',
+                title: 'Bonus fotomissie',
+                desc: 'Checkpoint 2: teamfoto met een vreemde = +50 bonuspunten. Kids leren contact leggen.',
+              },
+              {
+                Icon: Shield,
+                iconColor: '#3B82F6',
+                iconBg: '#3B82F615',
+                title: 'Geofencing',
+                desc: 'De spelleider stelt een zone in. Bij grensoverschrijding volgt direct een alarm.',
+              },
+              {
+                Icon: Star,
+                iconColor: '#00E676',
+                iconBg: '#00E67615',
+                title: 'Flits assistent',
+                desc: 'Kids-vriendelijke AI-assistent. Geen chat, alleen hint-knoppen. Veilig en overzichtelijk.',
+              },
+            ].map(({ Icon, iconColor, iconBg, title, desc }) => (
+              <div key={title} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/30 transition-colors">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+                  style={{ backgroundColor: iconBg }}
+                >
+                  <Icon className="w-5 h-5" style={{ color: iconColor }} />
+                </div>
+                <h3 className="font-bold text-[#0F172A] text-sm mb-1.5">{title}</h3>
+                <p className="text-[#64748B] text-xs leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonial ────────────────────────────────────────────── */}
+      <section className="bg-[#0F172A] px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-2xl">
+            <Quote className="w-8 h-8 text-[#00E676] mb-5" />
+            <p
+              className="text-white text-xl md:text-2xl font-medium leading-relaxed mb-7"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              &ldquo;Dankzij VoetbalMissie zien mijn spelers dat er meer zijn dan alleen voetballers.
+              Ze leren verantwoordelijkheid en empathie, terwijl ze nog steeds elke week
+              keihard strijden voor de overwinning.&rdquo;
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#00E676]/15 border border-[#00E676]/20 flex items-center justify-center">
+                <span className="text-[#00E676] text-xs font-black">MV</span>
+              </div>
+              <div>
+                <p className="text-white text-sm font-bold">Mark de Vries</p>
+                <p className="text-[#64748B] text-xs uppercase tracking-wide">Hoofdcoach O11 · AFC Amsterdam</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Privacy callout ────────────────────────────────────────── */}
+      <section className="bg-white px-4 md:px-8 py-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-[#F8FAFC] rounded-3xl px-7 py-8 border border-[#E2E8F0] md:flex md:items-center md:gap-12">
+            <div className="mb-5 md:mb-0 text-3xl">🔒</div>
+            <div className="flex-1">
+              <h3
+                className="text-xl md:text-2xl font-black text-[#0F172A] mb-2"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                Privacy by design voor kinderen
+              </h3>
+              <p className="text-[#64748B] text-sm leading-relaxed">
+                Geen persoonsgegevens van kinderen opgeslagen. Alleen teamnaam en teamtoken.
+                Foto&apos;s worden automatisch verwijderd na 30 dagen.
+                Volledig AVG-compliant voor schoolprojecten en clubs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ────────────────────────────────────────────────────── */}
+      <section className="bg-[#00E676] px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2
+            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Klaar voor<br />de aanval?
+          </h2>
+          <p className="text-[#0F172A]/60 text-sm md:text-base mb-7 max-w-sm mx-auto">
+            Boek VoetbalMissie voor jouw club of school. Vanaf €6 per kind.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+            <Link
+              href="/tochten"
+              className="inline-flex items-center justify-center gap-2 bg-[#0F172A] text-white font-bold text-sm px-7 py-3.5 rounded-2xl hover:bg-[#1E293B] transition-colors"
+            >
+              Boek VoetbalMissie
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 border-2 border-[#0F172A]/20 text-[#0F172A] font-semibold text-sm px-7 py-3.5 rounded-2xl hover:bg-[#0F172A]/5 transition-colors"
+            >
+              Andere varianten ↗
+            </Link>
+          </div>
+
+          <div className="flex items-center justify-center gap-6 text-[#0F172A]/50 text-xs">
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Geofencing</span>
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> AVG-compliant</span>
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Impactrapport</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ─────────────────────────────────────────────────── */}
+      <footer className="bg-[#0F172A] border-t border-white/5 px-4 md:px-8 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:justify-between gap-4 text-xs text-[#475569]">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-[#00E676] flex items-center justify-center">
+              <Navigation className="w-3 h-3 text-[#0F172A]" strokeWidth={2.5} />
+            </div>
+            <span className="text-white font-bold" style={{ fontFamily: 'var(--font-display)' }}>IMPACTTOCHT</span>
+            <span className="text-[#475569]">— onderdeel van TeambuildingMetImpact.nl</span>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/" className="hover:text-white transition-colors">Alle varianten</Link>
+            <span className="cursor-pointer hover:text-white transition-colors">Privacy Policy</span>
+          </div>
+        </div>
+      </footer>
+    </main>
+  )
+}

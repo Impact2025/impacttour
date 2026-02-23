@@ -1,5 +1,82 @@
 import Link from 'next/link'
-import { Navigation, Grid3x3, Heart, Trophy, Quote, ArrowRight, CheckCircle2 } from 'lucide-react'
+import {
+  Navigation,
+  MapPin,
+  Heart,
+  Trophy,
+  Quote,
+  ArrowRight,
+  CheckCircle2,
+  Users,
+  Zap,
+  Shield,
+  Footprints,
+} from 'lucide-react'
+
+const VARIANTS = [
+  {
+    emoji: '🏙️',
+    slug: 'wijktocht',
+    name: 'WijkTocht',
+    target: 'Bedrijven & teams',
+    desc: 'GPS-opdrachten in de buurt. Teams verbinden met hun omgeving én met elkaar.',
+    color: '#3B82F6',
+    bg: '#3B82F615',
+  },
+  {
+    emoji: '⚡',
+    slug: 'impactsprint',
+    name: 'ImpactSprint',
+    target: 'Compact · 90 min',
+    desc: '5 checkpoints, 500m radius. Maximale impact in minimale tijd voor drukke agenda\'s.',
+    color: '#8B5CF6',
+    bg: '#8B5CF615',
+  },
+  {
+    emoji: '👨‍👩‍👧',
+    slug: 'familietocht',
+    name: 'FamilieTocht',
+    target: 'Gezinnen · weekend',
+    desc: 'Ontdek je buurt als gezin. Scoor de Familie Geluksscore en maak echte herinneringen.',
+    color: '#EC4899',
+    bg: '#EC489915',
+  },
+  {
+    emoji: '🧒',
+    slug: 'jeugdtocht',
+    name: 'JeugdTocht',
+    target: 'Kinderen 9-13 jaar',
+    desc: 'Veilig GPS-avontuur met geofencing. Flits de assistent helpt kids onderweg.',
+    color: '#F59E0B',
+    bg: '#F59E0B15',
+  },
+  {
+    emoji: '⚽',
+    slug: 'voetbalmissie',
+    name: 'VoetbalMissie',
+    target: 'Voetbalclubs · scholen',
+    desc: '5 sociale checkpoints rondom het veld. Leer empathie terwijl je keihard speelt.',
+    color: '#00E676',
+    bg: '#00E67615',
+  },
+]
+
+const TESTIMONIALS = [
+  {
+    quote:
+      'Onze teamdag was nog nooit zo memorabel. De combinatie van GPS-avontuur en sociale opdrachten bracht mensen samen die anders nooit zouden praten.',
+    name: 'Sandra Hoekstra',
+    role: 'HR Manager · Gemeente Rotterdam',
+    initials: 'SH',
+  },
+  {
+    quote:
+      'Mijn kinderen praten nu nog over de FamilieTocht van vorige zomer. Ze leerden iets over hun eigen wijk én over samenwerken.',
+    name: 'Pieter van Dam',
+    role: 'Deelnemer FamilieTocht · Utrecht',
+    initials: 'PV',
+  },
+]
 
 export default function HomePage() {
   return (
@@ -17,57 +94,58 @@ export default function HomePage() {
               className="font-black text-[#0F172A] text-sm tracking-tight"
               style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
             >
-              IMPACT FC
+              IMPACTTOCHT
             </span>
           </div>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-7 text-sm text-[#64748B]">
-            <a href="#features" className="hover:text-[#0F172A] transition-colors">Functies</a>
-            <a href="#overzicht" className="hover:text-[#0F172A] transition-colors">Overzicht</a>
             <a href="#varianten" className="hover:text-[#0F172A] transition-colors">Varianten</a>
+            <a href="#hoe-het-werkt" className="hover:text-[#0F172A] transition-colors">Hoe het werkt</a>
+            <a href="#impact" className="hover:text-[#0F172A] transition-colors">Impact</a>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2">
             <Link
-              href="/join"
+              href="/login"
               className="hidden md:block text-sm font-medium text-[#64748B] hover:text-[#0F172A] px-3 py-1.5 transition-colors"
             >
-              Login
+              Inloggen
             </Link>
             <Link
               href="/tochten"
               className="text-xs font-bold bg-[#00E676] text-[#0F172A] px-4 py-2 rounded-xl hover:bg-[#00C853] transition-colors"
             >
-              Start nu missie
+              Boek een tocht
             </Link>
           </div>
         </div>
       </nav>
 
       {/* ── Hero ───────────────────────────────────────────────────── */}
-      <section className="bg-[#F0FDF4] px-4 md:px-8 py-8 md:py-16">
+      <section className="bg-[#F0FDF4] px-4 md:px-8 py-10 md:py-20">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:gap-16">
 
-          {/* Hero card (mobile-first card, desktop: plain text) */}
+          {/* Hero tekst */}
           <div className="flex-1">
             <div className="bg-[#0F172A] rounded-3xl p-6 md:bg-transparent md:rounded-none md:p-0">
 
               <span className="inline-block text-[10px] font-bold text-[#00E676] bg-[#00E676]/10 border border-[#00E676]/20 rounded-full px-3 py-1 mb-5 uppercase tracking-widest">
-                Voetbal met een Missie
+                GPS Teambuilding met Impact
               </span>
 
               <h1
                 className="text-[2.6rem] md:text-6xl font-black italic text-white md:text-[#0F172A] leading-[1.05] mb-4"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                Maak Impact op<br />
-                en naast het veld
+                Ontdek je buurt,<br />
+                maak echte impact.
               </h1>
 
               <p className="text-[#94A3B8] md:text-[#64748B] text-sm md:text-base leading-relaxed mb-6 max-w-md">
-                Verander elke voetbalwedstrijd in een sociale missie. Voor de helden van de toekomst.
+                ImpactTocht combineert GPS-avontuur met sociale missies. Voor bedrijven, gezinnen,
+                scholen en voetbalclubs — in 5 varianten die passen bij jouw groep.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -75,7 +153,7 @@ export default function HomePage() {
                   href="/tochten"
                   className="inline-flex items-center justify-center gap-2 bg-[#00E676] text-[#0F172A] font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-[#00C853] transition-colors"
                 >
-                  Start nu gratis
+                  Kies jouw variant
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
@@ -86,8 +164,8 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <p className="text-[#64748B] text-xs mt-4">
-                Een onbeperkt sociaal impact · 100% impact meting
+              <p className="text-[#64748B] text-xs mt-4 md:text-[#94A3B8]">
+                5 varianten · GPS-navigatie · AI-begeleiding · Impact meten
               </p>
             </div>
           </div>
@@ -98,19 +176,19 @@ export default function HomePage() {
               {/* Notch */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#0F172A] rounded-b-2xl z-10" />
               {/* Screen content */}
-              <div className="flex-1 bg-gradient-to-b from-[#0F172A] via-[#0d1f0d] to-[#0F172A] flex flex-col items-center justify-center px-5 pt-8 pb-4 gap-4">
+              <div className="flex-1 bg-gradient-to-b from-[#0F172A] via-[#0d1a1f] to-[#0F172A] flex flex-col items-center justify-center px-5 pt-8 pb-4 gap-4">
                 <div className="w-11 h-11 rounded-2xl bg-[#00E676] flex items-center justify-center mb-1">
-                  <Navigation className="w-5 h-5 text-[#0F172A]" strokeWidth={2.5} />
+                  <MapPin className="w-5 h-5 text-[#0F172A]" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">Geluksmomenten</div>
+                  <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">Checkpoint 3/5</div>
                   <div
                     className="text-4xl font-black text-white"
                     style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                   >
-                    12.450+
+                    87m
                   </div>
-                  <div className="text-[#00E676] text-xs font-bold mt-0.5">+75%</div>
+                  <div className="text-[#00E676] text-xs font-bold mt-0.5">Bijna daar!</div>
                 </div>
                 {/* Avatar row */}
                 <div className="flex -space-x-2 mt-1">
@@ -131,7 +209,7 @@ export default function HomePage() {
                   >
                     87/100
                   </div>
-                  <div className="text-[#64748B] text-[9px] mt-0.5">⭐ Hoge Impact Badge</div>
+                  <div className="text-[#64748B] text-[9px] mt-0.5">Hoge Impact Badge</div>
                 </div>
               </div>
             </div>
@@ -143,7 +221,7 @@ export default function HomePage() {
       <section className="bg-white border-y border-[#E2E8F0] py-6 px-4 md:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <div>
-            <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">Geluksmomenten</p>
+            <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">Geluksmomenten gecreëerd</p>
             <div className="flex items-baseline gap-2">
               <span
                 className="text-4xl font-black text-[#0F172A]"
@@ -167,68 +245,146 @@ export default function HomePage() {
                 className="text-2xl font-black text-[#0F172A]"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                1.2M+
+                500+
               </div>
-              <div className="text-xs text-[#94A3B8]">Bereikte mensen</div>
+              <div className="text-xs text-[#94A3B8]">Tochten uitgevoerd</div>
             </div>
             <div className="text-center">
               <div
                 className="text-2xl font-black text-[#0F172A]"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                500K+
+                5
               </div>
-              <div className="text-xs text-[#94A3B8]">Missies voltooid</div>
+              <div className="text-xs text-[#94A3B8]">Varianten beschikbaar</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Varianten ──────────────────────────────────────────────── */}
+      <section id="varianten" className="bg-white px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Voor iedereen</p>
+          <h2
+            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Kies jouw variant.
+          </h2>
+          <p className="text-[#64748B] text-sm md:text-base mb-10 max-w-xl">
+            Van 90 minuten ImpactSprint tot een familiedag — er is een ImpactTocht voor elke groep en elk doel.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {VARIANTS.map(({ emoji, name, target, desc, color, bg, slug }) => (
+              <div
+                key={slug}
+                className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/40 hover:shadow-sm transition-all group"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    style={{ backgroundColor: bg }}
+                  >
+                    {emoji}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#0F172A] text-sm">{name}</h3>
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color }}
+                    >
+                      {target}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[#64748B] text-xs leading-relaxed">{desc}</p>
+                {slug === 'voetbalmissie' && (
+                  <Link
+                    href="/voetbalmissie"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00E676] mt-3 group-hover:underline"
+                  >
+                    Meer over VoetbalMissie <ArrowRight className="w-3 h-3" />
+                  </Link>
+                )}
+              </div>
+            ))}
+
+            {/* Maatwerk kaart */}
+            <div className="bg-[#0F172A] rounded-2xl p-5 border border-white/10">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl mb-3">
+                ✨
+              </div>
+              <h3 className="font-bold text-white text-sm mb-1">Maatwerk tocht</h3>
+              <p className="text-[#94A3B8] text-xs leading-relaxed mb-3">
+                Eigen locaties, eigen opdrachten, eigen branding. Wij bouwen de tocht die bij jou past.
+              </p>
+              <Link
+                href="/tochten"
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00E676]"
+              >
+                Neem contact op <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── Features ───────────────────────────────────────────────── */}
-      <section id="features" className="bg-white px-4 md:px-8 py-14 md:py-20">
+      <section id="impact" className="bg-[#F8FAFC] px-4 md:px-8 py-14 md:py-20">
         <div className="max-w-6xl mx-auto">
 
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Waarom ImpactTocht</p>
           <h2
-            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight"
+            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
           >
-            Speel voor de winst,<br />
+            Speel samen,<br />
             <span className="relative inline-block">
-              win voor de wereld.
+              meet echte impact.
               <span className="absolute -bottom-0.5 left-0 right-0 h-[3px] bg-[#00E676] rounded-full" />
             </span>
           </h2>
 
           <p className="text-[#64748B] text-sm md:text-base mt-5 mb-10 max-w-xl">
-            ImpactTocht combineert GPS-avontuur met echte maatschappelijke impact.
-            Teams scoren punten én maken verschil in de buurt.
+            ImpactTocht meet verbinding, betekenis, plezier en groei — via de Geluksmomenten Score.
+            Elke tocht eindigt met een persoonlijk impactrapport.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="overzicht">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               {
-                Icon: Grid3x3,
+                Icon: MapPin,
                 iconColor: '#00E676',
                 iconBg: '#00E67615',
-                title: 'Missie Dashboard',
-                desc: 'Houd al je sociale doelen en maatschappelijke projecten bij in één overzicht. Zie direct wat jouw impact is.',
+                title: 'GPS Navigatie',
+                desc: 'Echte checkpoints op de kaart. Teams navigeren zelfstandig via hun telefoon.',
               },
               {
                 Icon: Heart,
                 iconColor: '#EC4899',
                 iconBg: '#EC489915',
                 title: 'Geluksmomenten Score',
-                desc: 'Verzamel punten voor positief gedrag, sportiviteit en hulp aan anderen. De score die er écht toe doet.',
+                desc: '4 dimensies: verbinding, betekenis, plezier, groei. Max 100 punten per checkpoint.',
+              },
+              {
+                Icon: Zap,
+                iconColor: '#8B5CF6',
+                iconBg: '#8B5CF615',
+                title: 'AI Begeleiding',
+                desc: 'Scout, Buddy of Flits evalueren antwoorden en geven hints op maat.',
               },
               {
                 Icon: Trophy,
                 iconColor: '#F59E0B',
                 iconBg: '#F59E0B15',
-                title: 'Team Rankings',
-                desc: 'Strijd met je team voor de hoogste plek in de landelijke impact-competitie. Samen staan we sterker.',
+                title: 'Live Scorebord',
+                desc: 'Realtime klassement voor de spelleider. Teams zien hun positie direct na inzending.',
               },
             ].map(({ Icon, iconColor, iconBg, title, desc }) => (
-              <div key={title} className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/30 transition-colors">
+              <div key={title} className="bg-white rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/30 transition-colors">
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
                   style={{ backgroundColor: iconBg }}
@@ -256,8 +412,7 @@ export default function HomePage() {
             </h2>
             <p className="text-[#64748B] text-sm md:text-base max-w-md">
               Onze sociale missies meten actieve impact op omgeving en team.
-              Via onze innovatieve mobiele app word elke wedstrijd raker.
-              Nu al MVP van je community.
+              Na elke tocht krijgt elke deelnemer een persoonlijk Coach Insight.
             </p>
           </div>
 
@@ -267,27 +422,47 @@ export default function HomePage() {
                 className="text-3xl font-black text-[#00E676] mb-0.5"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                1.2M+
+                12.450+
               </div>
-              <div className="text-[#94A3B8] text-xs">Bereikte mensen</div>
-              <div className="text-[#00E676] text-xs font-bold mt-1.5">+12% dit kwartaal</div>
+              <div className="text-[#94A3B8] text-xs">Geluksmomenten</div>
+              <div className="text-[#00E676] text-xs font-bold mt-1.5">+75% dit jaar</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
               <div
                 className="text-3xl font-black text-white mb-0.5"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                500K+
+                500+
               </div>
-              <div className="text-[#94A3B8] text-xs">Missies voltooid</div>
-              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">+8% dit kwartaal</div>
+              <div className="text-[#94A3B8] text-xs">Tochten voltooid</div>
+              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">Landelijk actief</div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <div
+                className="text-3xl font-black text-white mb-0.5"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                5
+              </div>
+              <div className="text-[#94A3B8] text-xs">Varianten</div>
+              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">Elke groep past</div>
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <div
+                className="text-3xl font-black text-white mb-0.5"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                100
+              </div>
+              <div className="text-[#94A3B8] text-xs">Max GMS per CP</div>
+              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">AI-beoordeeld</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── How it works ───────────────────────────────────────────── */}
-      <section id="varianten" className="bg-white px-4 md:px-8 py-14 md:py-20">
+      {/* ── Hoe het werkt ──────────────────────────────────────────── */}
+      <section id="hoe-het-werkt" className="bg-white px-4 md:px-8 py-14 md:py-20">
         <div className="max-w-6xl mx-auto">
           <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Hoe het werkt</p>
           <h2
@@ -301,27 +476,31 @@ export default function HomePage() {
             {[
               {
                 step: '01',
-                title: 'Download de App',
-                desc: 'Scan de QR-code van je spelleider of voer je teamcode in. Klaar in 30 seconden, geen account nodig.',
+                Icon: Footprints,
+                title: 'Boek of scan',
+                desc: 'De organisator boekt een tocht, teams scannen de QR-code of voeren hun teamcode in. Klaar in 30 seconden.',
               },
               {
                 step: '02',
-                title: 'Speel de Game',
-                desc: 'Navigeer via GPS naar checkpoints en voltooi sociale opdrachten onderweg. Verdien Geluksmomenten.',
+                Icon: MapPin,
+                title: 'Navigeer & voltooi',
+                desc: 'Via GPS naar checkpoints. Beantwoord sociale opdrachten, maak foto\'s en verdien Geluksmomenten.',
               },
               {
                 step: '03',
-                title: 'Maak Impact',
-                desc: 'Het rapport meet verbinding, betekenis, plezier en groei. Zie jullie echte maatschappelijke impact.',
+                Icon: Users,
+                title: 'Zie jullie impact',
+                desc: 'Het impactrapport toont verbinding, betekenis, plezier en groei. Met een persoonlijk Coach Insight per team.',
               },
-            ].map(({ step, title, desc }) => (
+            ].map(({ step, Icon, title, desc }) => (
               <div key={step} className="flex gap-4">
                 <div className="shrink-0">
                   <div className="w-10 h-10 rounded-xl bg-[#DCFCE7] flex items-center justify-center">
-                    <span className="text-xs font-black text-[#00C853]">{step}</span>
+                    <Icon className="w-5 h-5 text-[#00C853]" />
                   </div>
                 </div>
                 <div>
+                  <p className="text-[10px] font-black text-[#00E676] uppercase tracking-widest mb-1">{step}</p>
                   <h3 className="font-bold text-[#0F172A] text-sm mb-1.5">{title}</h3>
                   <p className="text-[#64748B] text-xs leading-relaxed">{desc}</p>
                 </div>
@@ -331,28 +510,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Testimonial ────────────────────────────────────────────── */}
+      {/* ── Kids veiligheid callout ─────────────────────────────────── */}
+      <section className="bg-[#F8FAFC] px-4 md:px-8 py-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-[#0F172A] rounded-3xl px-7 py-8 md:flex md:items-center md:gap-12">
+            <div className="mb-5 md:mb-0">
+              <Shield className="w-10 h-10 text-[#00E676]" />
+            </div>
+            <div className="flex-1">
+              <h3
+                className="text-xl md:text-2xl font-black text-white mb-2"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                AVG-compliant voor kinderen
+              </h3>
+              <p className="text-[#64748B] text-sm leading-relaxed">
+                JeugdTocht en VoetbalMissie zijn gebouwd met extra privacy: geen PII opgeslagen,
+                foto&apos;s verwijderd na 30 dagen, geofencing met alarm, geen chat (alleen hint-knoppen).
+              </p>
+            </div>
+            <div className="mt-5 md:mt-0 shrink-0">
+              <Link
+                href="/jeugdtocht"
+                className="inline-flex items-center gap-2 text-xs font-bold text-[#00E676] border border-[#00E676]/30 px-4 py-2.5 rounded-xl hover:bg-[#00E676]/10 transition-colors"
+              >
+                Meer over kids-veiligheid <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Testimonials ───────────────────────────────────────────── */}
       <section className="bg-[#0F172A] px-4 md:px-8 py-14 md:py-20">
         <div className="max-w-6xl mx-auto">
-          <div className="max-w-2xl">
-            <Quote className="w-8 h-8 text-[#00E676] mb-5" />
-            <p
-              className="text-white text-xl md:text-2xl font-medium leading-relaxed mb-7"
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-            >
-              &ldquo;Dankzij Impact Football zien mijn spelers dat er meer zijn dan alleen voetballers.
-              Ze leren verantwoordelijkheid en empathie, terwijl ze nog steeds elke week
-              keihard strijden voor de overwinning.&rdquo;
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#00E676]/15 border border-[#00E676]/20 flex items-center justify-center">
-                <span className="text-[#00E676] text-xs font-black">MV</span>
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-8">Wat deelnemers zeggen</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {TESTIMONIALS.map(({ quote, name, role, initials }) => (
+              <div key={name} className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                <Quote className="w-6 h-6 text-[#00E676] mb-4" />
+                <p
+                  className="text-white text-base md:text-lg font-medium leading-relaxed mb-6"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  &ldquo;{quote}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#00E676]/15 border border-[#00E676]/20 flex items-center justify-center">
+                    <span className="text-[#00E676] text-xs font-black">{initials}</span>
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-bold">{name}</p>
+                    <p className="text-[#64748B] text-xs">{role}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-white text-sm font-bold">Mark de Vries</p>
-                <p className="text-[#64748B] text-xs uppercase tracking-wide">Hoofdcoach O11 · AFC Amsterdam</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -364,10 +578,10 @@ export default function HomePage() {
             className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
           >
-            Klaar om de wereld<br />te veranderen?
+            Klaar om de buurt<br />te verkennen?
           </h2>
           <p className="text-[#0F172A]/60 text-sm md:text-base mb-7 max-w-sm mx-auto">
-            Sluit je aan bij duizenden jonge spelers die al impact maken.
+            Kies jouw variant, boek een datum en wij zorgen voor de rest.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
@@ -375,19 +589,20 @@ export default function HomePage() {
               href="/tochten"
               className="inline-flex items-center justify-center gap-2 bg-[#0F172A] text-white font-bold text-sm px-7 py-3.5 rounded-2xl hover:bg-[#1E293B] transition-colors"
             >
-              Sluit je aan bij de community
+              Boek een tocht
             </Link>
             <Link
               href="/join"
               className="inline-flex items-center justify-center gap-2 border-2 border-[#0F172A]/20 text-[#0F172A] font-semibold text-sm px-7 py-3.5 rounded-2xl hover:bg-[#0F172A]/5 transition-colors"
             >
-              Alle niveaus ↗
+              Doe mee als team ↗
             </Link>
           </div>
 
           <div className="flex items-center justify-center gap-6 text-[#0F172A]/50 text-xs">
-            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Gratis start</span>
-            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Alle niveaus</span>
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Alle varianten</span>
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> AVG-compliant</span>
+            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Persoonlijk rapport</span>
           </div>
         </div>
       </section>
@@ -406,37 +621,39 @@ export default function HomePage() {
                   className="font-black text-white text-sm"
                   style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 >
-                  IMPACT FOOTBALL
+                  IMPACTTOCHT
                 </span>
               </div>
               <p className="text-[#64748B] text-xs max-w-xs leading-relaxed">
                 GPS-gestuurd teambuilding met echte sociale impact.
-                Voor bedrijven, scholen en gezinnen.
+                Voor bedrijven, scholen en gezinnen — onderdeel van TeambuildingMetImpact.nl.
               </p>
             </div>
 
             {/* Links — desktop */}
             <div className="hidden md:grid grid-cols-3 gap-12 text-xs">
               <div>
-                <p className="text-white font-bold mb-3">Product</p>
+                <p className="text-white font-bold mb-3">Varianten</p>
                 <div className="space-y-2 text-[#64748B]">
-                  <p>Varianten</p>
-                  <p>Functies</p>
-                  <p>Rapport</p>
-                  <p>Bookings</p>
+                  <p>WijkTocht</p>
+                  <p>ImpactSprint</p>
+                  <p>FamilieTocht</p>
+                  <p>JeugdTocht</p>
+                  <Link href="/voetbalmissie" className="block hover:text-white transition-colors">VoetbalMissie</Link>
+                </div>
+              </div>
+              <div>
+                <p className="text-white font-bold mb-3">Platform</p>
+                <div className="space-y-2 text-[#64748B]">
+                  <p>GMS Score</p>
+                  <p>Impact rapport</p>
+                  <p>Live scorebord</p>
                 </div>
               </div>
               <div>
                 <p className="text-white font-bold mb-3">Bedrijf</p>
                 <div className="space-y-2 text-[#64748B]">
                   <p>Over ons</p>
-                  <p>Impact Rapport</p>
-                  <p>Partner worden</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-white font-bold mb-3">Help je mee</p>
-                <div className="space-y-2 text-[#64748B]">
                   <p>Contact</p>
                   <p>FAQ</p>
                 </div>
@@ -445,7 +662,7 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row md:justify-between gap-2 text-xs text-[#475569]">
-            <p>© {new Date().getFullYear()} Impact Football Foundation. Gebouwd met ♥ voor de applicatie.</p>
+            <p>© {new Date().getFullYear()} TeambuildingMetImpact.nl — ImpactTocht</p>
             <div className="flex gap-4">
               <span className="cursor-pointer hover:text-white transition-colors">Privacy Policy</span>
               <span className="cursor-pointer hover:text-white transition-colors">Algemene Voorwaarden</span>
