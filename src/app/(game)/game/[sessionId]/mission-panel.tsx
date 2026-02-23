@@ -115,9 +115,12 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
   const handleSubmit = async () => {
     if (!answer && !photoUrl) { toast.error('Vul een antwoord in of upload een foto'); return }
     setIsSubmitting(true)
-    const submission = await onSubmit(answer, photoUrl ?? undefined)
-    if (submission) setResult(submission)
-    setIsSubmitting(false)
+    try {
+      const submission = await onSubmit(answer, photoUrl ?? undefined)
+      if (submission) setResult(submission)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   /* ── RESULTAAT SCHERM ── */

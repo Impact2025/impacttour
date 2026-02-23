@@ -224,21 +224,35 @@ export default function GamePage() {
 
   const handleMissionSubmit = async (answer: string, photoUrl?: string) => {
     if (!activeCheckpoint || !teamToken) return null
-    const res = await fetch('/api/game/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, teamToken, checkpointId: activeCheckpoint.id, answer: answer || undefined, photoUrl: photoUrl || undefined }),
-    })
-    const data = await res.json()
-    if (!res.ok) { toast.error(data.error || 'Inzending mislukt'); return null }
-    const refresh = await fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
-    if (refresh.ok) {
-      const d = await refresh.json()
-      setCheckpoints(d.checkpoints ?? [])
-      setTeam(d.team)
-      setScoreboard(d.scoreboard ?? [])
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 25000)
+    try {
+      const res = await fetch('/api/game/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, teamToken, checkpointId: activeCheckpoint.id, answer: answer || undefined, photoUrl: photoUrl || undefined }),
+        signal: controller.signal,
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Inzending mislukt'); return null }
+      const refresh = await fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
+      if (refresh.ok) {
+        const d = await refresh.json()
+        setCheckpoints(d.checkpoints ?? [])
+        setTeam(d.team)
+        setScoreboard(d.scoreboard ?? [])
+      }
+      return data.submission
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        toast.error('AI beoordeling duurt te lang — probeer opnieuw')
+      } else {
+        toast.error('Verbindingsfout bij inzenden')
+      }
+      return null
+    } finally {
+      clearTimeout(timeout)
     }
-    return data.submission
   }
 
   /* ── LOADING ── */
