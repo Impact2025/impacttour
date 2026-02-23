@@ -75,15 +75,7 @@ export function usePusherChannel(
   useEffect(() => {
     if (!sessionId) return
 
-    const pusher = getPusherClient()
-    const channel = pusher.subscribe(`game-${sessionId}`)
-
-    // Bind game event handlers
-    Object.entries(handlers).forEach(([event, handler]) => {
-      if (handler) channel.bind(event, handler)
-    })
-
-    // ─── Polling fallback ─────────────────────────────────────────────────────
+    // ─── Polling helpers (gedeeld door Pusher-pad en polling-only pad) ────────
 
     const startPolling = () => {
       if (pollTimerRef.current) return // al actief
@@ -128,7 +120,7 @@ export function usePusherChannel(
             scoreboard: data.scoreboard ?? [],
           }
         } catch {
-          // Netwerk-fout — stilzwijgend doorgaan tot Pusher herstelt
+          // Netwerk-fout — stilzwijgend doorgaan
         }
       }, intervalMs)
     }
@@ -139,6 +131,23 @@ export function usePusherChannel(
         pollTimerRef.current = null
       }
     }
+
+    // ─── Pusher (optioneel — valt terug op polling als keys ontbreken) ────────
+
+    const pusher = getPusherClient()
+
+    if (!pusher) {
+      // Pusher niet geconfigureerd → polling-only modus
+      startPolling()
+      return () => stopPolling()
+    }
+
+    const channel = pusher.subscribe(`game-${sessionId}`)
+
+    // Bind game event handlers
+    Object.entries(handlers).forEach(([event, handler]) => {
+      if (handler) channel.bind(event, handler)
+    })
 
     // Pusher connection state → polling aan/uit
     pusher.connection.bind('disconnected', startPolling)
@@ -170,6 +179,8 @@ export function useSpelleiderChannel(
     if (!sessionId) return
 
     const pusher = getPusherClient()
+    if (!pusher) return // Pusher niet geconfigureerd
+
     const channel = pusher.subscribe(`private-game-${sessionId}`)
 
     Object.entries(handlers).forEach(([event, handler]) => {
