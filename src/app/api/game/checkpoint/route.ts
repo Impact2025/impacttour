@@ -104,14 +104,14 @@ export async function POST(req: Request) {
     })
     .where(eq(teams.id, team.id))
 
-  // Broadcast naar alle deelnemers en spelleider
-  await broadcastCheckpointUnlocked(sessionId, {
+  // Broadcast naar alle deelnemers en spelleider (optioneel — niet blokkerend)
+  broadcastCheckpointUnlocked(sessionId, {
     teamId: team.id,
     teamName: team.name,
     checkpointIndex: checkpoint.orderIndex,
     checkpointName: checkpoint.name,
-    gmsEarned: 0, // Wordt bijgewerkt na missie-inzending
-  })
+    gmsEarned: 0,
+  }).catch(() => null)
 
   return NextResponse.json({
     success: true,

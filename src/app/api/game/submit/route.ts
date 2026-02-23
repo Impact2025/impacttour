@@ -240,12 +240,12 @@ export async function POST(req: Request) {
     })
     .where(eq(teams.id, team.id))
 
-  // Broadcast score update naar scorebord
-  await broadcastScoreUpdate(sessionId, {
+  // Broadcast score update naar scorebord (optioneel — niet blokkerend)
+  broadcastScoreUpdate(sessionId, {
     teamId: team.id,
     teamName: team.name,
     totalGmsScore: newTotalScore,
-  })
+  }).catch(() => null)
 
   // Upsert gedenormaliseerde sessie-scores (voor snel rapport)
   const cpScore = JSON.stringify([{ name: checkpoint.name, gmsEarned, orderIndex: checkpoint.orderIndex }])

@@ -79,22 +79,22 @@ export async function POST(req: Request) {
 
   // Pusher broadcasts (alleen als throttle period voorbij is)
   if (shouldBroadcast) {
-    await broadcastTeamPosition(sessionId, {
+    broadcastTeamPosition(sessionId, {
       teamId: team.id,
       teamName: team.name,
       lat: latitude,
       lng: longitude,
       isOutsideGeofence,
-    })
+    }).catch(() => null)
 
     // Geofence alarm als team buiten zone gaat (en eerder binnen was)
     if (isOutsideGeofence && !team.isOutsideGeofence) {
-      await broadcastGeofenceAlert(sessionId, {
+      broadcastGeofenceAlert(sessionId, {
         teamId: team.id,
         teamName: team.name,
         lat: latitude,
         lng: longitude,
-      })
+      }).catch(() => null)
     }
   }
 

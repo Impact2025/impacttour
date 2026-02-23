@@ -68,9 +68,9 @@ export async function PUT(
 
   if (!updated) return NextResponse.json({ error: 'Sessie niet gevonden' }, { status: 404 })
 
-  // Broadcast status verandering via Pusher
+  // Broadcast status verandering via Pusher (optioneel — niet blokkerend)
   if (parsed.data.status) {
-    await broadcastSessionStatus(id, parsed.data.status)
+    broadcastSessionStatus(id, parsed.data.status).catch(() => null)
   }
 
   return NextResponse.json(updated)
