@@ -46,7 +46,6 @@ export default function JoinForm() {
         sessionStorage.removeItem('teamToken')
         sessionStorage.removeItem('sessionId')
       })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

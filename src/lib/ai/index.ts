@@ -41,16 +41,25 @@ export async function aiComplete(
     model?: string
     maxTokens?: number
     temperature?: number
+    timeoutMs?: number
   }
 ): Promise<string> {
-  const response = await getOpenRouter().chat.completions.create({
-    model: options?.model ?? DEFAULT_MODEL,
-    messages,
-    max_tokens: options?.maxTokens ?? 1024,
-    temperature: options?.temperature ?? 0.7,
-  })
-
-  return response.choices[0]?.message?.content ?? ''
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), options?.timeoutMs ?? 24_000)
+  try {
+    const response = await getOpenRouter().chat.completions.create(
+      {
+        model: options?.model ?? DEFAULT_MODEL,
+        messages,
+        max_tokens: options?.maxTokens ?? 1024,
+        temperature: options?.temperature ?? 0.7,
+      },
+      { signal: controller.signal }
+    )
+    return response.choices[0]?.message?.content ?? ''
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /** AI completion met JSON output (forced JSON mode) */
@@ -59,18 +68,27 @@ export async function aiCompleteJSON<T = unknown>(
   options?: {
     model?: string
     maxTokens?: number
+    timeoutMs?: number
   }
 ): Promise<T> {
-  const response = await getOpenRouter().chat.completions.create({
-    model: options?.model ?? DEFAULT_MODEL,
-    messages,
-    max_tokens: options?.maxTokens ?? 2048,
-    temperature: 0.7,
-    response_format: { type: 'json_object' },
-  })
-
-  const content = response.choices[0]?.message?.content ?? '{}'
-  return JSON.parse(content) as T
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), options?.timeoutMs ?? 24_000)
+  try {
+    const response = await getOpenRouter().chat.completions.create(
+      {
+        model: options?.model ?? DEFAULT_MODEL,
+        messages,
+        max_tokens: options?.maxTokens ?? 2048,
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+      },
+      { signal: controller.signal }
+    )
+    const content = response.choices[0]?.message?.content ?? '{}'
+    return JSON.parse(content) as T
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 // ─── AI Functie A: Gepersonaliseerde opdrachten genereren ─────────────────────
@@ -224,6 +242,8 @@ export interface CoachInsightParams {
   dimensionMaxes: { connection: number; meaning: number; joy: number; growth: number }
   checkpointsCompleted: number
   totalCheckpoints: number
+  checkpointScores?: { name: string; gmsEarned: number }[]
+  teamSize?: number
 }
 
 export async function generateCoachInsight(
@@ -236,33 +256,58 @@ export async function generateCoachInsight(
     pct: params.dimensionMaxes[key] > 0 ? Math.round((val / params.dimensionMaxes[key]) * 100) : 0,
   }))
   withPct.sort((a, b) => b.pct - a.pct)
-  const strongest = withPct[0].name
-  const weakest = withPct[withPct.length - 1].name
+  const strongest = withPct[0]
+  const weakest   = withPct[withPct.length - 1]
 
   const scorePercentage = params.gmsMax > 0 ? Math.round((params.totalScore / params.gmsMax) * 100) : 0
+
+  // Checkpoint trend analyse
+  const scores = params.checkpointScores ?? []
+  let trend = 'stabiel'
+  if (scores.length >= 2) {
+    const last  = scores[scores.length - 1].gmsEarned
+    const first = scores[0].gmsEarned
+    if (last > first * 1.1) trend = 'stijgend'
+    else if (last < first * 0.9) trend = 'dalend'
+  }
+  const bestCp   = scores.length ? scores.reduce((a, b) => a.gmsEarned >= b.gmsEarned ? a : b) : null
+  const worstCp  = scores.length ? scores.reduce((a, b) => a.gmsEarned <= b.gmsEarned ? a : b) : null
 
   return aiComplete(
     [
       {
         role: 'system',
-        content: `Je bent een empathische teamcoach voor IctusGo.
-Schrijf een persoonlijk Coach Inzicht van 3-4 zinnen in het Nederlands.
-- Noem de sterkste dimensie (${strongest}) en zwakste dimensie (${weakest}) bij naam.
-- Wees concreet en persoonlijk — gebruik de teamnaam.
-- Eindig met één concrete, positieve aanbeveling voor de toekomst.
-- Max 80 woorden. Geen bulletpoints, geen kopteksten.`,
+        content: `Je bent een empathische, scherpe teamcoach voor IctusGo GPS teambuilding.
+Schrijf een persoonlijk Coach Inzicht in 4 alinea's (totaal 400-500 woorden) in het Nederlands.
+
+Structuur:
+1. **Opening** — persoonlijk, team-specifiek, 2 warme zinnen die de totaalervaring vatten.
+2. **Sterkste moment** — noem het beste checkpoint bij naam (${bestCp?.name ?? 'onbekend'}), leg uit waarom die dimensie (${strongest.name} · ${strongest.pct}%) zo sterk was voor dit team.
+3. **Groeirichting** — de laagste dimensie (${weakest.name} · ${weakest.pct}%) concreet bespreken: wat hield het team terug en hoe kunnen ze dit praktisch verbeteren?
+4. **Uitdaging + afsluiting** — één specifieke uitdaging voor een volgende tocht, eindig energiek en uitnodigend.
+
+Regels:
+- Gebruik altijd de teamnaam.
+- Geen bulletpoints, geen kopteksten, geen markdown.
+- Scoreontwikkeling was ${trend} — reflecteer dit subtiel.
+- Schrijf in de tweede persoon (jullie / jij).`,
       },
       {
         role: 'user',
         content: `Team: ${params.teamName}
 Tocht: ${params.tourName} (${params.variant})
 Score: ${scorePercentage}% (${params.totalScore}/${params.gmsMax} punten)
-Checkpoints: ${params.checkpointsCompleted}/${params.totalCheckpoints}
+Checkpoints voltooid: ${params.checkpointsCompleted}/${params.totalCheckpoints}
+${params.teamSize ? `Teamgrootte: ${params.teamSize} personen` : ''}
+Scoreontwikkeling: ${trend}
+Beste checkpoint: ${bestCp ? `${bestCp.name} (${bestCp.gmsEarned} pt)` : 'onbekend'}
+Lastigste checkpoint: ${worstCp ? `${worstCp.name} (${worstCp.gmsEarned} pt)` : 'onbekend'}
+
 Dimensiescores (% van max):
 ${withPct.map((d) => `- ${d.name}: ${d.pct}%`).join('\n')}`,
       },
     ],
-    { model: FAST_MODEL, maxTokens: 200, temperature: 0.8 }
+    { model: DEFAULT_MODEL, maxTokens: 700, temperature: 0.85 }
   )
 }
 
