@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useReducer, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 import {
   Map, FileText, BarChart2, Target, Clock, Pause, Trophy, Flag,
-  AlertTriangle, WifiOff, Radio, Navigation, Zap,
+  AlertTriangle, WifiOff, Radio, Navigation, Zap, Sparkles,
 } from 'lucide-react'
 import { useGPS, type GPSPosition } from '@/hooks/use-gps'
 import { usePusherChannel } from '@/hooks/use-pusher-channel'
@@ -14,7 +14,9 @@ import { useOnlineStatus } from '@/hooks/use-online-status'
 import { haversineDistance } from '@/lib/geo'
 import { MissionPanel } from './mission-panel'
 import { Scoreboard } from './scoreboard'
+import { ImpactPanel } from './impact-panel'
 import { ChatPanel } from './chat-panel'
+import { CelebrationOverlay } from '@/components/game/celebration-overlay'
 
 const GameMap = dynamic(() => import('./game-map'), {
   ssr: false,
@@ -63,11 +65,57 @@ export interface ScoreboardEntry {
   rank: number
   teamName: string
   totalGmsScore: number
+  bonusPoints: number
   checkpointsDone: number
   isCurrentTeam: boolean
 }
 
-type GameView = 'map' | 'mission' | 'score'
+type GameView = 'map' | 'mission' | 'score' | 'impact'
+
+// ─── Session state reducer ────────────────────────────────────────────────────
+// Consolideert 9 losse useState hooks → 1 useReducer om onnodige re-renders te beperken.
+
+interface SessionState {
+  status: string
+  joinCode: string
+  variant: string
+  tourName: string
+  storyFrame: { introText: string; finaleReveal: string } | null
+  checkpoints: CheckpointInfo[]
+  team: TeamInfo | null
+  scoreboard: ScoreboardEntry[]
+  isTestMode: boolean
+}
+
+type SessionAction =
+  | { type: 'LOAD'; payload: Partial<SessionState> }
+  | { type: 'SET_STATUS'; payload: string }
+  | { type: 'SET_SCOREBOARD'; payload: ScoreboardEntry[] }
+
+const initialSession: SessionState = {
+  status: 'active',
+  joinCode: '',
+  variant: 'wijktocht',
+  tourName: '',
+  storyFrame: null,
+  checkpoints: [],
+  team: null,
+  scoreboard: [],
+  isTestMode: false,
+}
+
+function sessionReducer(state: SessionState, action: SessionAction): SessionState {
+  switch (action.type) {
+    case 'LOAD':
+      return { ...state, ...action.payload }
+    case 'SET_STATUS':
+      return { ...state, status: action.payload }
+    case 'SET_SCOREBOARD':
+      return { ...state, scoreboard: action.payload }
+    default:
+      return state
+  }
+}
 
 export default function GamePage() {
   const params = useParams()
@@ -75,23 +123,23 @@ export default function GamePage() {
   const sessionId = params.sessionId as string
 
   const isOnline = useOnlineStatus()
+  // Session-data: één reducer → één re-render bij data-load ipv 9 afzonderlijke
+  const [session, dispatchSession] = useReducer(sessionReducer, initialSession)
+  const { status: sessionStatus, joinCode, variant, tourName, storyFrame, checkpoints, team, scoreboard, isTestMode } = session
+  // scoreboardRef voor gebruik in Pusher callback (voorkomt stale-closure probleem)
+  const scoreboardRef = useRef(scoreboard)
+  useEffect(() => { scoreboardRef.current = scoreboard }, [scoreboard])
+
+  // UI state (bewust apart — verandert onafhankelijk van session data)
   const [teamToken, setTeamToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [sessionStatus, setSessionStatus] = useState<string>('active')
-  const [joinCode, setJoinCode] = useState<string>('')
-  const [variant, setVariant] = useState<string>('wijktocht')
-  const [tourName, setTourName] = useState<string>('')
-  const [storyFrame, setStoryFrame] = useState<{ introText: string; finaleReveal: string } | null>(null)
-  const [checkpoints, setCheckpoints] = useState<CheckpointInfo[]>([])
-  const [team, setTeam] = useState<TeamInfo | null>(null)
-  const [scoreboard, setScoreboard] = useState<ScoreboardEntry[]>([])
   const [activeView, setActiveView] = useState<GameView>('map')
   const [chatOpen, setChatOpen] = useState(false)
   const [nearbyCheckpoint, setNearbyCheckpoint] = useState<CheckpointInfo | null>(null)
   const [activeCheckpoint, setActiveCheckpoint] = useState<CheckpointInfo | null>(null)
-  const [isTestMode, setIsTestMode] = useState(false)
   const [isUnlockCelebrating, setIsUnlockCelebrating] = useState(false)
   const [celebratingCheckpoint, setCelebratingCheckpoint] = useState<CheckpointInfo | null>(null)
+  const [celebrationScore, setCelebrationScore] = useState(0)
 
   const { position, error: gpsError, isWatching, startWatching } = useGPS({
     onPosition: useCallback(
@@ -128,17 +176,19 @@ export default function GamePage() {
     sessionId,
     {
       'score-update': (data) => {
-        setScoreboard((prev) =>
-          prev.map((s) => s.teamName === data.teamName ? { ...s, totalGmsScore: data.totalGmsScore } : s)
-            .sort((a, b) => b.totalGmsScore - a.totalGmsScore)
-            .map((s, idx) => ({ ...s, rank: idx + 1 }))
-        )
+        dispatchSession({
+          type: 'SET_SCOREBOARD',
+          payload: scoreboardRef.current
+            .map((s) => s.teamName === data.teamName ? { ...s, totalGmsScore: data.totalGmsScore } : s)
+            .sort((a, b) => b.totalGmsScore - a.totalGmsScore || a.teamName.localeCompare(b.teamName))
+            .map((s, idx) => ({ ...s, rank: idx + 1 })),
+        })
       },
       'checkpoint-unlocked': (data) => {
         toast.success(`${data.teamName} voltooide checkpoint ${data.checkpointIndex + 1}!`, { duration: 3000 })
       },
       'session-status': (data) => {
-        setSessionStatus(data.status)
+        dispatchSession({ type: 'SET_STATUS', payload: data.status })
         if (data.status === 'completed') toast.success('De tocht is afgelopen!', { duration: 0 })
         else if (data.status === 'paused') toast('De tocht is gepauzeerd door de spelleider')
         else if (data.status === 'active') toast.success('De tocht is hervat!')
@@ -164,15 +214,21 @@ export default function GamePage() {
           return
         }
         const data = await res.json()
-        setSessionStatus(data.status)
-        setVariant(data.variant)
-        setTourName(data.tour?.name ?? '')
-        setStoryFrame(data.tour?.storyFrame ?? null)
-        setJoinCode(data.joinCode ?? '')
-        setIsTestMode(data.isTestMode ?? false)
-        setCheckpoints(data.checkpoints ?? [])
-        setTeam(data.team)
-        setScoreboard(data.scoreboard ?? [])
+        // Één dispatch voor alle session data → één re-render
+        dispatchSession({
+          type: 'LOAD',
+          payload: {
+            status: data.status,
+            variant: data.variant,
+            tourName: data.tour?.name ?? '',
+            storyFrame: data.tour?.storyFrame ?? null,
+            joinCode: data.joinCode ?? '',
+            isTestMode: data.isTestMode ?? false,
+            checkpoints: data.checkpoints ?? [],
+            team: data.team,
+            scoreboard: data.scoreboard ?? [],
+          },
+        })
       } catch {
         toast.error('Fout bij laden van game data')
       } finally {
@@ -216,15 +272,17 @@ export default function GamePage() {
       fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
         .then((r) => r.ok ? r.json() : null)
         .then((d) => {
-          if (d) { setCheckpoints(d.checkpoints ?? []); setTeam(d.team); setScoreboard(d.scoreboard ?? []) }
+          if (d) {
+            const newScore = d.team?.totalGmsScore ?? 0
+            const oldScore = team?.totalGmsScore ?? 0
+            dispatchSession({
+              type: 'LOAD',
+              payload: { checkpoints: d.checkpoints ?? [], team: d.team, scoreboard: d.scoreboard ?? [] },
+            })
+            setCelebrationScore(Math.max(0, newScore - oldScore))
+          }
         })
         .catch(() => {})
-      // After 1.2s celebration, open mission
-      setTimeout(() => {
-        setIsUnlockCelebrating(false)
-        setActiveCheckpoint(cpToShow)
-        setActiveView('mission')
-      }, 1200)
     } catch {
       toast.error('Verbindingsfout')
     }
@@ -246,9 +304,10 @@ export default function GamePage() {
       const refresh = await fetch(`/api/game/session/${sessionId}`, { headers: { 'x-team-token': teamToken } })
       if (refresh.ok) {
         const d = await refresh.json()
-        setCheckpoints(d.checkpoints ?? [])
-        setTeam(d.team)
-        setScoreboard(d.scoreboard ?? [])
+        dispatchSession({
+          type: 'LOAD',
+          payload: { checkpoints: d.checkpoints ?? [], team: d.team, scoreboard: d.scoreboard ?? [] },
+        })
       }
       return data.submission
     } catch (err) {
@@ -279,7 +338,7 @@ export default function GamePage() {
         </div>
         <div className="flex-1 bg-gray-200 animate-pulse" />
         <div className="bg-white border-t border-[#E2E8F0] flex shrink-0">
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <div key={i} className="flex-1 flex flex-col items-center py-3 gap-1.5">
               <div className="w-7 h-7 bg-[#E2E8F0] rounded-full animate-pulse" />
               <div className="w-10 h-2.5 bg-[#E2E8F0] rounded animate-pulse" />
@@ -403,6 +462,7 @@ export default function GamePage() {
     { id: 'map' as GameView, label: 'Kaart', Icon: Map },
     { id: 'mission' as GameView, label: 'Missie', Icon: FileText, disabled: !activeCheckpoint },
     { id: 'score' as GameView, label: 'Score', Icon: BarChart2 },
+    { id: 'impact' as GameView, label: 'Impact', Icon: Sparkles },
   ]
 
   return (
@@ -504,6 +564,9 @@ export default function GamePage() {
         {activeView === 'score' && (
           <Scoreboard entries={scoreboard} checkpoints={checkpoints} />
         )}
+        {activeView === 'impact' && teamToken && (
+          <ImpactPanel sessionId={sessionId} teamToken={teamToken} />
+        )}
 
         {/* ── UNLOCK KNOP ── */}
         {activeView === 'map' && nearbyCheckpoint && (
@@ -594,23 +657,17 @@ export default function GamePage() {
         )}
 
         {/* ── UNLOCK CELEBRATION OVERLAY ── */}
-        {isUnlockCelebrating && celebratingCheckpoint && (
-          <div className="absolute inset-0 z-[2000] bg-[#00E676] flex items-center justify-center animate-fade-in">
-            <div className="text-center animate-scale-in">
-              <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                <span className="text-5xl font-black text-[#0F172A] leading-none"
-                  style={{ fontFamily: 'var(--font-display)' }}>
-                  {celebratingCheckpoint.orderIndex + 1}
-                </span>
-              </div>
-              <div className="text-3xl font-black text-[#0F172A] tracking-widest uppercase"
-                style={{ fontFamily: 'var(--font-display)' }}>
-                ONTGRENDELD!
-              </div>
-              <p className="text-[#0F172A]/60 text-sm font-semibold mt-2">{celebratingCheckpoint.name}</p>
-            </div>
-          </div>
-        )}
+        <CelebrationOverlay
+          checkpoint={isUnlockCelebrating ? celebratingCheckpoint : null}
+          earnedScore={celebrationScore}
+          onOpenMission={() => {
+            setIsUnlockCelebrating(false)
+            if (celebratingCheckpoint) {
+              setActiveCheckpoint(celebratingCheckpoint)
+              setActiveView('mission')
+            }
+          }}
+        />
 
         {/* ── AI CHAT ── */}
         {!isKids && teamToken && (

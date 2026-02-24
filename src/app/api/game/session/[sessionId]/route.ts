@@ -30,7 +30,7 @@ export async function GET(
         },
       },
       teams: {
-        orderBy: (t, { desc }) => [desc(t.totalGmsScore)],
+        orderBy: (t, { desc, asc }) => [desc(t.totalGmsScore), asc(t.id)],
       },
     },
   })
@@ -112,6 +112,7 @@ export async function GET(
       rank: idx + 1,
       teamName: t.name,
       totalGmsScore: t.totalGmsScore,
+      bonusPoints: t.bonusPoints,
       checkpointsDone: Array.isArray(t.completedCheckpoints)
         ? t.completedCheckpoints.length
         : 0,

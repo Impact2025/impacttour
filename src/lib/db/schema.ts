@@ -240,6 +240,10 @@ export const gameSessions = pgTable('game_sessions', {
   source: text('source').notNull().default('direct'), // 'direct' | 'marketplace'
   // Test mode: GPS-check overslaan (spelleider kan testen zonder te lopen)
   isTestMode: boolean('is_test_mode').default(false).notNull(),
+  // AVG/GDPR: ouderlijke toestemming voor JeugdTocht/VoetbalMissie
+  // Wordt bevestigd door de spelleider/organisator vóór de start
+  parentalConsentConfirmed: boolean('parental_consent_confirmed').notNull().default(false),
+  parentalConsentAt: timestamp('parental_consent_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -333,6 +337,8 @@ export const sessionScores = pgTable(
     checkpointsCount: integer('checkpoints_count').notNull().default(0),
     // Per-checkpoint breakdown voor de grafiek [{name, gmsEarned, orderIndex}]
     checkpointScores: jsonb('checkpoint_scores').notNull().default('[]'),
+    // Gecachede AI coach insight — eenmalig gegenereerd, opgeslagen voor snel laden
+    coachInsight: text('coach_insight'),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => ({

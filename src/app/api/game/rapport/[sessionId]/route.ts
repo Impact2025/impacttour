@@ -163,23 +163,42 @@ export async function GET(
   ]
   const topDim = dimEntries.reduce((max, d) => (d.pct > max.pct ? d : max), dimEntries[0])
 
+  // Coach inzicht — gecached in session_scores.coach_insight
+  // Eenmalig genereren (Sonnet); volgende views lezen direct uit DB
   let coachInsight: string
-  try {
-    coachInsight = await generateCoachInsight({
-      teamName: team.name,
-      tourName: session.tour?.name ?? '',
-      variant: session.variant,
-      totalScore: team.totalGmsScore,
-      gmsMax: gmsMax || 400,
-      dimensions: { connection, meaning, joy, growth },
-      dimensionMaxes,
-      checkpointsCompleted: checkpointScores.length,
-      totalCheckpoints: allCheckpoints.length,
-    })
-  } catch {
-    coachInsight =
-      fallbackInsights[topDim.key] ??
-      'Goed gedaan! Jullie team heeft een indrukwekkende prestatie geleverd en punten gescoord op alle dimensies van de Geluksmomenten Score.'
+
+  if (scoreRow?.coachInsight) {
+    // Cache hit — geen AI-call nodig
+    coachInsight = scoreRow.coachInsight
+  } else {
+    try {
+      coachInsight = await generateCoachInsight({
+        teamName: team.name,
+        tourName: session.tour?.name ?? '',
+        variant: session.variant,
+        totalScore: team.totalGmsScore,
+        gmsMax: gmsMax || 400,
+        dimensions: { connection, meaning, joy, growth },
+        dimensionMaxes,
+        checkpointsCompleted: checkpointScores.length,
+        totalCheckpoints: allCheckpoints.length,
+        checkpointScores,
+      })
+      // Sla op in session_scores voor caching (fire-and-forget)
+      if (scoreRow) {
+        db.update(sessionScores)
+          .set({ coachInsight })
+          .where(and(
+            eq(sessionScores.sessionId, sessionId),
+            eq(sessionScores.teamId, team.id)
+          ))
+          .catch(() => null)
+      }
+    } catch {
+      coachInsight =
+        fallbackInsights[topDim.key] ??
+        'Goed gedaan! Jullie team heeft een indrukwekkende prestatie geleverd en punten gescoord op alle dimensies van de Geluksmomenten Score.'
+    }
   }
 
   return NextResponse.json({

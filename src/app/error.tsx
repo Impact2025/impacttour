@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 
-export default function GlobalError({
+export default function RootError({
   error,
   reset,
 }: {

@@ -3,8 +3,9 @@ import { gameSessions, teams, checkpoints, submissions, sessionScores } from '@/
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { evaluateSubmission } from '@/lib/ai'
+import { evaluateSubmission, type EvaluationResult } from '@/lib/ai'
 import { broadcastScoreUpdate } from '@/lib/pusher'
+import { checkOrigin } from '@/lib/rate-limit'
 
 const schema = z.object({
   sessionId: z.string().uuid(),
@@ -23,6 +24,10 @@ const schema = z.object({
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
@@ -172,6 +177,13 @@ export async function POST(req: Request) {
       },
     })
 
+    // Broadcast NA upsert (zodat polling client up-to-date sessionScores leest)
+    broadcastScoreUpdate(sessionId, {
+      teamId: team.id,
+      teamName: team.name,
+      totalGmsScore: team.totalGmsScore + baseGms,
+    }).catch(() => null)
+
     return NextResponse.json({
       submission: {
         id: submission.id,
@@ -184,20 +196,104 @@ export async function POST(req: Request) {
   }
 
   // AI evaluatie (Functie C) — met rijke context
-  const evaluation = await evaluateSubmission({
-    missionTitle: checkpoint.missionTitle,
-    missionDescription: checkpoint.missionDescription,
-    teamAnswer: answer ?? `[Foto ingediend: ${photoUrl}]`,
-    variant: session.variant,
-    missionType: checkpoint.missionType,
-    checkpointType: checkpoint.type,
-    gmsWeights: {
-      connection: checkpoint.gmsConnection,
-      meaning: checkpoint.gmsMeaning,
-      joy: checkpoint.gmsJoy,
-      growth: checkpoint.gmsGrowth,
-    },
-  })
+  // Bij AI-fout (timeout, netwerk, rate limit): proportionele fallback scoring
+  let evaluation: EvaluationResult
+  try {
+    evaluation = await evaluateSubmission({
+      missionTitle: checkpoint.missionTitle,
+      missionDescription: checkpoint.missionDescription,
+      teamAnswer: answer ?? `[Foto ingediend: ${photoUrl}]`,
+      variant: session.variant,
+      missionType: checkpoint.missionType,
+      checkpointType: checkpoint.type,
+      gmsWeights: {
+        connection: checkpoint.gmsConnection,
+        meaning: checkpoint.gmsMeaning,
+        joy: checkpoint.gmsJoy,
+        growth: checkpoint.gmsGrowth,
+      },
+    })
+  } catch {
+    // AI niet beschikbaar — valt terug op statische basisbeoordeling (60% van max)
+    const connectionEarned = Math.round(checkpoint.gmsConnection * FALLBACK_FACTOR)
+    const meaningEarned    = Math.round(checkpoint.gmsMeaning   * FALLBACK_FACTOR)
+    const joyEarned        = Math.round(checkpoint.gmsJoy       * FALLBACK_FACTOR)
+    const growthEarned     = Math.round(checkpoint.gmsGrowth    * FALLBACK_FACTOR)
+    const baseGms = connectionEarned + meaningEarned + joyEarned + growthEarned
+
+    const [submission] = await db
+      .insert(submissions)
+      .values({
+        teamId: team.id,
+        checkpointId,
+        answer,
+        photoUrl,
+        status: 'approved',
+        aiScore: 60,
+        aiFeedback: 'Goede inzending! (AI tijdelijk niet beschikbaar, automatische beoordeling)',
+        aiEvaluation: {
+          connection: connectionEarned,
+          meaning: meaningEarned,
+          joy: joyEarned,
+          growth: growthEarned,
+          rawScore: 60,
+          reasoning: 'AI niet beschikbaar — automatische basisbeoordeling',
+        },
+        gmsEarned: baseGms,
+        scheduledDeleteAt,
+      })
+      .returning()
+
+    await db
+      .update(teams)
+      .set({
+        totalGmsScore: team.totalGmsScore + baseGms,
+        bonusPoints: team.bonusPoints + bonusFromPhoto,
+      })
+      .where(eq(teams.id, team.id))
+
+    const cpScore = JSON.stringify([{ name: checkpoint.name, gmsEarned: baseGms, orderIndex: checkpoint.orderIndex }])
+    await db.insert(sessionScores).values({
+      sessionId,
+      teamId: team.id,
+      connection: connectionEarned,
+      meaning: meaningEarned,
+      joy: joyEarned,
+      growth: growthEarned,
+      totalGms: baseGms,
+      checkpointsCount: 1,
+      checkpointScores: [{ name: checkpoint.name, gmsEarned: baseGms, orderIndex: checkpoint.orderIndex }],
+    }).onConflictDoUpdate({
+      target: [sessionScores.sessionId, sessionScores.teamId],
+      set: {
+        connection: sql`${sessionScores.connection} + ${connectionEarned}`,
+        meaning: sql`${sessionScores.meaning} + ${meaningEarned}`,
+        joy: sql`${sessionScores.joy} + ${joyEarned}`,
+        growth: sql`${sessionScores.growth} + ${growthEarned}`,
+        totalGms: sql`${sessionScores.totalGms} + ${baseGms}`,
+        checkpointsCount: sql`${sessionScores.checkpointsCount} + 1`,
+        checkpointScores: sql`${sessionScores.checkpointScores} || ${cpScore}::jsonb`,
+        updatedAt: new Date(),
+      },
+    })
+
+    // Broadcast NA upsert (zodat polling client up-to-date sessionScores leest)
+    broadcastScoreUpdate(sessionId, {
+      teamId: team.id,
+      teamName: team.name,
+      totalGmsScore: team.totalGmsScore + baseGms,
+    }).catch(() => null)
+
+    return NextResponse.json({
+      submission: {
+        id: submission.id,
+        aiScore: 60,
+        aiFeedback: submission.aiFeedback,
+        gmsEarned: baseGms,
+        bonusEarned: bonusFromPhoto,
+      },
+    })
+  }
 
   // Dimensie-gewogen scoring: AI-scores (0-25) × checkpoint-gewichten
   const connectionEarned = Math.round((evaluation.gmsBreakdown.connection / 25) * checkpoint.gmsConnection)
@@ -240,13 +336,6 @@ export async function POST(req: Request) {
     })
     .where(eq(teams.id, team.id))
 
-  // Broadcast score update naar scorebord (optioneel — niet blokkerend)
-  broadcastScoreUpdate(sessionId, {
-    teamId: team.id,
-    teamName: team.name,
-    totalGmsScore: newTotalScore,
-  }).catch(() => null)
-
   // Upsert gedenormaliseerde sessie-scores (voor snel rapport)
   const cpScore = JSON.stringify([{ name: checkpoint.name, gmsEarned, orderIndex: checkpoint.orderIndex }])
   await db.insert(sessionScores).values({
@@ -272,6 +361,13 @@ export async function POST(req: Request) {
       updatedAt: new Date(),
     },
   })
+
+  // Broadcast NA upsert (zodat polling client up-to-date sessionScores leest)
+  broadcastScoreUpdate(sessionId, {
+    teamId: team.id,
+    teamName: team.name,
+    totalGmsScore: newTotalScore,
+  }).catch(() => null)
 
   return NextResponse.json({
     submission: {
