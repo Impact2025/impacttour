@@ -18,7 +18,7 @@ import AdminSidebarToggle from '@/components/admin/admin-sidebar-toggle'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session || session.user.role !== 'admin') redirect('/login')
+  if (!session || session.user.role !== 'admin') redirect('/login?callbackUrl=/admin/dashboard')
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
