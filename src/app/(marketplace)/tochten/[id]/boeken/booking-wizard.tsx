@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Calendar, Users, User, Mail, Building2,
   Tag, ArrowRight, ArrowLeft, CheckCircle2,
@@ -585,9 +586,9 @@ export default function BookingWizard({ tour }: { tour: Tour }) {
 
             <p className="text-center text-xs text-[#CBD5E1]">
               Door te boeken ga je akkoord met onze{' '}
-              <a href="/voorwaarden" className="text-[#00E676] hover:underline">algemene voorwaarden</a>
+              <Link href="/voorwaarden" className="text-[#00E676] hover:underline">algemene voorwaarden</Link>
               {' '}en{' '}
-              <a href="/privacy" className="text-[#00E676] hover:underline">privacybeleid</a>.
+              <Link href="/privacy" className="text-[#00E676] hover:underline">privacybeleid</Link>.
             </p>
           </div>
         )}

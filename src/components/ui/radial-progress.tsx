@@ -71,7 +71,7 @@ export function RadialProgress({
           </span>
         )}
         {sublabel && (
-          <span className="text-[10px] text-[#CBD5E1] mt-0.5">{sublabel}</span>
+          <span className="text-sm font-semibold text-[#94A3B8] mt-0.5">{sublabel}</span>
         )}
       </div>
     </div>

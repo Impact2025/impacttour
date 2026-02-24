@@ -104,8 +104,10 @@ export default function HomePage() {
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-7 text-sm text-[#64748B]">
             <a href="#varianten" className="hover:text-[#0F172A] transition-colors">Varianten</a>
-            <a href="#hoe-het-werkt" className="hover:text-[#0F172A] transition-colors">Hoe het werkt</a>
-            <a href="#impact" className="hover:text-[#0F172A] transition-colors">Impact</a>
+            <Link href="/impact"   className="hover:text-[#0F172A] transition-colors">Impact</Link>
+            <Link href="/prijzen"  className="hover:text-[#0F172A] transition-colors">Prijzen</Link>
+            <Link href="/over-ons" className="hover:text-[#0F172A] transition-colors">Over ons</Link>
+            <Link href="/contact"  className="hover:text-[#0F172A] transition-colors">Contact</Link>
           </div>
 
           {/* Actions */}
@@ -649,9 +651,13 @@ export default function HomePage() {
               <div>
                 <p className="text-white font-bold mb-3">Bedrijf</p>
                 <div className="space-y-2 text-[#64748B]">
-                  <p>Over ons</p>
-                  <p>Contact</p>
-                  <p>FAQ</p>
+                  <Link href="/over-ons"     className="block hover:text-white transition-colors">Over ons</Link>
+                  <Link href="/impact"       className="block hover:text-white transition-colors">Impact</Link>
+                  <Link href="/prijzen"      className="block hover:text-white transition-colors">Prijzen</Link>
+                  <Link href="/contact"      className="block hover:text-white transition-colors">Contact</Link>
+                  <Link href="/organisaties" className="block hover:text-white transition-colors">Organisaties</Link>
+                  <Link href="/faq"          className="block hover:text-white transition-colors">FAQ</Link>
+                  <a href="https://weareimpact.nl" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">WeAreImpact</a>
                 </div>
               </div>
             </div>
@@ -660,8 +666,8 @@ export default function HomePage() {
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row md:justify-between gap-2 text-xs text-[#475569]">
             <p>© {new Date().getFullYear()} IctusGo — onderdeel van TeambuildingMetImpact.nl</p>
             <div className="flex gap-4">
-              <span className="cursor-pointer hover:text-white transition-colors">Privacy Policy</span>
-              <span className="cursor-pointer hover:text-white transition-colors">Algemene Voorwaarden</span>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/voorwaarden" className="hover:text-white transition-colors">Algemene Voorwaarden</Link>
             </div>
           </div>
         </div>
