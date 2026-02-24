@@ -42,23 +42,24 @@ function checkRateLimitInMemory(
 
 // ─── Upstash Redis (lazy singleton) ───────────────────────────────────────
 
-let _redis: import('@upstash/redis').Redis | null = null
-let _rl: import('@upstash/ratelimit').Ratelimit | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _redis: any = null
 
 function getUpstashRatelimiter(
   maxRequests: number,
   windowMs: number
-): import('@upstash/ratelimit').Ratelimit | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
 
   try {
-    if (!_redis) {
-      const { Redis } = require('@upstash/redis') as typeof import('@upstash/redis')
-      _redis = new Redis({ url, token })
-    }
-    const { Ratelimit } = require('@upstash/ratelimit') as typeof import('@upstash/ratelimit')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Redis } = require('@upstash/redis')
+    if (!_redis) _redis = new Redis({ url, token })
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Ratelimit } = require('@upstash/ratelimit')
     // Per-call instantiation is intentional here: window params differ per route.
     return new Ratelimit({
       redis: _redis,
