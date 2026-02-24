@@ -32,13 +32,22 @@ function LoginForm() {
     setIsSending(true)
     setError('')
 
-    const result = await signIn('customer-credentials', {
+    // Probeer admin-credentials als callbackUrl naar /admin gaat, anders customer-credentials
+    const isAdminLogin = callbackUrl.startsWith('/admin')
+    const providerId = isAdminLogin ? 'admin-credentials' : 'customer-credentials'
+
+    const result = await signIn(providerId, {
       email,
       password,
       redirect: false,
     })
 
     if (result?.error) {
+      // Als admin mislukt, probeer ook customer-credentials (fallback)
+      if (isAdminLogin) {
+        const fallback = await signIn('customer-credentials', { email, password, redirect: false })
+        if (!fallback?.error) { router.push(callbackUrl); return }
+      }
       setError('Onbekend e-mailadres of onjuist wachtwoord.')
       setIsSending(false)
     } else {
