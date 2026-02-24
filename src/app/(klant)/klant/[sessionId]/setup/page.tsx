@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   CheckCircle2, Users, Plus, Copy, Send,
-  ArrowRight, Loader2, Zap, Calendar,
+  ArrowRight, Loader2, Zap, Calendar, ShieldCheck,
 } from 'lucide-react'
 import { Suspense } from 'react'
 
@@ -18,6 +18,7 @@ type SessionData = {
   welcomeMessage: string | null
   scheduledAt: string | null
   organizationName: string | null
+  parentalConsentConfirmed: boolean
   tour: { id: string; name: string; variant: string; estimatedDurationMin: number } | null
   teams: { id: string; name: string; deepLink: string }[]
   joinLink: string
@@ -43,6 +44,7 @@ function SetupContent() {
   const [step, setStep] = useState(1)
   const [sessionName, setSessionName] = useState('')
   const [welcomeMsg, setWelcomeMsg] = useState('')
+  const [consentConfirmed, setConsentConfirmed] = useState(false)
   const [isSavingStep1, setIsSavingStep1] = useState(false)
   const [step1Saved, setStep1Saved] = useState(false)
 
@@ -69,6 +71,7 @@ function SetupContent() {
       setSession(data)
       setSessionName(data.customSessionName || data.tour?.name || '')
       setWelcomeMsg(data.welcomeMessage || '')
+      setConsentConfirmed(data.parentalConsentConfirmed ?? false)
       setTeams(data.teams)
     } catch {
       setError('Kon sessie niet laden.')
@@ -79,13 +82,19 @@ function SetupContent() {
 
   useEffect(() => { load() }, [load])
 
+  const isKids = session?.tour?.variant === 'jeugdtocht' || session?.tour?.variant === 'voetbalmissie'
+
   const saveStep1 = async () => {
     setIsSavingStep1(true)
     try {
       await fetch(`/api/klant/${sessionId}/setup`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customSessionName: sessionName, welcomeMessage: welcomeMsg }),
+        body: JSON.stringify({
+          customSessionName: sessionName,
+          welcomeMessage: welcomeMsg,
+          ...(isKids && { parentalConsentConfirmed: consentConfirmed }),
+        }),
       })
       setStep1Saved(true)
       setTimeout(() => { setStep(2); setStep1Saved(false) }, 600)
@@ -285,9 +294,37 @@ function SetupContent() {
               )}
             </div>
 
+            {/* AVG parental consent voor kids-varianten */}
+            {isKids && (
+              <div className={`rounded-xl border-2 p-4 transition-colors ${consentConfirmed ? 'border-[#00E676] bg-[#F0FDF4]' : 'border-[#FDE68A] bg-[#FFFBEB]'}`}>
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className={`w-5 h-5 mt-0.5 shrink-0 ${consentConfirmed ? 'text-[#00C853]' : 'text-[#D97706]'}`} />
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-[#0F172A] mb-1">
+                      Toestemming ouders/verzorgers (AVG vereist)
+                    </p>
+                    <p className="text-xs text-[#64748B] mb-3">
+                      Deze tocht is voor kinderen. Je bevestigt dat je toestemming hebt van ouders of verzorgers voor deelname en fotografie. Foto&apos;s worden automatisch na 30 dagen verwijderd.
+                    </p>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={consentConfirmed}
+                        onChange={(e) => setConsentConfirmed(e.target.checked)}
+                        className="w-4 h-4 accent-[#00E676] cursor-pointer"
+                      />
+                      <span className="text-sm font-semibold text-[#0F172A]">
+                        Ja, ik heb toestemming van ouders/verzorgers
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={saveStep1}
-              disabled={!sessionName || isSavingStep1}
+              disabled={!sessionName || isSavingStep1 || (isKids && !consentConfirmed)}
               className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-xl font-black text-sm uppercase tracking-wide hover:bg-[#00C853] transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
               style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
             >
@@ -449,6 +486,7 @@ function SetupContent() {
                 { label: `Naam: ${sessionName}`, done: !!sessionName },
                 { label: `${teams.length} team${teams.length !== 1 ? 's' : ''} aangemaakt`, done: teams.length > 0 },
                 { label: `Teamcode: ${session.joinCode}`, done: true },
+                ...(isKids ? [{ label: 'Toestemming ouders/verzorgers bevestigd', done: consentConfirmed }] : []),
               ].map(({ label, done }) => (
                 <div key={label} className="flex items-center gap-3">
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center ${done ? 'bg-[#00E676]' : 'bg-[#F1F5F9]'}`}>

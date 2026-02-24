@@ -3,6 +3,7 @@ import { gameSessions, teams, tours } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { generateTeamToken } from '@/lib/utils'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -22,6 +23,14 @@ export async function POST(req: Request) {
   }
 
   const { joinCode, teamName } = parsed.data
+
+  // Rate limit: max 10 join-pogingen per IP per minuut (voorkomt team-spam)
+  if (!(await checkRateLimit(`join:${getClientIp(req)}`, 10, 60_000))) {
+    return NextResponse.json(
+      { error: 'Te veel aanmeldpogingen. Probeer over een minuut opnieuw.' },
+      { status: 429 }
+    )
+  }
 
   // Zoek actieve sessie op code
   const session = await db.query.gameSessions.findFirst({

@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { aiComplete } from '@/lib/ai'
+import { checkRateLimit, getClientIp, checkOrigin } from '@/lib/rate-limit'
 
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -35,6 +36,10 @@ export async function POST(req: Request) {
 
   const { sessionId, teamToken, message, history } = parsed.data
 
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
   // Haal sessie op
   const session = await db.query.gameSessions.findFirst({
     where: eq(gameSessions.id, sessionId),
@@ -59,6 +64,11 @@ export async function POST(req: Request) {
 
   if (!team || team.gameSessionId !== sessionId) {
     return NextResponse.json({ error: 'Ongeldig team token' }, { status: 401 })
+  }
+
+  // Rate limit: max 20 chat-berichten per IP per minuut (extra bescherming naast history-limiet)
+  if (!(await checkRateLimit(`chat:${getClientIp(req)}`, 20, 60_000))) {
+    return NextResponse.json({ error: 'Te veel chat-verzoeken. Wacht even.' }, { status: 429 })
   }
 
   // Rate limit: max 40 berichten in history (= 20 heen-en-weer)

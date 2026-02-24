@@ -9,6 +9,7 @@ import {
   broadcastGeofenceAlert,
 } from '@/lib/pusher'
 import type { GeoPoint } from '@/lib/geo'
+import { checkOrigin } from '@/lib/rate-limit'
 
 const schema = z.object({
   sessionId: z.string().uuid(),
@@ -26,6 +27,10 @@ const schema = z.object({
  * - Positie opslaan in DB
  */
 export async function POST(req: Request) {
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {

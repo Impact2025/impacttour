@@ -11,6 +11,7 @@ const schema = z.object({
   customSessionName: z.string().min(1).max(100).optional(),
   welcomeMessage: z.string().max(300).optional(),
   scheduledAt: z.string().optional(),
+  parentalConsentConfirmed: z.boolean().optional(),
 })
 
 /**
@@ -48,6 +49,7 @@ export async function GET(
     welcomeMessage: gameSession.welcomeMessage,
     scheduledAt: gameSession.scheduledAt,
     organizationName: gameSession.organizationName,
+    parentalConsentConfirmed: gameSession.parentalConsentConfirmed,
     tour: gameSession.tour
       ? {
           id: gameSession.tour.id,
@@ -88,13 +90,17 @@ export async function PUT(
     return NextResponse.json({ error: 'Ongeldige gegevens' }, { status: 400 })
   }
 
-  const { customSessionName, welcomeMessage, scheduledAt } = parsed.data
+  const { customSessionName, welcomeMessage, scheduledAt, parentalConsentConfirmed } = parsed.data
 
   await db.update(gameSessions)
     .set({
       customSessionName: customSessionName ?? gameSession.customSessionName,
       welcomeMessage: welcomeMessage ?? gameSession.welcomeMessage,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : gameSession.scheduledAt,
+      ...(parentalConsentConfirmed !== undefined && {
+        parentalConsentConfirmed,
+        parentalConsentAt: parentalConsentConfirmed ? new Date() : null,
+      }),
     })
     .where(eq(gameSessions.id, sessionId))
 

@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { gameSessions, teams, checkpoints } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
+import { checkRateLimit, getClientIp, checkOrigin } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -23,6 +24,15 @@ export async function POST(req: Request) {
   }
 
   const { sessionId, teamToken, checkpointId, level } = parsed.data
+
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
+  // Rate limit: max 30 hint-verzoeken per IP per minuut
+  if (!(await checkRateLimit(`hint:${getClientIp(req)}`, 30, 60_000))) {
+    return NextResponse.json({ error: 'Te veel hint-verzoeken. Wacht even.' }, { status: 429 })
+  }
 
   const session = await db.query.gameSessions.findFirst({
     where: eq(gameSessions.id, sessionId),

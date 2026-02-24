@@ -29,6 +29,17 @@ async function handleWebhook(req: Request) {
     return new Response('OK', { status: 200 })
   }
 
+  // Basisvalidatie: transactionId mag alleen alfanumeriek + streepjes zijn (MSP formaat)
+  if (!/^[A-Za-z0-9_-]{4,64}$/.test(transactionId)) {
+    return new Response('OK', { status: 200 })
+  }
+
+  // Runtime guard: API key vereist
+  if (!process.env.MULTISAFEPAY_API_KEY) {
+    console.error('[msp-webhook] MULTISAFEPAY_API_KEY ontbreekt')
+    return new Response('OK', { status: 200 })
+  }
+
   // Dedupliceer: controleer of dit event al eerder succesvol verwerkt is
   const existingEvent = await db.query.webhookEvents.findFirst({
     where: and(

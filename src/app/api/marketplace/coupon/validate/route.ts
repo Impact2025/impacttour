@@ -21,7 +21,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   // Rate limit: 10 validatiepogingen per IP per 60 seconden
   const ip = getClientIp(req)
-  if (!checkRateLimit(`coupon:${ip}`, 10, 60_000)) {
+  if (!(await checkRateLimit(`coupon:${ip}`, 10, 60_000))) {
     return NextResponse.json(
       { valid: false, error: 'Te veel pogingen. Probeer het over een minuut opnieuw.' },
       { status: 429 }

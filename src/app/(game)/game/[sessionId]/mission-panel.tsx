@@ -351,7 +351,11 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
             {photoUrl ? (
               <div className="relative rounded-xl overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photoUrl} alt="Inzending" className="w-full object-cover max-h-48 rounded-xl" />
+                <img
+                  src={`/api/game/photo/serve?url=${encodeURIComponent(photoUrl)}&sessionId=${sessionId}&teamToken=${teamToken}`}
+                  alt="Inzending"
+                  className="w-full object-cover max-h-48 rounded-xl"
+                />
                 <button
                   onClick={() => setPhotoUrl(null)}
                   className="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center"

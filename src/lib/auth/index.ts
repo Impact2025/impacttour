@@ -2,11 +2,18 @@ import NextAuth from 'next-auth'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import Nodemailer from 'next-auth/providers/nodemailer'
 import Credentials from 'next-auth/providers/credentials'
+import { timingSafeEqual } from 'crypto'
 import { db } from '@/lib/db'
 import { users, accounts, sessions, verificationTokens } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendMagicLinkEmail } from '@/lib/email'
 import { verifyPassword } from '@/lib/auth/password'
+
+// In-memory lockout voor admin login (max 5 pogingen per 15 minuten)
+// In serverless omgeving: per instance — voldoende als extra laag naast env-var bescherming
+const adminFailedAttempts = { count: 0, resetAt: 0 }
+const ADMIN_MAX_ATTEMPTS = 5
+const ADMIN_LOCKOUT_MS = 15 * 60 * 1000
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -52,12 +59,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const adminEmail = process.env.ADMIN_EMAIL
         const adminPassword = process.env.ADMIN_PASSWORD
 
-        if (
-          credentials.email !== adminEmail ||
-          credentials.password !== adminPassword
-        ) {
+        if (!adminEmail || !adminPassword) return null
+
+        // Lockout check
+        const now = Date.now()
+        if (now < adminFailedAttempts.resetAt && adminFailedAttempts.count >= ADMIN_MAX_ATTEMPTS) {
+          return null // Geblokkeerd voor de rest van het lockout-window
+        }
+        if (now >= adminFailedAttempts.resetAt) {
+          adminFailedAttempts.count = 0
+          adminFailedAttempts.resetAt = now + ADMIN_LOCKOUT_MS
+        }
+
+        // Constant-time vergelijking (voorkomt timing attacks)
+        const emailOk = credentials.email === adminEmail
+        const inputBuf = Buffer.from(String(credentials.password))
+        const adminBuf = Buffer.from(adminPassword)
+        const passwordOk =
+          inputBuf.length === adminBuf.length &&
+          timingSafeEqual(inputBuf, adminBuf)
+
+        if (!emailOk || !passwordOk) {
+          adminFailedAttempts.count++
           return null
         }
+
+        // Succesvolle login: reset teller
+        adminFailedAttempts.count = 0
 
         // Zoek of maak admin user aan
         const existing = await db
