@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   CheckCircle2, Users, Plus, Copy, Send,
-  ArrowRight, Loader2, Zap, Calendar, Navigation,
+  ArrowRight, Loader2, Zap, Calendar,
 } from 'lucide-react'
 import { Suspense } from 'react'
 
@@ -136,7 +137,7 @@ function SetupContent() {
 
   const shareWhatsApp = (link: string, teamName: string) => {
     const text = encodeURIComponent(
-      `Hoi! Jouw team voor ${session?.tour?.name || 'ImpactTocht'}:\n\n👉 ${link}\n\nTeamnaam: ${teamName}\nKlik op de link om direct deel te nemen!`
+      `Hoi! Jouw team voor ${session?.tour?.name || 'IctusGo'}:\n\n👉 ${link}\n\nTeamnaam: ${teamName}\nKlik op de link om direct deel te nemen!`
     )
     window.open(`https://wa.me/?text=${text}`, '_blank')
   }
@@ -170,11 +171,10 @@ function SetupContent() {
       {/* Header */}
       <div className="bg-[#0F172A]">
         <div className="max-w-2xl mx-auto px-6 py-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-[#00E676] rounded-lg flex items-center justify-center">
-              <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
+          <div className="flex items-center mb-4">
+            <div className="bg-white rounded-lg px-3 py-2 inline-flex">
+              <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
             </div>
-            <span className="text-[#00E676] text-xs font-bold uppercase tracking-widest">ImpactTocht</span>
           </div>
 
           {justPaid && (

@@ -72,16 +72,16 @@ export async function POST(req: Request) {
   // Bepaal persona op basis van variant
   const isFamily = session.variant === 'familietocht'
   const personaName = isFamily ? 'Buddy' : 'Scout'
-  const tourName = session.tour?.name ?? 'ImpactTocht'
+  const tourName = session.tour?.name ?? 'IctusGo'
 
   const systemPrompt = isFamily
-    ? `Je bent Buddy, de vrolijke ImpactTocht assistent voor gezinnen.
+    ? `Je bent Buddy, de vrolijke IctusGo assistent voor gezinnen.
 Je helpt ouders en kinderen tijdens de ${tourName}.
 Wees vrolijk, eenvoudig en enthousiast. Geef aanmoediging en tips.
 Spreek iedereen aan — zowel ouders als kinderen.
 Geef NOOIT de antwoorden van opdrachten direct weg — geef hints als ze vastzitten.
 Taal: Nederlands. Max 3 zinnen per antwoord.`
-    : `Je bent Scout, de slimme ImpactTocht assistent voor teams.
+    : `Je bent Scout, de slimme IctusGo assistent voor teams.
 Je helpt het team ${team.name} tijdens de ${tourName}.
 Wees behulpzaam, motiverend en professioneel maar toegankelijk.
 Geef NOOIT de antwoorden van opdrachten direct weg — geef hints als ze vastzitten.

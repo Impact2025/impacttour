@@ -70,7 +70,7 @@ export async function GET(
   let narrative = ''
   try {
     narrative = await generateReportNarrative({
-      tourName: gameSession.tour?.name ?? 'ImpactTocht',
+      tourName: gameSession.tour?.name ?? 'IctusGo',
       variant: gameSession.tour?.variant ?? gameSession.variant,
       totalTeams,
       avgGmsScore,
@@ -78,7 +78,7 @@ export async function GET(
       gmsBreakdown,
     })
   } catch {
-    narrative = `${totalTeams} teams namen deel aan de ${gameSession.tour?.name ?? 'ImpactTocht'} en behaalden een gemiddelde GMS score van ${avgGmsScore} punten.`
+    narrative = `${totalTeams} teams namen deel aan de ${gameSession.tour?.name ?? 'IctusGo'} en behaalden een gemiddelde GMS score van ${avgGmsScore} punten.`
   }
 
   // Lazy load PDF renderer om OOM-fouten tijdens build te voorkomen
@@ -87,7 +87,7 @@ export async function GET(
   const { ImpactRapport } = await import('@/lib/pdf/impact-rapport')
 
   const rapportProps = {
-    tourName: gameSession.tour?.name ?? 'ImpactTocht',
+    tourName: gameSession.tour?.name ?? 'IctusGo',
     variant: gameSession.tour?.variant ?? gameSession.variant,
     sessionDate: gameSession.startedAt ?? gameSession.createdAt,
     totalTeams,

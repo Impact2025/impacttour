@@ -2,7 +2,8 @@ import { db } from '@/lib/db'
 import { tours, checkpoints } from '@/lib/db/schema'
 import { eq, and, count } from 'drizzle-orm'
 import Link from 'next/link'
-import { Clock, Users, MapPin, Zap, Star, ArrowRight, Navigation } from 'lucide-react'
+import Image from 'next/image'
+import { Clock, Users, MapPin, Zap, Star, ArrowRight } from 'lucide-react'
 import { formatDuration } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -61,11 +62,10 @@ export default async function TochtenMarketplace() {
           style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #00E676 0%, transparent 50%), radial-gradient(circle at 80% 20%, #00E676 0%, transparent 40%)' }}
         />
         <div className="max-w-5xl mx-auto px-6 py-16 relative">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#00E676] rounded-xl flex items-center justify-center">
-              <Navigation className="w-5 h-5 text-[#0F172A]" strokeWidth={2.5} />
+          <div className="flex items-center mb-6">
+            <div className="bg-white rounded-lg px-3 py-2 inline-flex">
+              <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
             </div>
-            <span className="text-[#00E676] font-bold tracking-widest text-sm uppercase">ImpactTocht</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>

@@ -134,7 +134,7 @@ async function handleWebhook(req: Request) {
       await sendBookingConfirmationEmail({
         to: user.email,
         customerName: (user.name || 'klant').split(' ')[0],
-        tourName: tour?.name || 'ImpactTocht',
+        tourName: tour?.name || 'IctusGo',
         setupUrl: magicLink,
         loginUrl: `${appUrl}/login`,
         isPaid: true,

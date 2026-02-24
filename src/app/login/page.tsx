@@ -3,7 +3,8 @@
 import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Navigation, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 function LoginForm() {
   const [tab, setTab] = useState<'magic' | 'password'>('password')
@@ -70,16 +71,8 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#00E676] flex items-center justify-center">
-              <Navigation className="w-5 h-5 text-[#0F172A]" strokeWidth={2.5} />
-            </div>
+            <Image src="/images/IctusGo.png" alt="IctusGo" width={150} height={45} className="h-10 w-auto" />
           </div>
-          <h1
-            className="text-2xl font-extrabold italic text-[#0F172A]"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
-            ImpactTocht
-          </h1>
           <p className="text-sm text-[#94A3B8] mt-1">Inloggen</p>
         </div>
 

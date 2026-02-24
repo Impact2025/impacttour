@@ -24,12 +24,6 @@ const MISSION_TYPE_LABELS: Record<string, string> = {
   video: '🎥 Video',
 }
 
-const GMS_LABELS = [
-  { key: 'gmsConnection', label: 'Verbinding', color: '#00E676' },
-  { key: 'gmsMeaning', label: 'Betekenis', color: '#38BDF8' },
-  { key: 'gmsJoy', label: 'Plezier', color: '#F59E0B' },
-  { key: 'gmsGrowth', label: 'Groei', color: '#A78BFA' },
-] as const
 
 export default async function TourDetailPage({
   params,
@@ -57,6 +51,18 @@ export default async function TourDetailPage({
     (sum, cp) => sum + cp.gmsConnection + cp.gmsMeaning + cp.gmsJoy + cp.gmsGrowth,
     0
   )
+
+  const gmsDimensions = [
+    { key: 'gmsConnection' as const, label: 'Verbinding', color: '#00E676', bgColor: '#DCFCE7', desc: 'Samen zijn, nieuwe mensen ontmoeten' },
+    { key: 'gmsMeaning' as const, label: 'Betekenis', color: '#38BDF8', bgColor: '#E0F2FE', desc: 'Zinvol bezig zijn voor de buurt' },
+    { key: 'gmsJoy' as const, label: 'Plezier', color: '#F59E0B', bgColor: '#FEF3C7', desc: 'Lachen, spelen en genieten' },
+    { key: 'gmsGrowth' as const, label: 'Groei', color: '#A78BFA', bgColor: '#EDE9FE', desc: 'Iets nieuws leren of ontdekken' },
+  ]
+
+  const gmsPerDimension = gmsDimensions.map((dim) => ({
+    ...dim,
+    total: cps.reduce((sum, cp) => sum + cp[dim.key], 0),
+  }))
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
@@ -132,6 +138,47 @@ export default async function TourDetailPage({
         </div>
       </div>
 
+      {/* Geluksmomenten Score — full-width band */}
+      <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                <Star className="w-4 h-4 text-[#F59E0B]" />
+                Geluksmomenten Score
+              </h2>
+              <p className="text-[#64748B] text-xs mt-0.5">
+                Elke opdracht scoort op 4 dimensies van welzijn — samen optellen tot de GMS.
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-3xl font-black text-[#0F172A]"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
+                {totalGms} <span className="text-[#00E676]">pt</span>
+              </div>
+              <div className="text-[10px] text-[#94A3B8]">max te behalen</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {gmsPerDimension.map((dim) => {
+              const pct = totalGms > 0 ? Math.round((dim.total / totalGms) * 100) : 0
+              return (
+                <div key={dim.key} className="rounded-xl p-3" style={{ background: dim.bgColor }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-[#0F172A]">{dim.label}</span>
+                    <span className="text-xs font-black" style={{ color: dim.color }}>{dim.total} pt</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/60 overflow-hidden mb-2">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: dim.color }} />
+                  </div>
+                  <p className="text-[10px] text-[#64748B] leading-snug">{dim.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-3xl mx-auto px-6 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Links: checkpoints + GMS */}
@@ -168,7 +215,7 @@ export default async function TourDetailPage({
 
                           {/* GMS mini breakdown */}
                           <div className="flex gap-2 mt-2 flex-wrap">
-                            {GMS_LABELS.map(({ key, label, color }) => {
+                            {gmsDimensions.map(({ key, label, color }) => {
                               const val = cp[key]
                               if (val === 0) return null
                               return (
@@ -187,24 +234,6 @@ export default async function TourDetailPage({
               </div>
             </section>
 
-            {/* Wat is GMS */}
-            <section className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
-              <h2 className="text-base font-bold text-[#0F172A] mb-4 flex items-center gap-2">
-                <Star className="w-4 h-4 text-[#F59E0B]" />
-                Geluksmomenten Score (GMS)
-              </h2>
-              <p className="text-[#64748B] text-sm leading-relaxed mb-4">
-                De GMS meet de positieve impact van jullie tocht op 4 dimensies. Score van max 100 punten.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {GMS_LABELS.map(({ label, color }) => (
-                  <div key={label} className="flex items-center gap-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9]">
-                    <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-                    <span className="text-sm font-medium text-[#0F172A]">{label}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
 
           {/* Rechts: boek sidebar */}

@@ -423,8 +423,16 @@ export default function GamePage() {
             </div>
           </div>
 
-          {/* Rechts: GPS + score */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Rechts: badges + score */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* LIVE badge */}
+            <span className="flex items-center gap-1 text-[9px] font-bold text-white bg-[#EF4444] px-2 py-1 rounded-full">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+              </span>
+              LIVE
+            </span>
             {isTestMode && (
               <span className="flex items-center gap-1 text-[9px] font-semibold text-[#F59E0B] bg-[#FEF3C7] px-2 py-1 rounded-full">
                 🧪 TEST
@@ -502,9 +510,13 @@ export default function GamePage() {
           <div className="absolute bottom-24 left-0 right-0 flex justify-center z-[1000] px-4">
             <button
               onClick={handleCheckpointUnlock}
-              className="w-full max-w-sm py-4 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-base shadow-2xl shadow-[#00E676]/30 active:scale-95 transition-all animate-bounce flex items-center justify-center gap-2"
+              className="w-full max-w-sm py-4 bg-[#00E676] text-[#0F172A] rounded-2xl font-black italic text-lg active:scale-95 transition-all animate-bounce flex items-center justify-center gap-2.5 uppercase tracking-wide"
+              style={{
+                fontFamily: 'var(--font-display)',
+                boxShadow: '0 0 0 4px rgba(0,230,118,0.25), 0 8px 32px rgba(0,230,118,0.40)',
+              }}
             >
-              <Zap className="w-5 h-5" />
+              <Zap className="w-5 h-5" fill="#0F172A" />
               Checkpoint bereikt — Ontgrendel!
             </button>
           </div>
@@ -513,38 +525,52 @@ export default function GamePage() {
         {/* ── CHECKPOINT INFO OVERLAY ── */}
         {activeView === 'map' && currentCheckpoint && !nearbyCheckpoint && (
           <div className="absolute bottom-20 left-4 right-4 z-[1000]">
-            <div className="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-4">
+            <div
+              className="bg-white rounded-2xl p-4"
+              style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.12), 0 1px 6px rgba(0,0,0,0.06)' }}
+            >
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-[#F0FDF4] border border-[#DCFCE7] flex items-center justify-center shrink-0">
-                  <span className="text-base font-black text-[#00C853]"
-                    style={{ fontFamily: 'var(--font-display)' }}>
+                {/* Checkpoint nummer */}
+                <div className="w-11 h-11 rounded-xl bg-[#0F172A] flex items-center justify-center shrink-0">
+                  <span
+                    className="text-lg font-black text-[#00E676]"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
                     {completedCount + 1}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00E676] animate-pulse inline-block" />
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E676] opacity-60" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00C853]" />
+                    </span>
                     <span className="text-[9px] font-bold text-[#00C853] uppercase tracking-widest">
                       Volgend checkpoint
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-[#0F172A] truncate">{currentCheckpoint.name}</p>
+                  <p className="text-sm font-black text-[#0F172A] truncate"
+                    style={{ fontFamily: 'var(--font-display)' }}>
+                    {currentCheckpoint.name}
+                  </p>
                 </div>
                 {position && (
                   <div className="text-right shrink-0">
-                    <p className="text-lg font-black text-[#0F172A] leading-none"
-                      style={{ fontFamily: 'var(--font-display)' }}>
-                      {Math.round(haversineDistance(position.latitude, position.longitude, currentCheckpoint.latitude, currentCheckpoint.longitude))}m
+                    <p
+                      className="text-2xl font-black text-[#0F172A] leading-none"
+                      style={{ fontFamily: 'var(--font-display)' }}
+                    >
+                      {Math.round(haversineDistance(position.latitude, position.longitude, currentCheckpoint.latitude, currentCheckpoint.longitude))}
                     </p>
-                    <p className="text-[9px] text-[#94A3B8] font-semibold uppercase">afstand</p>
+                    <p className="text-[9px] text-[#94A3B8] font-semibold uppercase">meter</p>
                   </div>
                 )}
               </div>
-              {/* Progress bar checkpoints */}
+              {/* Voortgangsbalk */}
               <div className="mt-3 flex items-center gap-2">
-                <div className="flex-1 bg-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
+                <div className="flex-1 bg-[#F1F5F9] rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="h-full bg-[#00E676] rounded-full transition-all"
+                    className="h-full bg-[#00E676] rounded-full transition-all duration-500"
                     style={{ width: totalCount > 0 ? `${(completedCount / totalCount) * 100}%` : '0%' }}
                   />
                 </div>

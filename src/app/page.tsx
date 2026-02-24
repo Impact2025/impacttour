@@ -1,6 +1,6 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
-  Navigation,
   MapPin,
   Heart,
   Trophy,
@@ -11,11 +11,22 @@ import {
   Zap,
   Shield,
   Footprints,
+  Target,
+  Sliders,
+  type LucideIcon,
 } from 'lucide-react'
 
-const VARIANTS = [
+const VARIANTS: Array<{
+  icon: LucideIcon
+  slug: string
+  name: string
+  target: string
+  desc: string
+  color: string
+  bg: string
+}> = [
   {
-    emoji: '🏙️',
+    icon: MapPin,
     slug: 'wijktocht',
     name: 'WijkTocht',
     target: 'Bedrijven & teams',
@@ -24,7 +35,7 @@ const VARIANTS = [
     bg: '#3B82F615',
   },
   {
-    emoji: '⚡',
+    icon: Zap,
     slug: 'impactsprint',
     name: 'ImpactSprint',
     target: 'Compact · 90 min',
@@ -33,7 +44,7 @@ const VARIANTS = [
     bg: '#8B5CF615',
   },
   {
-    emoji: '👨‍👩‍👧',
+    icon: Heart,
     slug: 'familietocht',
     name: 'FamilieTocht',
     target: 'Gezinnen · weekend',
@@ -42,7 +53,7 @@ const VARIANTS = [
     bg: '#EC489915',
   },
   {
-    emoji: '🧒',
+    icon: Shield,
     slug: 'jeugdtocht',
     name: 'JeugdTocht',
     target: 'Kinderen 9-13 jaar',
@@ -51,7 +62,7 @@ const VARIANTS = [
     bg: '#F59E0B15',
   },
   {
-    emoji: '⚽',
+    icon: Target,
     slug: 'voetbalmissie',
     name: 'VoetbalMissie',
     target: 'Voetbalclubs · scholen',
@@ -86,16 +97,8 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E2E8F0]">
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#00E676] flex items-center justify-center">
-              <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
-            </div>
-            <span
-              className="font-black text-[#0F172A] text-sm tracking-tight"
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-            >
-              IMPACTTOCHT
-            </span>
+          <div className="flex items-center">
+            <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
           </div>
 
           {/* Desktop links */}
@@ -144,7 +147,7 @@ export default function HomePage() {
               </h1>
 
               <p className="text-[#94A3B8] md:text-[#64748B] text-sm md:text-base leading-relaxed mb-6 max-w-md">
-                ImpactTocht combineert GPS-avontuur met sociale missies. Voor bedrijven, gezinnen,
+                IctusGo combineert GPS-avontuur met sociale missies. Voor bedrijven, gezinnen,
                 scholen en voetbalclubs — in 5 varianten die passen bij jouw groep.
               </p>
 
@@ -221,15 +224,14 @@ export default function HomePage() {
       <section className="bg-white border-y border-[#E2E8F0] py-6 px-4 md:px-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <div>
-            <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">Geluksmomenten gecreëerd</p>
+            <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">Actief als sociaal ondernemer</p>
             <div className="flex items-baseline gap-2">
               <span
                 className="text-4xl font-black text-[#0F172A]"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                12.450+
+                2010
               </span>
-              <span className="text-[#00C853] text-xs font-bold bg-[#DCFCE7] px-2 py-0.5 rounded-full">+75%</span>
             </div>
           </div>
 
@@ -245,9 +247,9 @@ export default function HomePage() {
                 className="text-2xl font-black text-[#0F172A]"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                500+
+                15 jaar
               </div>
-              <div className="text-xs text-[#94A3B8]">Tochten uitgevoerd</div>
+              <div className="text-xs text-[#94A3B8]">Praktijkervaring</div>
             </div>
             <div className="text-center">
               <div
@@ -274,21 +276,21 @@ export default function HomePage() {
             Kies jouw variant.
           </h2>
           <p className="text-[#64748B] text-sm md:text-base mb-10 max-w-xl">
-            Van 90 minuten ImpactSprint tot een familiedag — er is een ImpactTocht voor elke groep en elk doel.
+            Van 90 minuten ImpactSprint tot een familiedag — er is een IctusGo variant voor elke groep en elk doel.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {VARIANTS.map(({ emoji, name, target, desc, color, bg, slug }) => (
+            {VARIANTS.map(({ icon: Icon, name, target, desc, color, bg, slug }) => (
               <div
                 key={slug}
                 className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/40 hover:shadow-sm transition-all group"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                     style={{ backgroundColor: bg }}
                   >
-                    {emoji}
+                    <Icon className="w-5 h-5" style={{ color }} strokeWidth={1.75} />
                   </div>
                   <div>
                     <h3 className="font-bold text-[#0F172A] text-sm">{name}</h3>
@@ -314,8 +316,8 @@ export default function HomePage() {
 
             {/* Maatwerk kaart */}
             <div className="bg-[#0F172A] rounded-2xl p-5 border border-white/10">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl mb-3">
-                ✨
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3">
+                <Sliders className="w-5 h-5 text-white" strokeWidth={1.75} />
               </div>
               <h3 className="font-bold text-white text-sm mb-1">Maatwerk tocht</h3>
               <p className="text-[#94A3B8] text-xs leading-relaxed mb-3">
@@ -336,7 +338,7 @@ export default function HomePage() {
       <section id="impact" className="bg-[#F8FAFC] px-4 md:px-8 py-14 md:py-20">
         <div className="max-w-6xl mx-auto">
 
-          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Waarom ImpactTocht</p>
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Waarom IctusGo</p>
           <h2
             className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
@@ -349,7 +351,7 @@ export default function HomePage() {
           </h2>
 
           <p className="text-[#64748B] text-sm md:text-base mt-5 mb-10 max-w-xl">
-            ImpactTocht meet verbinding, betekenis, plezier en groei — via de Geluksmomenten Score.
+            IctusGo meet verbinding, betekenis, plezier en groei — via de Geluksmomenten Score.
             Elke tocht eindigt met een persoonlijk impactrapport.
           </p>
 
@@ -422,20 +424,20 @@ export default function HomePage() {
                 className="text-3xl font-black text-[#00E676] mb-0.5"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                12.450+
+                2010
               </div>
-              <div className="text-[#94A3B8] text-xs">Geluksmomenten</div>
-              <div className="text-[#00E676] text-xs font-bold mt-1.5">+75% dit jaar</div>
+              <div className="text-[#94A3B8] text-xs">Oprichtingsjaar</div>
+              <div className="text-[#00E676] text-xs font-bold mt-1.5">Sociaal ondernemen</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
               <div
                 className="text-3xl font-black text-white mb-0.5"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                500+
+                15 jaar
               </div>
-              <div className="text-[#94A3B8] text-xs">Tochten voltooid</div>
-              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">Landelijk actief</div>
+              <div className="text-[#94A3B8] text-xs">Praktijkervaring</div>
+              <div className="text-[#94A3B8] text-xs font-bold mt-1.5">Ontwikkeld in de praktijk</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
               <div
@@ -613,16 +615,10 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:justify-between gap-8 mb-8">
             {/* Brand */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-[#00E676] flex items-center justify-center">
-                  <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
+              <div className="flex items-center mb-3">
+                <div className="bg-white rounded-lg px-2 py-1 inline-flex">
+                  <Image src="/images/IctusGo.png" alt="IctusGo" width={100} height={30} className="h-6 w-auto" />
                 </div>
-                <span
-                  className="font-black text-white text-sm"
-                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                >
-                  IMPACTTOCHT
-                </span>
               </div>
               <p className="text-[#64748B] text-xs max-w-xs leading-relaxed">
                 GPS-gestuurd teambuilding met echte sociale impact.
@@ -662,7 +658,7 @@ export default function HomePage() {
           </div>
 
           <div className="border-t border-white/5 pt-6 flex flex-col md:flex-row md:justify-between gap-2 text-xs text-[#475569]">
-            <p>© {new Date().getFullYear()} TeambuildingMetImpact.nl — ImpactTocht</p>
+            <p>© {new Date().getFullYear()} IctusGo — onderdeel van TeambuildingMetImpact.nl</p>
             <div className="flex gap-4">
               <span className="cursor-pointer hover:text-white transition-colors">Privacy Policy</span>
               <span className="cursor-pointer hover:text-white transition-colors">Algemene Voorwaarden</span>

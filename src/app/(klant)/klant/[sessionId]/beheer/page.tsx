@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   Play, Pause, Square, Copy, CheckCircle2, Users,
   Trophy, MapPin, Loader2, Navigation, RefreshCw,
@@ -203,8 +204,8 @@ export default function BeheerPage() {
       <div className="bg-[#0F172A]">
         <div className="max-w-2xl mx-auto px-6 pt-6 pb-8">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 bg-[#00E676] rounded-lg flex items-center justify-center">
-              <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
+            <div className="bg-white rounded-lg px-2 py-1 inline-flex">
+              <Image src="/images/IctusGo.png" alt="IctusGo" width={100} height={30} className="h-6 w-auto" />
             </div>
             <div className="flex-1">
               <span className="text-[#00E676] text-xs font-bold uppercase tracking-widest">Game Day Dashboard</span>

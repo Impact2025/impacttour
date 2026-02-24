@@ -38,6 +38,8 @@ interface RapportData {
   coachInsight: string
 }
 
+const cardShadow = { boxShadow: '0 2px 16px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04)' }
+
 export default function RapportPage() {
   const params = useParams()
   const router = useRouter()
@@ -49,10 +51,7 @@ export default function RapportPage() {
 
   const load = useCallback(async () => {
     const teamToken = sessionStorage.getItem('teamToken')
-    if (!teamToken) {
-      router.replace('/join')
-      return
-    }
+    if (!teamToken) { router.replace('/join'); return }
 
     setError(null)
     try {
@@ -74,34 +73,27 @@ export default function RapportPage() {
 
   useEffect(() => { load() }, [load])
 
+  /* ── LOADING ── */
   if (isLoading) {
     return (
       <MobileShell className="bg-[#F0FDF4]">
         <PageHeader title="Impact Rapport" subtitle="Laden..." className="bg-[#F0FDF4] border-[#DCFCE7]" />
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
-          {/* Radial skeleton */}
-          <div className="flex flex-col items-center py-4">
-            <div
-              className="animate-pulse rounded-full bg-gray-200"
-              style={{ width: 180, height: 180 }}
-            />
+          <div className="flex flex-col items-center py-6">
+            <div className="animate-pulse rounded-full bg-[#DCFCE7]" style={{ width: 220, height: 220 }} />
           </div>
-          {/* Dimension cards skeleton */}
           <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="bg-gray-100 rounded-xl h-28 animate-pulse" />
-            ))}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="bg-[#DCFCE7] rounded-2xl h-32 animate-pulse" />)}
           </div>
-          {/* Chart skeleton */}
-          <div className="bg-gray-100 rounded-xl h-28 animate-pulse" />
-          {/* Coach insight skeleton */}
-          <div className="bg-gray-100 rounded-2xl h-32 animate-pulse" />
+          <div className="bg-[#DCFCE7] rounded-2xl h-28 animate-pulse" />
+          <div className="bg-[#DCFCE7] rounded-2xl h-36 animate-pulse" />
         </div>
         <BottomNav activeTab="impact" variant="simple" />
       </MobileShell>
     )
   }
 
+  /* ── ERROR ── */
   if (error || !data) {
     return (
       <MobileShell className="bg-[#F0FDF4]">
@@ -123,20 +115,18 @@ export default function RapportPage() {
 
   const { teamName, totalGmsScore, gmsMax, dimensions, dimensionPercentages, checkpointScores, coachInsight } = data
 
-  // Normaliseer GMS score naar percentage van 100 voor de radial
   const gmsPercentage = gmsMax > 0 ? Math.round((totalGmsScore / gmsMax) * 100) : 0
   const isHighImpact = gmsPercentage >= 70
 
   const qualitative = (pct: number) => pct >= 70 ? 'Hoog' : pct >= 40 ? 'Gemiddeld' : 'Laag'
 
   const dimensionCards = [
-    { label: 'Verbinding', icon: Heart, value: dimensions.connection, color: '#EC4899', qualitative: qualitative(dimensionPercentages.connection) },
-    { label: 'Betekenis', icon: Lightbulb, value: dimensions.meaning, color: '#8B5CF6', qualitative: qualitative(dimensionPercentages.meaning) },
-    { label: 'Plezier', icon: Smile, value: dimensions.joy, color: '#F59E0B', qualitative: qualitative(dimensionPercentages.joy) },
-    { label: 'Groei', icon: TrendingUp, value: dimensions.growth, color: '#00E676', qualitative: qualitative(dimensionPercentages.growth) },
+    { label: 'Verbinding', icon: Heart, value: dimensions.connection, pct: dimensionPercentages.connection, color: '#EC4899' },
+    { label: 'Betekenis', icon: Lightbulb, value: dimensions.meaning, pct: dimensionPercentages.meaning, color: '#8B5CF6' },
+    { label: 'Plezier', icon: Smile, value: dimensions.joy, pct: dimensionPercentages.joy, color: '#F59E0B' },
+    { label: 'Groei', icon: TrendingUp, value: dimensions.growth, pct: dimensionPercentages.growth, color: '#00E676' },
   ]
 
-  // Bar chart data: per checkpoint GMS earned
   const chartData = checkpointScores.map((cp, i) => ({
     day: `CP${i + 1}`,
     value: cp.gmsEarned,
@@ -152,52 +142,66 @@ export default function RapportPage() {
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4">
-        {/* Radiale score */}
-        <div className="animate-scale-in stagger-1 flex flex-col items-center py-4">
-          <RadialProgress
-            value={gmsPercentage}
-            max={100}
-            size={180}
-            label="GMS Score"
-            sublabel={`${totalGmsScore} / ${gmsMax} punten`}
-          />
-          {isHighImpact && (
-            <div className="mt-4 inline-flex items-center gap-1.5 bg-[#DCFCE7] border border-[#00E676]/30 rounded-full px-4 py-1.5">
-              <Star className="w-3.5 h-3.5 text-[#00C853]" fill="#00C853" />
-              <span className="text-xs font-bold text-[#00C853]">Hoge Impact Badge</span>
-            </div>
-          )}
-          <p className="text-sm text-[#64748B] text-center mt-3 max-w-[280px]">
-            De Geluksmomenten Score meet verbinding, betekenis, plezier en groei — elk goed voor 25 punten.
-          </p>
+
+        {/* ── RADIALE SCORE ── */}
+        <div className="animate-scale-in stagger-1">
+          <div className="bg-white rounded-2xl p-6 flex flex-col items-center" style={cardShadow}>
+            {/* Radial — groot formaat */}
+            <RadialProgress
+              value={gmsPercentage}
+              max={100}
+              size={220}
+              label="GMS Score"
+              sublabel={`${totalGmsScore} / ${gmsMax} punten`}
+            />
+
+            {/* High impact badge */}
+            {isHighImpact && (
+              <div className="mt-4 inline-flex items-center gap-1.5 bg-[#DCFCE7] border border-[#00E676]/40 rounded-full px-4 py-1.5">
+                <Star className="w-3.5 h-3.5 text-[#00C853]" fill="#00C853" />
+                <span className="text-xs font-bold text-[#00C853]">Hoge Impact Badge</span>
+              </div>
+            )}
+
+            <p className="text-sm text-[#64748B] text-center mt-3 leading-relaxed max-w-[260px]">
+              De Geluksmomenten Score meet verbinding, betekenis, plezier en groei — elk goed voor 25 punten.
+            </p>
+          </div>
         </div>
 
-        {/* Impact Breakdown 2×2 */}
+        {/* ── IMPACT BREAKDOWN 2×2 ── */}
         <div className="animate-slide-up-fade stagger-2">
-          <h2
-            className="text-xs font-bold text-[#0F172A] mb-1 uppercase tracking-widest"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
-            IMPACT BREAKDOWN
-          </h2>
-          <p className="text-xs text-[#94A3B8] mb-3">Elke dimensie is max 25 punten</p>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2
+              className="text-xs font-bold text-[#0F172A] uppercase tracking-widest"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              Impact Breakdown
+            </h2>
+            <p className="text-[10px] text-[#94A3B8]">max 25 pt per dimensie</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             {dimensionCards.map((dim, i) => (
               <div
                 key={dim.label}
-                className={`animate-scale-in stagger-${Math.min(i + 2, 8) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8} bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4 card-pressable`}
+                className={`animate-scale-in stagger-${Math.min(i + 2, 8) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8} bg-white rounded-2xl p-4`}
+                style={cardShadow}
               >
-                <div className="flex items-center gap-2 mb-2">
+                {/* Icon + label */}
+                <div className="flex items-center gap-2 mb-3">
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${dim.color}20` }}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: `${dim.color}18` }}
                   >
-                    <dim.icon className="w-3.5 h-3.5" style={{ color: dim.color }} />
+                    <dim.icon className="w-4 h-4" style={{ color: dim.color }} />
                   </div>
-                  <span className="text-xs font-medium text-[#64748B]">{dim.label}</span>
+                  <span className="text-xs font-semibold text-[#64748B]">{dim.label}</span>
                 </div>
+
+                {/* Score groot */}
                 <div
-                  className="text-3xl font-extrabold leading-none mb-2"
+                  className="text-[40px] font-black leading-none mb-2"
                   style={{
                     fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
                     color: dim.color,
@@ -205,13 +209,15 @@ export default function RapportPage() {
                 >
                   {dim.value}
                 </div>
+
+                {/* Kwalitatief label */}
                 <div className="flex items-center gap-1">
                   <ArrowUpRight className="w-3.5 h-3.5" style={{ color: dim.color }} />
                   <span
                     className="text-xs font-bold px-2 py-0.5 rounded-full"
                     style={{ color: dim.color, backgroundColor: `${dim.color}15` }}
                   >
-                    {dim.qualitative}
+                    {qualitative(dim.pct)}
                   </span>
                 </div>
               </div>
@@ -219,34 +225,54 @@ export default function RapportPage() {
           </div>
         </div>
 
-        {/* Checkpoint GMS grafiek */}
+        {/* ── GMS PER CHECKPOINT GRAFIEK ── */}
         {chartData.length > 0 && (
-          <div className="animate-slide-up-fade stagger-6 bg-white rounded-xl border border-[#E2E8F0] shadow-sm p-4">
-            <h2 className="text-sm font-semibold text-[#0F172A] mb-3">GMS per Checkpoint</h2>
+          <div
+            className="animate-slide-up-fade stagger-6 bg-white rounded-2xl p-5"
+            style={cardShadow}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-bold text-[#0F172A]">Sociale Groei</h2>
+              <span className="text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wide">Per Checkpoint</span>
+            </div>
             <MiniBarChart data={chartData} />
-            <p className="text-xs text-[#64748B] mt-2">Verdiende GMS punten per voltooide missie</p>
+            <p className="text-xs text-[#94A3B8] mt-2">Verdiende GMS punten per voltooide missie</p>
           </div>
         )}
 
-        {/* Coach Inzicht — wit */}
-        <div className="animate-slide-up-fade stagger-7 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#DCFCE7] border border-[#00E676]/30 flex items-center justify-center shrink-0">
-              <Star className="w-4 h-4 text-[#00C853]" />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-[#00C853] uppercase tracking-wider mb-1">
-                Coach Inzicht
-              </p>
-              <p className="text-sm text-[#475569] leading-relaxed">{coachInsight}</p>
+        {/* ── COACH INZICHT ── */}
+        <div
+          className="animate-slide-up-fade stagger-7 bg-white rounded-2xl overflow-hidden"
+          style={cardShadow}
+        >
+          {/* Groene accent balk bovenaan */}
+          <div className="h-1 bg-gradient-to-r from-[#00E676] to-[#00C853]" />
+          <div className="p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#DCFCE7] flex items-center justify-center shrink-0">
+                <Star className="w-5 h-5 text-[#00C853]" fill="#00C853" />
+              </div>
+              <div className="flex-1">
+                <p
+                  className="text-[11px] font-bold text-[#00C853] uppercase tracking-wider mb-2"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  Coach Inzicht
+                </p>
+                <p className="text-sm text-[#475569] leading-relaxed">{coachInsight}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* CTA */}
+        {/* ── CTA ── */}
         <button
           onClick={() => router.push(`/game/${sessionId}/voltooid`)}
-          className="animate-slide-up-fade stagger-8 w-full py-4 rounded-2xl bg-[#00E676] text-[#0F172A] font-semibold text-sm active:scale-[0.97] active:bg-[#00C853] transition-all duration-150 shadow-md shadow-[#00E676]/30"
+          className="animate-slide-up-fade stagger-8 w-full py-4 rounded-2xl bg-[#00E676] text-[#0F172A] font-black italic text-base active:scale-[0.97] active:bg-[#00C853] transition-all duration-150 uppercase tracking-wide"
+          style={{
+            fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+            boxShadow: '0 4px 20px rgba(0,230,118,0.30)',
+          }}
         >
           Terug naar Overzicht
         </button>

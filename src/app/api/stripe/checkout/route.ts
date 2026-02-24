@@ -95,8 +95,8 @@ export async function POST(req: Request) {
           product_data: {
             name: tour.name,
             description: tour.pricingModel === 'per_person' && participantCount
-              ? `ImpactTocht sessie - ${tour.variant} (${participantCount} deelnemers)`
-              : `ImpactTocht sessie - ${tour.variant}`,
+              ? `IctusGo sessie - ${tour.variant} (${participantCount} deelnemers)`
+              : `IctusGo sessie - ${tour.variant}`,
           },
           unit_amount: effectivePriceCents,
         },

@@ -236,7 +236,7 @@ export function ImpactRapport({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>ImpactTocht Rapport</Text>
+          <Text style={styles.headerTitle}>IctusGo Rapport</Text>
           <Text style={styles.headerSubtitle}>{tourName}</Text>
           <Text style={styles.headerSubtitle}>{variantLabel[variant] ?? variant}</Text>
           <Text style={styles.headerMeta}>
@@ -316,7 +316,7 @@ export function ImpactRapport({
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>ImpactTocht · weareimpact.nl</Text>
+          <Text style={styles.footerText}>IctusGo · weareimpact.nl</Text>
           <Text style={styles.footerText} render={({ pageNumber, totalPages }) =>
             `Pagina ${pageNumber} van ${totalPages}`
           } />

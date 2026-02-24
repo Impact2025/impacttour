@@ -20,8 +20,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'ImpactTocht — GPS Teambuilding met Sociale Impact',
-    template: '%s | ImpactTocht',
+    default: 'IctusGo — GPS Teambuilding met Sociale Impact',
+    template: '%s | IctusGo',
   },
   description:
     'GPS-gestuurd outdoor teambuilding met echte sociale impact. Meet verbinding, betekenis, plezier en groei met de Geluksmomenten Score.',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ImpactTocht',
+    title: 'IctusGo',
   },
   formatDetection: {
     telephone: false,
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'nl_NL',
     url: 'https://impacttocht.nl',
-    siteName: 'ImpactTocht',
-    title: 'ImpactTocht — GPS Teambuilding met Sociale Impact',
+    siteName: 'IctusGo',
+    title: 'IctusGo — GPS Teambuilding met Sociale Impact',
     description:
       'GPS-gestuurd outdoor teambuilding met echte sociale impact. Meet verbinding, betekenis, plezier en groei.',
   },
@@ -61,8 +61,8 @@ export default function RootLayout({
   return (
     <html lang="nl" suppressHydrationWarning className={`${barlowCondensed.variable} ${inter.variable}`}>
       <head>
-        <link rel="icon" href="/icons/icon-192.png" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="icon" href="/images/Favicon.png" />
+        <link rel="apple-touch-icon" href="/images/Favicon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-body">

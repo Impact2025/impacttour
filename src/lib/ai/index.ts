@@ -1,6 +1,6 @@
 /**
  * OpenRouter AI client
- * ImpactTocht gebruikt OpenRouter als AI gateway (niet direct Anthropic API)
+ * IctusGo gebruikt OpenRouter als AI gateway (niet direct Anthropic API)
  * Default model: anthropic/claude-sonnet-4-6
  *
  * Rate limit: max 20 AI calls per team per sessie (bijgehouden in sessie state)
@@ -15,7 +15,7 @@ function getOpenRouter() {
     apiKey: process.env.OPENROUTER_API_KEY || 'missing',
     defaultHeaders: {
       'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://impacttocht.nl',
-      'X-Title': 'ImpactTocht',
+      'X-Title': 'IctusGo',
     },
   })
 }
@@ -98,7 +98,7 @@ export async function generateAssignment(
     [
       {
         role: 'system',
-        content: `Je bent een creatieve spelontwerper voor ImpactTocht. Genereer een opdracht voor ${variantContext[params.variant]}.
+        content: `Je bent een creatieve spelontwerper voor IctusGo. Genereer een opdracht voor ${variantContext[params.variant]}.
 Antwoord ALLEEN in JSON: {"title": "...", "description": "..."}
 De opdracht bevordert verbinding, betekenis, plezier en/of groei.
 Taal: Nederlands. Max 2 zinnen voor description.`,
@@ -245,7 +245,7 @@ export async function generateCoachInsight(
     [
       {
         role: 'system',
-        content: `Je bent een empathische teamcoach voor ImpactTocht.
+        content: `Je bent een empathische teamcoach voor IctusGo.
 Schrijf een persoonlijk Coach Inzicht van 3-4 zinnen in het Nederlands.
 - Noem de sterkste dimensie (${strongest}) en zwakste dimensie (${weakest}) bij naam.
 - Wees concreet en persoonlijk — gebruik de teamnaam.
@@ -290,7 +290,7 @@ export async function generateDebriefing(
     [
       {
         role: 'system',
-        content: `Je bent een inspirerende debriefing-schrijver voor ImpactTocht teambuilding sessies.
+        content: `Je bent een inspirerende debriefing-schrijver voor IctusGo teambuilding sessies.
 Schrijf een debriefing van 400-600 woorden in het Nederlands.
 Gebruik de naam van het team en hun prestaties. Wees positief, concreet en inspirerend.
 Noem de 4 GMS dimensies (verbinding, betekenis, plezier, groei) specifiek.
@@ -377,7 +377,7 @@ export async function generateTour(
     [
       {
         role: 'system',
-        content: `Je bent een expert in het ontwerpen van GPS teambuilding tochten voor ImpactTocht.
+        content: `Je bent een expert in het ontwerpen van GPS teambuilding tochten voor IctusGo.
 Genereer een complete tocht in JSON formaat.
 
 JSON structuur:
@@ -443,7 +443,7 @@ export async function generateReportNarrative(params: {
     [
       {
         role: 'system',
-        content: `Schrijf een impact narratief voor een ImpactTocht sessie rapport.
+        content: `Schrijf een impact narratief voor een IctusGo sessie rapport.
 200-300 woorden in het Nederlands. Professioneel maar warm van toon.
 Beschrijf de collectieve impact van alle teams samen.`,
       },

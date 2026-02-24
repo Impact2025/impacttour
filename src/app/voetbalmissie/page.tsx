@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Navigation, ArrowRight, CheckCircle2, Quote, Shield, Timer, Camera, Star } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, CheckCircle2, Quote, Shield, Timer, Camera, Star } from 'lucide-react'
 
 const CHECKPOINTS = [
   {
@@ -46,17 +47,8 @@ export default function VoetbalmissiePage() {
       {/* ── Navbar ─────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E2E8F0]">
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#00E676] flex items-center justify-center">
-              <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
-            </div>
-            <span
-              className="font-black text-[#0F172A] text-sm tracking-tight"
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-            >
-              IMPACTTOCHT
-            </span>
-            <span className="text-[#64748B] text-xs ml-1 hidden md:inline">/ VoetbalMissie</span>
+          <div className="flex items-center">
+            <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
           </div>
 
           <div className="flex items-center gap-2">
@@ -330,11 +322,10 @@ export default function VoetbalmissiePage() {
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <footer className="bg-[#0F172A] border-t border-white/5 px-4 md:px-8 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:justify-between gap-4 text-xs text-[#475569]">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#00E676] flex items-center justify-center">
-              <Navigation className="w-3 h-3 text-[#0F172A]" strokeWidth={2.5} />
+          <div className="flex items-center gap-3">
+            <div className="bg-white rounded-lg px-2 py-1 inline-flex">
+              <Image src="/images/IctusGo.png" alt="IctusGo" width={80} height={24} className="h-5 w-auto" />
             </div>
-            <span className="text-white font-bold" style={{ fontFamily: 'var(--font-display)' }}>IMPACTTOCHT</span>
             <span className="text-[#475569]">— onderdeel van TeambuildingMetImpact.nl</span>
           </div>
           <div className="flex gap-4">

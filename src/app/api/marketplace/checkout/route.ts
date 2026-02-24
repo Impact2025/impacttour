@@ -202,7 +202,7 @@ export async function POST(req: Request) {
     gateway: '',
     currency: 'EUR',
     amount: finalAmountCents,
-    description: `ImpactTocht — ${tour.name}${organizationName ? ` (${organizationName})` : ''}`,
+    description: `IctusGo — ${tour.name}${organizationName ? ` (${organizationName})` : ''}`,
     payment_options: {
       notification_url: `${appUrl}/api/multisafepay/webhook`,
       redirect_url: `${appUrl}/klant/${gameSession.id}/setup?betaald=1`,

@@ -25,7 +25,7 @@ interface VoltooidData {
   checkpointsDone: number
 }
 
-function GmsLevel(score: number, max: number) {
+function getGmsLevel(score: number, max: number) {
   const pct = max > 0 ? (score / max) * 100 : 0
   if (pct >= 70) return { label: 'Hoge Impact', color: '#00C853', bg: '#DCFCE7' }
   if (pct >= 40) return { label: 'Gemiddelde Impact', color: '#F59E0B', bg: '#FEF3C7' }
@@ -44,10 +44,7 @@ export default function VoltooidPage() {
 
   const load = useCallback(async () => {
     const teamToken = sessionStorage.getItem('teamToken')
-    if (!teamToken) {
-      router.replace('/join')
-      return
-    }
+    if (!teamToken) { router.replace('/join'); return }
 
     setError(null)
     try {
@@ -94,47 +91,40 @@ export default function VoltooidPage() {
 
   const handleShare = async () => {
     if (!data) return
-    const { label } = GmsLevel(data.gmsScore, data.gmsMax)
-    const shareText = `${data.teamName} behaalde ${data.gmsScore} GMS punten — ${label}!`
+    const { label } = getGmsLevel(data.gmsScore, data.gmsMax)
+    const shareText = `${data.teamName} behaalde ${data.gmsScore} GMS punten — ${label}! 🏆`
 
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: 'ImpactTocht Resultaat',
-          text: shareText,
-        })
-      } catch {
-        // user cancelled share
-      }
+        await navigator.share({ title: 'IctusGo Resultaat', text: shareText })
+      } catch { /* gebruiker annuleerde */ }
     } else {
-      // Fallback: kopieer naar clipboard
       try {
         await navigator.clipboard.writeText(shareText)
         setCopied(true)
         setTimeout(() => setCopied(false), 2500)
-      } catch {
-        // clipboard not available
-      }
+      } catch { /* clipboard niet beschikbaar */ }
     }
   }
 
+  /* ── LOADING ── */
   if (isLoading) {
     return (
       <MobileShell>
         <div className="flex-1 overflow-y-auto bg-white">
-          <div className="px-4 pt-12 pb-8 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-full bg-gray-100 animate-pulse" />
+          <div className="px-4 pt-14 pb-8 text-center">
+            <div className="flex justify-center mb-5">
+              <div className="w-24 h-24 rounded-full bg-[#F1F5F9] animate-pulse" />
             </div>
-            <div className="h-10 bg-gray-100 rounded-xl animate-pulse mb-2 mx-8" />
-            <div className="h-4 bg-gray-100 rounded animate-pulse mx-12" />
+            <div className="h-10 bg-[#F1F5F9] rounded-xl animate-pulse mb-2 mx-6" />
+            <div className="h-4 bg-[#F1F5F9] rounded animate-pulse mx-12" />
           </div>
           <div className="px-4 pb-5 space-y-4">
-            <div className="bg-gray-100 rounded-2xl h-48 animate-pulse" />
-            <div className="bg-gray-100 rounded-2xl h-32 animate-pulse" />
+            <div className="bg-[#F1F5F9] rounded-2xl h-52 animate-pulse" />
+            <div className="bg-[#F1F5F9] rounded-2xl h-36 animate-pulse" />
             <div className="space-y-3">
-              <div className="bg-gray-100 rounded-2xl h-14 animate-pulse" />
-              <div className="bg-gray-100 rounded-2xl h-14 animate-pulse" />
+              <div className="bg-[#F1F5F9] rounded-2xl h-14 animate-pulse" />
+              <div className="bg-[#F1F5F9] rounded-2xl h-14 animate-pulse" />
             </div>
           </div>
         </div>
@@ -142,6 +132,7 @@ export default function VoltooidPage() {
     )
   }
 
+  /* ── ERROR ── */
   if (error || !data) {
     return (
       <MobileShell>
@@ -159,126 +150,152 @@ export default function VoltooidPage() {
     )
   }
 
-  const { label, color, bg } = GmsLevel(data.gmsScore, data.gmsMax)
+  const { label, color, bg } = getGmsLevel(data.gmsScore, data.gmsMax)
+  const gmsPct = data.gmsMax > 0 ? Math.round((data.gmsScore / data.gmsMax) * 100) : 0
 
   return (
     <MobileShell>
       <div className="flex-1 overflow-y-auto bg-white">
-        {/* Hero sectie — wit */}
-        <div className="px-4 pt-12 pb-8 text-center">
-          <div className="flex justify-center mb-4 animate-slide-up-fade stagger-1">
-            <div className="w-20 h-20 rounded-full bg-[#F0FDF4] flex items-center justify-center">
-              <Trophy className="w-10 h-10 text-[#0F172A]" strokeWidth={1.5} />
+
+        {/* ── HERO SECTIE ── */}
+        <div className="px-4 pt-14 pb-8 text-center">
+          {/* Trophy icon — groot, dramatisch, zonder cirkel */}
+          <div className="flex justify-center mb-5 animate-slide-up-fade stagger-1">
+            <div className="relative">
+              <Trophy
+                className="w-20 h-20 text-[#0F172A]"
+                strokeWidth={1.2}
+              />
+              {/* Glow under the trophy */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-3 bg-[#00E676]/30 rounded-full blur-md" />
             </div>
           </div>
 
           <h1
-            className="animate-slide-up-fade stagger-2 text-4xl font-extrabold italic text-[#0F172A] mb-1 tracking-tight"
+            className="animate-slide-up-fade stagger-2 text-5xl font-black italic text-[#0F172A] mb-1 tracking-tight"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
           >
             MISSIE VOLTOOID
           </h1>
           <p
-            className="animate-slide-up-fade stagger-3 text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2"
+            className="animate-slide-up-fade stagger-2 text-[10px] font-bold text-[#94A3B8] uppercase tracking-[0.2em] mb-2"
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
           >
-            PERFORMANCE SUMMARY
+            Performance Summary
           </p>
           <p className="animate-slide-up-fade stagger-3 text-[#94A3B8] text-sm">{data.tourName}</p>
         </div>
 
-        <div className="px-4 pb-5 space-y-4">
-          {/* Podium */}
-          <div className="animate-slide-up-fade stagger-4 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4">
-            <h2
-              className="text-sm font-bold text-[#0F172A] mb-4 text-center uppercase tracking-wider"
+        <div className="px-4 pb-8 space-y-4">
+
+          {/* ── PODIUM ── */}
+          <div
+            className="animate-slide-up-fade stagger-4 bg-white rounded-2xl p-5"
+            style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.08)' }}
+          >
+            <p
+              className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-[0.2em] text-center mb-5"
               style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
             >
               Eindstand
-            </h2>
+            </p>
             {data.podiumTeams.length > 0 ? (
               <LeaderboardPodium teams={data.podiumTeams} />
             ) : (
-              <p className="text-center text-sm text-[#94A3B8]">Nog geen eindstand beschikbaar</p>
+              <p className="text-center text-sm text-[#94A3B8] py-4">Nog geen eindstand beschikbaar</p>
             )}
           </div>
 
-          {/* GMS Score card */}
-          <div className="animate-slide-up-fade stagger-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p
-                className="text-xs font-bold text-[#0F172A] uppercase tracking-wider"
-                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-              >
-                GELUKSMOMENTEN SCORE
-              </p>
-              <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider">
-                {data.teamName}
-              </p>
-            </div>
-            <div className="flex items-baseline gap-1 mb-3">
+          {/* ── GMS SCORE CARD ── */}
+          <div
+            className="animate-slide-up-fade stagger-5 bg-white rounded-2xl p-5"
+            style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.08)' }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <p
+                  className="text-[11px] font-bold text-[#0F172A] uppercase tracking-[0.15em]"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  Geluksmomenten Score
+                </p>
+                <p className="text-[10px] text-[#94A3B8] mt-0.5">{data.teamName}</p>
+              </div>
               <span
-                className="text-5xl font-extrabold text-[#0F172A] leading-none"
-                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-              >
-                {data.gmsScore}
-              </span>
-              <span className="text-[#64748B] text-sm">/ {data.gmsMax}</span>
-              <span
-                className="ml-auto text-xs font-bold px-3 py-1.5 rounded-full"
+                className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0"
                 style={{ color, backgroundColor: bg }}
               >
                 {label}
               </span>
             </div>
+
+            {/* Grote score */}
+            <div className="flex items-end gap-1.5 mb-4">
+              <span
+                className="text-[64px] font-black text-[#0F172A] leading-none"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                {data.gmsScore}
+              </span>
+              <div className="mb-2">
+                <span className="text-xl font-bold text-[#94A3B8]">PTS</span>
+                <p className="text-xs text-[#94A3B8]">{gmsPct}% van max</p>
+              </div>
+            </div>
+
             <ProgressBar value={data.gmsScore} max={data.gmsMax} />
-            <div className="flex items-center gap-1.5 mt-3">
-              <Zap className="w-3.5 h-3.5 text-[#00C853]" />
-              <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wider">
-                {data.checkpointsDone} CHECKPOINTS VOLTOOID
+
+            {/* Impact momenten */}
+            <div className="flex items-center gap-2 mt-3">
+              <div className="w-6 h-6 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0">
+                <Zap className="w-3 h-3 text-[#00C853]" />
+              </div>
+              <span className="text-xs font-semibold text-[#64748B] uppercase tracking-wide">
+                {data.checkpointsDone} impact momenten geregistreerd
               </span>
             </div>
           </div>
 
-          {/* Locatie rij */}
-          <div className="animate-slide-up-fade stagger-6 bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#F1F5F9] shrink-0 flex items-center justify-center">
+          {/* ── LOCATIE ── */}
+          <div
+            className="animate-slide-up-fade stagger-6 bg-white rounded-2xl p-4 flex items-center gap-4"
+            style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+          >
+            <div className="w-12 h-12 rounded-xl bg-[#F8FAFC] flex items-center justify-center shrink-0">
               <MapPin className="w-5 h-5 text-[#94A3B8]" />
             </div>
-            <div>
-              <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">
-                TOCHT
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold mb-0.5">
+                Locatie
               </p>
-              <p className="text-sm font-semibold text-[#0F172A]">{data.tourName || '—'}</p>
+              <p className="text-sm font-bold text-[#0F172A] truncate uppercase tracking-wide">
+                {data.tourName || '—'}
+              </p>
             </div>
-            <MapPin className="w-4 h-4 text-[#94A3B8] ml-auto" />
           </div>
 
-          {/* CTA buttons */}
-          <div className="animate-slide-up-fade stagger-7 space-y-3">
+          {/* ── CTA KNOPPEN ── */}
+          <div className="animate-slide-up-fade stagger-7 space-y-3 pt-2">
             <button
               onClick={() => router.push(`/game/${sessionId}/rapport`)}
-              className="w-full py-4 rounded-2xl border-2 border-[#00E676] text-[#00C853] font-extrabold italic text-sm flex items-center justify-center gap-2 active:scale-[0.97] active:bg-[#F0FDF4] transition-all duration-150 uppercase tracking-wide"
+              className="w-full py-4 rounded-2xl border-2 border-[#0F172A] text-[#0F172A] font-black italic text-base flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 uppercase tracking-wide"
               style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
             >
               <FileText className="w-4 h-4" />
-              BEKIJK IMPACT RAPPORT
+              Bekijk Rapport
             </button>
             <button
               onClick={handleShare}
-              className="w-full py-4 rounded-2xl bg-[#00E676] text-[#0F172A] font-extrabold italic text-sm flex items-center justify-center gap-2 active:scale-[0.97] active:bg-[#00C853] transition-all duration-150 shadow-md shadow-[#00E676]/30 uppercase tracking-wide"
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              className="w-full py-4 rounded-2xl bg-[#00E676] text-[#0F172A] font-black italic text-base flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 uppercase tracking-wide"
+              style={{
+                fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+                boxShadow: '0 4px 20px rgba(0,230,118,0.35)',
+              }}
             >
               {copied ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  GEKOPIEERD!
-                </>
+                <><Check className="w-4 h-4" /> Gekopieerd!</>
               ) : (
-                <>
-                  <Share2 className="w-4 h-4" />
-                  DEEL RESULTAAT
-                </>
+                <><Share2 className="w-4 h-4" /> Deel Resultaat</>
               )}
             </button>
           </div>

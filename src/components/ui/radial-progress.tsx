@@ -10,8 +10,8 @@ interface RadialProgressProps {
 export function RadialProgress({
   value,
   max = 100,
-  size = 160,
-  strokeWidth = 12,
+  size = 220,
+  strokeWidth = 14,
   label,
   sublabel,
 }: RadialProgressProps) {
@@ -28,13 +28,13 @@ export function RadialProgress({
         viewBox={`0 0 ${size} ${size}`}
         className="-rotate-90"
       >
-        {/* Track */}
+        {/* Track (achtergrond ring) */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#E2E8F0"
+          stroke="#E8F5E9"
           strokeWidth={strokeWidth}
         />
         {/* Progress arc */}
@@ -48,20 +48,31 @@ export function RadialProgress({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+          style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)' }}
         />
       </svg>
 
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className="text-5xl font-extrabold text-[#0F172A] leading-none"
-          style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          className="font-black text-[#0F172A] leading-none"
+          style={{
+            fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+            fontSize: size >= 200 ? '64px' : '48px',
+          }}
         >
           {value}
         </span>
-        {label && <span className="text-xs font-medium text-[#64748B] mt-1">{label}</span>}
-        {sublabel && <span className="text-[10px] text-[#94A3B8]">{sublabel}</span>}
+        {label && (
+          <span
+            className="text-xs font-semibold text-[#94A3B8] mt-1 uppercase tracking-wide"
+          >
+            {label}
+          </span>
+        )}
+        {sublabel && (
+          <span className="text-[10px] text-[#CBD5E1] mt-0.5">{sublabel}</span>
+        )}
       </div>
     </div>
   )

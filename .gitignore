@@ -36,3 +36,6 @@ Thumbs.db
 
 # Drizzle migrations (optioneel - bewaar in git)
 # drizzle/
+
+.vercel
+.env*.local

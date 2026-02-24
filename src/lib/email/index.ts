@@ -13,7 +13,7 @@ function getTransporter() {
   })
 }
 
-const FROM = `ImpactTocht <${process.env.GMAIL_USER || 'weareimpactnl@gmail.com'}>`
+const FROM = `IctusGo <${process.env.GMAIL_USER || 'weareimpactnl@gmail.com'}>`
 
 export async function sendMagicLinkEmail({
   to,
@@ -25,19 +25,19 @@ export async function sendMagicLinkEmail({
   await getTransporter().sendMail({
     from: FROM,
     to,
-    subject: 'Inloggen bij ImpactTocht',
+    subject: 'Inloggen bij IctusGo',
     html: `
       <!DOCTYPE html>
       <html lang="nl">
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Inloggen ImpactTocht</title>
+        <title>Inloggen IctusGo</title>
       </head>
       <body style="font-family: system-ui, sans-serif; background: #f9fafb; margin: 0; padding: 20px;">
         <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #2D9B4E; margin: 0; font-size: 28px;">ImpactTocht</h1>
+            <h1 style="color: #2D9B4E; margin: 0; font-size: 28px;">IctusGo</h1>
             <p style="color: #6b7280; margin-top: 8px;">GPS Teambuilding met Sociale Impact</p>
           </div>
 
@@ -49,7 +49,7 @@ export async function sendMagicLinkEmail({
           <div style="text-align: center; margin: 28px 0;">
             <a href="${url}"
                style="background: #2D9B4E; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; display: inline-block;">
-              Inloggen bij ImpactTocht
+              Inloggen bij IctusGo
             </a>
           </div>
 
@@ -132,7 +132,7 @@ export async function sendBookingConfirmationEmail({
           <!-- Header -->
           <div style="background: #0F172A; padding: 32px; text-align: center;">
             <div style="display: inline-block; background: #00E676; border-radius: 12px; padding: 10px 20px; margin-bottom: 16px;">
-              <span style="color: #0F172A; font-weight: 800; font-size: 18px; letter-spacing: 1px;">IMPACTTOCHT</span>
+              <span style="color: #0F172A; font-weight: 800; font-size: 18px; letter-spacing: 1px;">ICTUSGO</span>
             </div>
             <p style="color: #94A3B8; margin: 0; font-size: 13px;">GPS Teambuilding met Sociale Impact</p>
           </div>

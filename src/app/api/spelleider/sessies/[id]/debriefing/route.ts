@@ -93,7 +93,7 @@ export async function POST(
 
   try {
     const debriefing = await generateDebriefing({
-      tourName: gameSession.tour?.name ?? 'ImpactTocht',
+      tourName: gameSession.tour?.name ?? 'IctusGo',
       teamName: allTeams.length === 1 ? allTeams[0].name : `${allTeams.length} teams`,
       totalScore: avgScore,
       checkpointsCompleted: completedCount,

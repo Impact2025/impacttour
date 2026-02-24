@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { users, gameSessions, tours, orders, coupons } from '@/lib/db/schema'
 import { count, eq } from 'drizzle-orm'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Tag, Users, Map, ShoppingBag, Navigation } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -32,9 +33,7 @@ export default async function AdminDashboard() {
     <main className="min-h-screen bg-[#F8FAFC]">
       <div className="max-w-5xl mx-auto p-6">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-[#00E676] flex items-center justify-center">
-            <Navigation className="w-4 h-4 text-[#0F172A]" strokeWidth={2.5} />
-          </div>
+          <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
           <h1 className="text-xl font-bold text-[#0F172A]">Admin Dashboard</h1>
         </div>
 
