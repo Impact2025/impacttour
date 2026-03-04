@@ -175,48 +175,43 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Phone mockup — desktop only */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="relative w-56 h-[460px] bg-[#0F172A] rounded-[42px] border-[5px] border-[#1E293B] shadow-2xl shadow-[#0F172A]/40 overflow-hidden flex flex-col">
-              {/* Notch */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#0F172A] rounded-b-2xl z-10" />
-              {/* Screen content */}
-              <div className="flex-1 bg-gradient-to-b from-[#0F172A] via-[#0d1a1f] to-[#0F172A] flex flex-col items-center justify-center px-5 pt-8 pb-4 gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-[#00E676] flex items-center justify-center mb-1">
-                  <MapPin className="w-5 h-5 text-[#0F172A]" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-1">Checkpoint 3/5</div>
-                  <div
-                    className="text-4xl font-black text-white"
-                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                  >
-                    87m
-                  </div>
-                  <div className="text-[#00E676] text-xs font-bold mt-0.5">Bijna daar!</div>
-                </div>
-                {/* Avatar row */}
-                <div className="flex -space-x-2 mt-1">
-                  {['#EC4899', '#8B5CF6', '#F59E0B', '#00E676', '#3B82F6'].map((c, i) => (
-                    <div
-                      key={i}
-                      className="w-7 h-7 rounded-full border-2 border-[#0F172A]"
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-                {/* Score card */}
-                <div className="w-full bg-[#00E676]/10 border border-[#00E676]/20 rounded-xl p-3 text-center">
-                  <div className="text-[#00E676] text-[10px] font-bold uppercase tracking-widest mb-0.5">GMS Score</div>
-                  <div
-                    className="text-white text-3xl font-black"
-                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                  >
-                    87/100
-                  </div>
-                  <div className="text-[#64748B] text-[9px] mt-0.5">Hoge Impact Badge</div>
-                </div>
+          {/* App screenshots — desktop only */}
+          <div className="hidden md:flex flex-1 justify-center items-center">
+            <div className="relative w-[420px] h-[500px]">
+
+              {/* Screen links (Impact) — achterste, rotated left */}
+              <div className="absolute left-0 top-8 w-[175px] rotate-[-6deg] rounded-[28px] border-[4px] border-[#1E293B] shadow-xl shadow-[#0F172A]/50 overflow-hidden">
+                <Image
+                  src="/images/screen-impact.png"
+                  alt="Impact score scherm"
+                  width={350}
+                  height={620}
+                  className="w-full h-auto block"
+                />
               </div>
+
+              {/* Screen rechts (Score) — achterste, rotated right */}
+              <div className="absolute right-0 top-8 w-[175px] rotate-[6deg] rounded-[28px] border-[4px] border-[#1E293B] shadow-xl shadow-[#0F172A]/50 overflow-hidden">
+                <Image
+                  src="/images/screen-score.png"
+                  alt="Klassement scherm"
+                  width={350}
+                  height={620}
+                  className="w-full h-auto block"
+                />
+              </div>
+
+              {/* Screen midden (Kaart) — voorste, geen rotatie */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[195px] z-10 rounded-[32px] border-[4px] border-[#1E293B] shadow-2xl shadow-[#00E676]/20 overflow-hidden ring-2 ring-[#00E676]/30">
+                <Image
+                  src="/images/screen-kaart.png"
+                  alt="GPS kaart scherm"
+                  width={390}
+                  height={690}
+                  className="w-full h-auto block"
+                />
+              </div>
+
             </div>
           </div>
         </div>
