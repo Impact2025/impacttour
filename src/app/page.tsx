@@ -232,12 +232,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex -space-x-2">
-            {['#EC4899', '#8B5CF6', '#F59E0B', '#00E676', '#3B82F6'].map((c, i) => (
-              <div key={i} className="w-9 h-9 rounded-full border-2 border-white" style={{ backgroundColor: c }} />
-            ))}
-          </div>
-
           <div className="hidden md:flex gap-12">
             <div className="text-center">
               <div
