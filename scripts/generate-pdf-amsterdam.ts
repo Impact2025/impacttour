@@ -235,8 +235,8 @@ async function main() {
   // 11. Render PDF
   console.log('  Render PDF...')
   const React = await import('react')
-  // @ts-expect-error — global React nodig voor JSX in standalone script
-  globalThis.React = React.default ?? React
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).React = React.default ?? React
   const { renderToBuffer } = await import('@react-pdf/renderer')
   const { ImpactRapport } = await import('../src/lib/pdf/impact-rapport')
   const { createElement } = React

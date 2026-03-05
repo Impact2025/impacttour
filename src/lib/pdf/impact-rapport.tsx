@@ -576,7 +576,7 @@ function Page1({
           <Text style={styles.roiTitle}>Wat dit betekent voor jullie organisatie</Text>
           <Text style={styles.roiText}>
             Teams met een GMS-score boven 70% rapporteren na afloop aantoonbaar sterkere onderlinge
-            verbinding en hogere betrokkenheid bij sociale thema's. Met {avgGmsPct}% scoort
+            verbinding en hogere betrokkenheid bij sociale thema&apos;s. Met {avgGmsPct}% scoort
             {' '}{variantLabel[variant] ?? variant} {avgGmsPct >= 70 ? 'bovengemiddeld' : 'op een goed niveau'} voor
             teambuilding in deze categorie. Pagina 2 bevat concrete aanbevelingen om dit resultaat
             te borgen en de laagst scorende dimensies te versterken.

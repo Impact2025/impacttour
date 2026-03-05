@@ -13,6 +13,7 @@ import {
   Footprints,
   Target,
   Sliders,
+  FileText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -119,10 +120,10 @@ export default function HomePage() {
               Inloggen
             </Link>
             <Link
-              href="/tochten"
+              href="/contact"
               className="text-xs font-bold bg-[#00E676] text-[#0F172A] px-4 py-2 rounded-xl hover:bg-[#00C853] transition-colors"
             >
-              Boek een tocht
+              Plan een gesprek
             </Link>
           </div>
         </div>
@@ -155,17 +156,18 @@ export default function HomePage() {
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/tochten"
+                  href="/contact"
                   className="inline-flex items-center justify-center gap-2 bg-[#00E676] text-[#0F172A] font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-[#00C853] transition-colors"
                 >
-                  Kies jouw variant
+                  Plan een gratis gesprek
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/join"
+                  href="/tochten"
                   className="inline-flex items-center justify-center gap-2 border border-white/10 md:border-[#E2E8F0] text-[#94A3B8] md:text-[#64748B] font-medium text-sm px-6 py-3.5 rounded-2xl hover:bg-white/5 md:hover:bg-[#F8FAFC] transition-colors"
                 >
-                  Doe mee aan tocht
+                  Bekijk de varianten
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
 
@@ -450,6 +452,97 @@ export default function HomePage() {
               <div className="text-[#94A3B8] text-xs">Max GMS per CP</div>
               <div className="text-[#94A3B8] text-xs font-bold mt-1.5">AI-beoordeeld</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Maatwerk ─────────────────────────────────────────────── */}
+      <section className="bg-[#F0FDF4] px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="md:flex md:items-center md:gap-16">
+
+            {/* Tekst */}
+            <div className="flex-1 mb-10 md:mb-0">
+              <span className="inline-block text-[10px] font-bold text-[#00E676] bg-[#00E676]/10 border border-[#00E676]/20 rounded-full px-3 py-1 mb-5 uppercase tracking-widest">
+                Fase 1 · Maatwerk
+              </span>
+              <h2
+                className="text-3xl md:text-5xl font-black italic text-[#0F172A] leading-tight mb-4"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                Wij bouwen<br />
+                de tocht voor jou.
+              </h2>
+              <p className="text-[#64748B] text-sm md:text-base leading-relaxed mb-6 max-w-md">
+                Eigen locatie, eigen opdrachten, eigen branding. Wij kennen de route, regelen het platform en zorgen dat jouw team een dag heeft die ze niet vergeten. Jij hoeft alleen te verschijnen.
+              </p>
+
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Tocht op maat voor jouw stad of regio',
+                  'GPS-checkpoints bij locaties die voor jou relevant zijn',
+                  'Persoonlijk impactrapport per team na afloop',
+                  'Spelleider-dashboard live tijdens de dag',
+                  'Wij regelen alles — jij geniet mee',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-[#0F172A]">
+                    <CheckCircle2 className="w-4 h-4 text-[#00C853] shrink-0 mt-0.5" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center gap-2 bg-[#0F172A] text-white font-bold text-sm px-6 py-3.5 rounded-2xl hover:bg-[#1E293B] transition-colors"
+                >
+                  Plan een gratis gesprek
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/prijzen"
+                  className="inline-flex items-center justify-center gap-2 border border-[#E2E8F0] text-[#64748B] font-medium text-sm px-6 py-3.5 rounded-2xl hover:bg-white transition-colors"
+                >
+                  Bekijk tarieven
+                </Link>
+              </div>
+            </div>
+
+            {/* Info cards */}
+            <div className="flex-1 grid grid-cols-2 gap-4">
+              {[
+                { label: 'Vanaf', value: '€750', sub: 'per sessie · ex. BTW', color: '#00E676' },
+                { label: 'Doorlooptijd', value: '1 week', sub: 'van gesprek tot tocht', color: '#0F172A' },
+                { label: 'Groepsgrootte', value: '10–200', sub: 'deelnemers', color: '#0F172A' },
+                { label: 'Steden', value: 'Heel NL', sub: 'wij komen naar jou', color: '#0F172A' },
+              ].map(({ label, value, sub, color }) => (
+                <div key={label} className="bg-white rounded-2xl p-5 border border-[#E2E8F0]">
+                  <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">{label}</p>
+                  <p
+                    className="text-2xl font-black mb-0.5"
+                    style={{ color, fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                  >
+                    {value}
+                  </p>
+                  <p className="text-[10px] text-[#94A3B8]">{sub}</p>
+                </div>
+              ))}
+
+              {/* PDF rapport highlight */}
+              <div className="col-span-2 bg-[#0F172A] rounded-2xl p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[#00E676]/15 flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-[#00E676]" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Persoonlijk impactrapport</p>
+                  <p className="text-[#64748B] text-xs leading-relaxed">
+                    Na elke sessie ontvangt elk team een PDF met GMS-scores, dimensie-analyse en Coach Inzicht — professioneel genoeg om intern door te sturen.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

@@ -106,7 +106,7 @@ export async function GET(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfElement = createElement(ImpactRapport, rapportProps) as any
+  const pdfElement = createElement(ImpactRapport, rapportProps as any) as any
   const pdfBuffer = await renderToBuffer(pdfElement)
 
   const filename = `impactrapport-${gameSession.tour?.name?.replace(/\s+/g, '-').toLowerCase() ?? sessionId}.pdf`

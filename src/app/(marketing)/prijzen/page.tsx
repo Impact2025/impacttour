@@ -171,6 +171,16 @@ export default function PrijzenPage() {
             Kies de variant die bij jouw groep past. Alle varianten inclusief AI-begeleiding, live scorebord en persoonlijk impactrapport.
           </p>
 
+          {/* Maatwerk highlight */}
+          <div className="mt-8 inline-flex items-center gap-3 bg-[#0F172A] text-white rounded-2xl px-5 py-3">
+            <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
+            <span className="text-sm font-bold">Maatwerk tocht</span>
+            <span className="text-[#64748B] text-sm">vanaf €750 per sessie</span>
+            <Link href="/contact" className="text-[#00E676] text-sm font-bold hover:underline ml-2">
+              Vraag offerte →
+            </Link>
+          </div>
+
           {/* Toggle */}
           <div className="inline-flex bg-white border border-[#E2E8F0] rounded-xl p-1 mt-8">
             <button
@@ -237,6 +247,43 @@ export default function PrijzenPage() {
       <section className="bg-white px-4 md:px-8 py-16 md:py-24">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {/* Maatwerk card — eerst */}
+            <div className="rounded-2xl p-6 bg-[#0F172A] border-2 border-[#00E676]/40 flex flex-col relative">
+              <div className="absolute -top-3 left-6 bg-[#00E676] text-[#0F172A] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                Aanbevolen voor teams
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4">
+                <Zap className="w-5 h-5 text-[#00E676]" />
+              </div>
+              <h3 className="font-black text-white mb-1">Maatwerk</h3>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#00E676] mb-2">Volledig op maat</p>
+              <div className="flex items-baseline gap-1.5 mb-4">
+                <span className="text-4xl font-black text-white" style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>€750</span>
+                <span className="text-sm text-[#64748B]">/ sessie</span>
+              </div>
+              <ul className="space-y-2 flex-1 mb-6">
+                {[
+                  'Tocht op maat voor jouw locatie',
+                  'Eigen checkpoints + opdrachten',
+                  'Eigen branding mogelijk',
+                  'Wij regelen alles voor je',
+                  'Persoonlijk impactrapport (PDF)',
+                  'Offerte op maat — geen verrassingen',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm text-[#94A3B8]">
+                    <CheckCircle2 className="w-4 h-4 text-[#00E676] shrink-0 mt-0.5" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/contact"
+                className="w-full py-3 rounded-xl bg-[#00E676] text-[#0F172A] font-bold text-sm text-center flex items-center justify-center gap-1.5 hover:bg-[#00C853] transition-colors"
+              >
+                Plan een gratis gesprek <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
             {VARIANTS.map((v) => (
               <div
                 key={v.slug}
@@ -304,24 +351,6 @@ export default function PrijzenPage() {
                 </Link>
               </div>
             ))}
-
-            {/* Maatwerk card */}
-            <div className="rounded-2xl p-6 bg-[#0F172A] border-2 border-white/10 flex flex-col">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-4">
-                <Zap className="w-5 h-5 text-[#00E676]" />
-              </div>
-              <h3 className="font-black text-white mb-1">Maatwerk</h3>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] mb-4">Op aanvraag</p>
-              <p className="text-[#64748B] text-sm leading-relaxed flex-1 mb-6">
-                Eigen locaties, eigen opdrachten, eigen branding. We bouwen de perfecte tocht voor jouw organisatie — offerte op maat.
-              </p>
-              <Link
-                href="/contact"
-                className="w-full py-3 rounded-xl bg-[#00E676]/10 border border-[#00E676]/20 text-[#00E676] font-bold text-sm text-center flex items-center justify-center gap-1.5 hover:bg-[#00E676]/20 transition-colors"
-              >
-                Vraag offerte aan <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
           </div>
         </div>
       </section>
