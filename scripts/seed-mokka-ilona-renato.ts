@@ -16,7 +16,7 @@
  *
  * Wat dit aanmaakt:
  *   - Tour "Mokka Nieuw Begin — Ilona & Renato"
- *   - Game sessie in TEST MODE (join code: MOKKA)
+ *   - Game sessie in TEST MODE (join code: MOCCAS)
  *   - Team "Ilona & Renato"
  *   - Idempotent: als tour al bestaat, wordt het script overgeslagen
  *
@@ -43,7 +43,7 @@ dotenv.config({ path: '.env.local' })
 const sql = neon(process.env.DATABASE_URL!)
 
 const TOUR_NAME = 'Mokka Nieuw Begin — Ilona & Renato'
-const JOIN_CODE = 'MOKKA'
+const JOIN_CODE = 'MOCCAS'
 
 // ─── Checkpoints ──────────────────────────────────────────────────────────────
 // GPS-coördinaten zijn beste schattingen op basis van kaartdata.
@@ -384,8 +384,8 @@ async function seed() {
     console.log(`  CP${cp.orderIndex + 1}: ${cp.name}`)
   }
 
-  // ─── Bestaande MOKKA sessie opruimen ─────────────────────────────────────────
-  // Haal teams op die aan een sessie met code MOKKA hangen (vanwege cascade delete)
+  // ─── Bestaande MOCCAS sessie opruimen ────────────────────────────────────────
+  // Haal teams op die aan een sessie met code MOCCAS hangen (vanwege cascade delete)
   await sql`
     DELETE FROM game_sessions WHERE join_code = ${JOIN_CODE}
   `
