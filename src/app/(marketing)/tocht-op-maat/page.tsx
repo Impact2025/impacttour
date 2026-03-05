@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import TochtWizardClient from './tocht-wizard-client'
 
@@ -42,9 +43,9 @@ export default function TochtOpMaatPage() {
           <p className="text-[#64748B] text-sm">
             De gegenereerde tocht is een inspiratie-concept. Wil je een volledig uitgewerkte tocht
             met GPS-coördinaten en spelleider-dashboard?{' '}
-            <a href="/tochten" className="text-[#00E676] font-semibold hover:underline">
+            <Link href="/tochten" className="text-[#00E676] font-semibold hover:underline">
               Bekijk onze marketplace
-            </a>
+            </Link>
             .
           </p>
         </div>
