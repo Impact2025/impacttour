@@ -123,6 +123,17 @@ export function checkOrigin(req: Request): boolean {
   // Localhost altijd toestaan (ontwikkeling, willekeurige poort)
   if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) return true
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://impacttocht.nl'
-  return origin === appUrl || origin.startsWith(appUrl)
+  // Controleer tegen geconfigureerde app URL
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (appUrl && (origin === appUrl || origin.startsWith(appUrl))) return true
+
+  // Vercel preview/productie deployments van hetzelfde project — sta toe
+  // (host header bevat de eigenlijke hostname waarop de request binnenkomt)
+  const host = req.headers.get('host')
+  if (host && origin === `https://${host}`) return true
+
+  // Vercel deployment URL's voor dit project (impacttour.vercel.app, impacttour-*.vercel.app)
+  if (origin.match(/^https:\/\/impacttour(-[a-z0-9]+)?\.vercel\.app$/)) return true
+
+  return false
 }
