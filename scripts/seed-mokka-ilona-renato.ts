@@ -25,13 +25,13 @@
  * en pas eventueel aan via het admin panel (/admin/tochten).
  * TEST MODE is aan — GPS-check heeft een extra marge van 20m.
  *
- * ROUTE:
- *   Stop 1  Playa Punta Popy (start, ademruimte)
- *   Stop 2  Oude Mocca's — Plaza Sabrina, Calle Duarte (terugkijken)
- *   Stop 3  Calle Duarte — de oversteek (waardering voor elkaar)
- *   Stop 4  Lokale ontmoeting — Mercado / lokale plek (verbinding met Las Terrenas)
- *   Stop 5  Nieuwe Mocca's — Plaza Casa Linda, Calle Duarte (doelen + beloften)
- *   Stop 6  Playa Las Ballenas (afsluiting + gedeelde droom)
+ * ROUTE (lus, ~4 km totaal):
+ *   Stop 1  Pueblo de los Pescadores — strand (opening, loslaten)
+ *   Stop 2  Oude Mocca's — Plaza Sabrina, Calle Duarte (~1.4 km inland)
+ *   Stop 3  Calle Duarte — de oversteek (~500 m, waardering voor elkaar)
+ *   Stop 4  Lokale markt op Calle Duarte (~260 m)
+ *   Stop 5  Nieuwe Mocca's — Plaza Casa Linda, Calle Duarte (~200 m)
+ *   Stop 6  Playa Las Terrenas — strand (~1.5 km terug, afsluiting)
  */
 
 import { neon } from '@neondatabase/serverless'
@@ -52,7 +52,7 @@ const JOIN_CODE = 'MOCCAS'
 const checkpoints = [
   {
     orderIndex: 0,
-    name: 'Stop 1 — Playa Punta Popy: Aankomen',
+    name: 'Stop 1 — Pueblo de los Pescadores: Aankomen',
     type: 'reflectie' as const,
     missionTitle: 'Wat neem je mee. Wat laat je achter.',
     missionDescription: `Jullie staan aan het water. Voordat de tocht begint, eerst dit:
@@ -67,10 +67,10 @@ Lees ze daarna aan elkaar voor. Luister zonder te reageren. Zeg daarna alleen: "
 
 Typ jullie antwoorden in — elk één zin per punt.`,
     missionType: 'opdracht',
-    // Playa Punta Popy — noordoostkust Las Terrenas
-    lat: 19.3265,
-    lng: -69.5285,
-    unlockRadius: 80,
+    // Pueblo de los Pescadores — strandpromenade Las Terrenas
+    lat: 19.3232,
+    lng: -69.5379,
+    unlockRadius: 100,
     gmsConnection: 10,
     gmsMeaning: 20,
     gmsJoy: 5,
@@ -102,10 +102,10 @@ Deel ze met elkaar. Neem de tijd — dit is geen race. Dit is het eerlijke terug
 
 Typ jullie antwoorden in — elk drie zinnen.`,
     missionType: 'opdracht',
-    // Plaza Sabrina, Calle Duarte — schatting centrale Calle Duarte
+    // Plaza Sabrina, Calle Duarte — ~1.4 km inland van Pueblo de los Pescadores
     // Verificeer op Google Maps: "Plaza Sabrina Las Terrenas"
     lat: 19.3108,
-    lng: -69.5372,
+    lng: -69.5355,
     unlockRadius: 120,
     gmsConnection: 15,
     gmsMeaning: 25,
@@ -136,10 +136,9 @@ Zeg het hardop. Kijk de ander aan. Geen telefoon tussendoor.
 
 Typ de drie dingen in die je hebt gezegd — zodat jullie ze later terug kunnen lezen.`,
     missionType: 'opdracht',
-    // Calle Duarte, halverwege de twee locaties
-    // Ga hier gewoon staan op een rustig stukje stoep op Calle Duarte
+    // Calle Duarte, tussen de twee Mocca's-locaties in
     lat: 19.3100,
-    lng: -69.5405,
+    lng: -69.5410,
     unlockRadius: 150,
     gmsConnection: 25,
     gmsMeaning: 15,
@@ -169,10 +168,10 @@ Beschrijf in de app:
 - Wat was hun reactie?
 - Wat kochten jullie?`,
     missionType: 'opdracht',
-    // Mercado de Pescadores of lokale markt/winkel op Calle Duarte
-    lat: 19.3228,
-    lng: -69.5321,
-    unlockRadius: 200,
+    // Calle Duarte — lokale kraam, markt of Sirena supermarkt in de buurt
+    lat: 19.3098,
+    lng: -69.5432,
+    unlockRadius: 150,
     gmsConnection: 15,
     gmsMeaning: 10,
     gmsJoy: 20,
@@ -204,8 +203,9 @@ Lees ze voor aan elkaar. Hardop, bij jullie nieuwe plek.
 
 Maak daarna een foto samen voor de ingang. Dit is jullie "dag 1"-foto.`,
     missionType: 'foto',
-    // Plaza Casa Linda, Calle Duarte — verificeer op Google Maps: "Plaza Casa Linda Las Terrenas"
-    lat: 19.3095,
+    // Plaza Casa Linda, Calle Duarte — busstation-gebied Las Terrenas centrum
+    // Verificeer op Google Maps: "Plaza Casa Linda Las Terrenas"
+    lat: 19.3096,
     lng: -69.5441,
     unlockRadius: 120,
     gmsConnection: 15,
@@ -237,10 +237,10 @@ Lees ze voor aan elkaar bij het water.
 
 Vertel daarna — zonder na te denken, gewoon het eerste wat in je opkomt — één ding wat je VANDAAG al hebt gezien in de ander dat bewijst dat die droom echt kan worden.`,
     missionType: 'opdracht',
-    // Playa Las Ballenas — westelijk strand
-    lat: 19.3260,
-    lng: -69.5515,
-    unlockRadius: 120,
+    // Playa Las Terrenas — strand westelijk van Pueblo de los Pescadores
+    lat: 19.3235,
+    lng: -69.5452,
+    unlockRadius: 150,
     gmsConnection: 20,
     gmsMeaning: 20,
     gmsJoy: 15,
@@ -457,16 +457,16 @@ async function seed() {
 ║  Team: Ilona & Renato                                                ║
 ║  Token: ${teamToken.substring(0, 59)}║
 ║                                                                      ║
-║  ROUTE (verificeer op Google Maps voor vertrek):                     ║
-║  CP1  Playa Punta Popy             19.3265, -69.5285                 ║
-║  CP2  Oude Mocca's (Plaza Sabrina) 19.3108, -69.5372  (~1.5 km)     ║
-║  CP3  Calle Duarte — de oversteek  19.3100, -69.5405  (~300m)       ║
-║  CP4  Lokale markt / Mercado       19.3228, -69.5321  (~1 km)       ║
-║  CP5  Nieuwe Mocca's (Casa Linda)  19.3095, -69.5441  (~200m)       ║
-║  CP6  Playa Las Ballenas           19.3260, -69.5515  (~1.5 km)     ║
+║  ROUTE (~4 km totaal, lus strand → Calle Duarte → strand):          ║
+║  CP1  Pueblo de los Pescadores     19.3232, -69.5379  (start)        ║
+║  CP2  Oude Mocca's (Plaza Sabrina) 19.3108, -69.5355  (~1.4 km)     ║
+║  CP3  Calle Duarte — de oversteek  19.3100, -69.5410  (~500m)       ║
+║  CP4  Lokale markt Calle Duarte    19.3098, -69.5432  (~260m)       ║
+║  CP5  Nieuwe Mocca's (Casa Linda)  19.3096, -69.5441  (~200m)       ║
+║  CP6  Playa Las Terrenas           19.3235, -69.5452  (~1.5 km)     ║
 ║                                                                      ║
-║  LET OP: Verificeer CP2 en CP5 op Google Maps en stel de            ║
-║  coördinaten bij via /admin/tochten als ze niet kloppen.            ║
+║  LET OP: Verificeer CP2 (Plaza Sabrina) en CP5 (Casa Linda)         ║
+║  op Google Maps — pas aan via /admin/tochten indien nodig.          ║
 ║                                                                      ║
 ║  TEST MODE aan — GPS-marge is ruimer (geen exacte positie nodig)    ║
 ║  Stops: ${String(verify.stops).padEnd(61)}║
