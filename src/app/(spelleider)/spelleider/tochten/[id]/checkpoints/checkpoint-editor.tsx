@@ -68,6 +68,7 @@ export function CheckpointEditor({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingHints, setIsGeneratingHints] = useState(false)
+  const [isLocating, setIsLocating] = useState(false)
 
   const selected = checkpoints.find((c) => c.id === selectedId)
 
@@ -210,6 +211,37 @@ export function CheckpointEditor({
     }
   }
 
+  /** GPS: gebruik huidige locatie als checkpoint coördinaten */
+  const handleUseCurrentLocation = () => {
+    if (!selected) return
+    if (!navigator.geolocation) {
+      toast.error('Geolocatie wordt niet ondersteund door deze browser')
+      return
+    }
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+        setCheckpoints((prev) =>
+          prev.map((c) => (c.id === selected.id ? { ...c, latitude: lat, longitude: lng } : c))
+        )
+        await fetch(`/api/tours/${tourId}/checkpoints/${selected.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ latitude: lat, longitude: lng }),
+        })
+        toast.success(`Locatie bijgewerkt (${lat.toFixed(5)}, ${lng.toFixed(5)})`)
+        setIsLocating(false)
+      },
+      (err) => {
+        toast.error(`GPS fout: ${err.message}`)
+        setIsLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
   const updateSelected = (updates: Partial<CheckpointData>) => {
     if (!selectedId) return
     setCheckpoints((prev) =>
@@ -266,6 +298,35 @@ export function CheckpointEditor({
           </div>
 
           <div className="p-4 space-y-4 flex-1">
+            {/* Huidige locatie */}
+            <div className="bg-gray-50 rounded-lg p-3 flex items-center justify-between gap-3">
+              <div className="text-xs text-gray-500 leading-tight">
+                <span className="font-medium text-gray-700">Locatie</span>
+                <br />
+                {selected.latitude.toFixed(5)}, {selected.longitude.toFixed(5)}
+              </div>
+              <button
+                onClick={handleUseCurrentLocation}
+                disabled={isLocating}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {isLocating ? (
+                  <>
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Zoeken...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Ik ben hier
+                  </>
+                )}
+              </button>
+            </div>
+
             {/* Naam */}
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Naam</label>

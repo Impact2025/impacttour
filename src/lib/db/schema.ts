@@ -451,6 +451,20 @@ export const couponsRelations = relations(coupons, ({ one, many }) => ({
   orders: many(orders),
 }))
 
+// ─── Tocht op Maat Aanvragen ──────────────────────────────────────────────────
+
+export const tochtAanvragen = pgTable('tocht_aanvragen', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  groepType: text('groep_type').notNull(),
+  sfeer: text('sfeer').notNull(),
+  stad: text('stad').notNull(),
+  deelnemers: integer('deelnemers').notNull(),
+  duurMinuten: integer('duur_minuten').notNull(),
+  extraWensen: text('extra_wensen'),
+  gegenereerdeJson: jsonb('gegenereerde_json'),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 export const ordersRelations = relations(orders, ({ one }) => ({
   user: one(users, {
     fields: [orders.userId],

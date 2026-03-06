@@ -17,7 +17,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             <Link href="/impact"     className="hover:text-[#0F172A] transition-colors">Impact</Link>
             <Link href="/prijzen"    className="hover:text-[#0F172A] transition-colors">Prijzen</Link>
             <Link href="/contact"    className="hover:text-[#0F172A] transition-colors">Contact</Link>
-            <Link href="/tochten"    className="hover:text-[#0F172A] transition-colors">Marketplace</Link>
+            <Link href="/tochten"       className="hover:text-[#0F172A] transition-colors">Marketplace</Link>
+            <Link href="/tocht-op-maat" className="hover:text-[#0F172A] transition-colors">Tocht op Maat</Link>
           </div>
 
           <div className="flex items-center gap-2">
