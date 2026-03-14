@@ -1,38 +1,20 @@
 import { db } from '@/lib/db'
 import { tours, checkpoints } from '@/lib/db/schema'
-import { eq, and, count } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Clock, Users, MapPin, Zap, Star, ArrowRight } from 'lucide-react'
-import { formatDuration } from '@/lib/utils'
+import { MapPin, Sparkles, ArrowRight } from 'lucide-react'
+import { TochtenFilter, type TourRow } from './tochten-filter'
 
 export const dynamic = 'force-dynamic'
 
-const VARIANT_LABELS: Record<string, string> = {
-  wijktocht: 'WijkTocht',
-  impactsprint: 'ImpactSprint',
-  familietocht: 'FamilieTocht',
-  jeugdtocht: 'JeugdTocht',
-  voetbalmissie: 'VoetbalMissie',
-}
+const STATS = [
+  { value: '10+', label: 'Tochten beschikbaar' },
+  { value: '3',   label: "Regio's: Haarlem, Heemstede, Haarlemmermeer" },
+  { value: '72',  label: 'Gem. GMS impact score' },
+  { value: '500+', label: 'Teams gespeeld' },
+]
 
-const VARIANT_COLORS: Record<string, string> = {
-  wijktocht: 'bg-[#DCFCE7] text-[#166534]',
-  impactsprint: 'bg-blue-50 text-blue-700',
-  familietocht: 'bg-orange-50 text-orange-700',
-  jeugdtocht: 'bg-purple-50 text-purple-700',
-  voetbalmissie: 'bg-[#0F172A] text-[#00E676]',
-}
-
-const VARIANT_DESCRIPTIONS: Record<string, string> = {
-  wijktocht: 'GPS checkpoints + sociale opdrachten voor bedrijven',
-  impactsprint: 'Compact format, 5 checkpoints, 500m radius',
-  familietocht: 'Gezinnen en weekenden, Familie Geluksscore',
-  jeugdtocht: '9-13 jaar, Flits-assistent, veilig en leuk',
-  voetbalmissie: '9-12 jaar, voetbal-thema, 5 checkpoints, 90 min',
-}
-
-export default async function TochtenMarketplace() {
+async function getPublishedTours(): Promise<TourRow[]> {
   const rows = await db
     .select({
       id: tours.id,
@@ -44,185 +26,176 @@ export default async function TochtenMarketplace() {
       priceInCents: tours.priceInCents,
       pricingModel: tours.pricingModel,
       pricePerPersonCents: tours.pricePerPersonCents,
+      aiConfig: tours.aiConfig,
       checkpointCount: count(checkpoints.id),
     })
     .from(tours)
     .leftJoin(checkpoints, eq(checkpoints.tourId, tours.id))
-    .where(and(eq(tours.isPublished, true)))
+    .where(eq(tours.isPublished, true))
     .groupBy(tours.id)
     .orderBy(tours.createdAt)
 
-  const variants = ['alle', ...new Set(rows.map((r) => r.variant))]
+  return rows as TourRow[]
+}
+
+export default async function TochtenMarketplace() {
+  const tourList = await getPublishedTours()
+
+  const regions = Array.from(
+    new Set(tourList.map((t) => (t.aiConfig?.location as string) || null).filter(Boolean))
+  )
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC]">
-      {/* Hero banner */}
-      <div className="bg-[#0F172A] relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5"
-          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #00E676 0%, transparent 50%), radial-gradient(circle at 80% 20%, #00E676 0%, transparent 40%)' }}
-        />
-        <div className="max-w-5xl mx-auto px-6 py-16 relative">
-          <div className="flex items-center mb-6">
-            <div className="bg-white rounded-lg px-3 py-2 inline-flex">
-              <Image src="/images/IctusGo.png" alt="IctusGo" width={120} height={36} className="h-8 w-auto" />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-            KIES JOUW TOCHT
-          </h1>
-          <p className="text-[#94A3B8] text-lg max-w-xl leading-relaxed">
-            GPS-gestuurde teambuilding met echte sociale impact. Boek direct, start dezelfde dag nog.
-          </p>
+    <main className="min-h-screen bg-white">
 
-          {/* Stats bar */}
-          <div className="flex flex-wrap gap-6 mt-8">
-            {[
-              { icon: Zap, label: 'Klaar in 5 min' },
-              { icon: Users, label: 'Tot 50 teams' },
-              { icon: Star, label: 'Hoge impact gegarandeerd' },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-[#00E676]" />
-                <span className="text-[#CBD5E1] text-sm">{label}</span>
-              </div>
-            ))}
-          </div>
+      {/* ── Hero ── */}
+      <section className="bg-[#0F172A] px-4 md:px-8 py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-10"
+            style={{ background: 'radial-gradient(circle, #00E676 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-1/4 w-64 h-64 rounded-full opacity-5"
+            style={{ background: 'radial-gradient(circle, #3B82F6 0%, transparent 70%)' }} />
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        {/* Filter tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {variants.map((v) => (
-            <Link
-              key={v}
-              href={v === 'alle' ? '/tochten' : `/tochten?variant=${v}`}
-              className="px-4 py-2 rounded-full text-sm font-semibold border border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#00E676] hover:text-[#0F172A] transition-colors"
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="max-w-3xl">
+            <span className="inline-block text-[10px] font-bold text-[#00E676] bg-[#00E676]/10 border border-[#00E676]/20 rounded-full px-3 py-1 mb-5 uppercase tracking-widest">
+              Marketplace — {tourList.length} tochten beschikbaar
+            </span>
+
+            <h1
+              className="text-4xl md:text-6xl font-black italic text-white leading-tight mb-4"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
             >
-              {v === 'alle' ? 'Alle tochten' : VARIANT_LABELS[v] ?? v}
-            </Link>
-          ))}
-        </div>
+              GPS-teambuilding met<br />
+              <span style={{ color: '#00E676' }}>echte sociale impact</span>
+            </h1>
 
-        {/* Tochten grid */}
-        {rows.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 bg-[#F1F5F9] rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <MapPin className="w-8 h-8 text-[#CBD5E1]" />
+            <p className="text-[#94A3B8] text-base max-w-xl leading-relaxed mb-7">
+              Verbindt je team, ontdek de buurt en meet jullie sociale impact in een live GMS-score.
+              Boek direct, setup klaar in 5 minuten.
+            </p>
+
+            <div className="flex flex-wrap gap-2.5">
+              {regions.map((r) => (
+                <span key={r} className="flex items-center gap-1.5 bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-full border border-white/10">
+                  <MapPin className="w-3 h-3 text-[#00E676]" />
+                  {r}
+                </span>
+              ))}
+              <Link
+                href="/tocht-op-maat"
+                className="flex items-center gap-1.5 bg-[#00E676]/10 text-[#00E676] text-xs font-bold px-3 py-1.5 rounded-full border border-[#00E676]/20 hover:bg-[#00E676]/20 transition-colors"
+              >
+                <Sparkles className="w-3 h-3" />
+                Tocht op maat
+              </Link>
             </div>
-            <p className="text-[#64748B] font-semibold">Nog geen tochten beschikbaar</p>
-            <p className="text-[#94A3B8] text-sm mt-1">Kom snel terug!</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {rows.map((tour) => {
-              const isFree = (tour.priceInCents ?? 0) === 0 && tour.pricingModel === 'flat'
-              const isPerPerson = tour.pricingModel === 'per_person'
 
-              return (
-                <Link
-                  key={tour.id}
-                  href={`/tochten/${tour.id}`}
-                  className="group bg-white rounded-2xl border border-[#E2E8F0] shadow-sm hover:shadow-lg hover:border-[#00E676]/40 transition-all overflow-hidden"
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-12">
+            {STATS.map(({ value, label }) => (
+              <div key={label} className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                <p
+                  className="text-2xl font-black text-white mb-0.5"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 >
-                  {/* Kaart header */}
-                  <div className="bg-gradient-to-br from-[#0F172A] to-[#1E293B] p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 opacity-5"
-                      style={{ backgroundImage: 'radial-gradient(circle, #00E676 0%, transparent 70%)' }}
-                    />
-                    <div className="flex items-start justify-between mb-4 relative">
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${VARIANT_COLORS[tour.variant] ?? 'bg-gray-100 text-gray-700'}`}>
-                        {VARIANT_LABELS[tour.variant] ?? tour.variant}
-                      </span>
-                      {isFree ? (
-                        <span className="text-[#00E676] font-black text-sm"
-                          style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                          GRATIS
-                        </span>
-                      ) : isPerPerson ? (
-                        <div className="text-right">
-                          <span className="text-white font-black text-xl"
-                            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                            €{((tour.pricePerPersonCents ?? 0) / 100).toFixed(0)}
-                          </span>
-                          <span className="text-[#64748B] text-xs block">/persoon</span>
-                        </div>
-                      ) : (
-                        <span className="text-white font-black text-xl"
-                          style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                          €{((tour.priceInCents ?? 0) / 100).toFixed(0)}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-white font-bold text-xl leading-tight"
-                      style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                      {tour.name}
-                    </h3>
-                    <p className="text-[#64748B] text-xs mt-1 line-clamp-2">
-                      {VARIANT_DESCRIPTIONS[tour.variant]}
-                    </p>
-                  </div>
-
-                  {/* Kaart body */}
-                  <div className="p-5">
-                    {tour.description && (
-                      <p className="text-[#64748B] text-sm leading-relaxed mb-4 line-clamp-2">
-                        {tour.description}
-                      </p>
-                    )}
-
-                    {/* Stats rij */}
-                    <div className="flex items-center gap-4 mb-5">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#94A3B8]" />
-                        <span className="text-xs text-[#64748B] font-medium">
-                          {formatDuration(tour.estimatedDurationMin ?? 120)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[#94A3B8]" />
-                        <span className="text-xs text-[#64748B] font-medium">
-                          {tour.checkpointCount} checkpoints
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-[#94A3B8]" />
-                        <span className="text-xs text-[#64748B] font-medium">
-                          max {tour.maxTeams} teams
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* CTA */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-[#CBD5E1]">Boek direct →</span>
-                      <div className="w-8 h-8 rounded-full bg-[#F1F5F9] group-hover:bg-[#00E676] flex items-center justify-center transition-colors">
-                        <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#0F172A] transition-colors" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Vertrouwenssignalen */}
-        <div className="mt-16 pt-10 border-t border-[#E2E8F0]">
-          <p className="text-center text-xs text-[#94A3B8] mb-6 uppercase tracking-wider font-semibold">Veilig betalen via</p>
-          <div className="flex justify-center items-center gap-8 flex-wrap">
-            {['iDEAL', 'Bancontact', 'Creditcard', 'PayPal'].map((method) => (
-              <div key={method} className="px-4 py-2 bg-white border border-[#E2E8F0] rounded-lg">
-                <span className="text-[#64748B] text-sm font-medium">{method}</span>
+                  {value}
+                </p>
+                <p className="text-xs text-[#64748B] leading-snug">{label}</p>
               </div>
             ))}
           </div>
-          <p className="text-center text-xs text-[#CBD5E1] mt-6">
-            Betaald via MultiSafepay · SSL beveiligd · AVG-compliant
+        </div>
+      </section>
+
+      {/* ── GMS strip ── */}
+      <div className="bg-[#F0FDF4] border-b border-[#DCFCE7] px-4 md:px-8 py-3">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-2 h-2 rounded-full bg-[#00C853] animate-pulse" />
+            <span className="text-xs font-black text-[#166534] uppercase tracking-widest">GMS Score</span>
+          </div>
+          <p className="text-xs text-[#15803D] leading-relaxed">
+            Elke tocht meet impact via <strong>Verbinding · Betekenis · Vreugde · Groei</strong>.
+            Score ≥ 70 = &ldquo;Hoge Impact&rdquo; badge + persoonlijk PDF-rapport.
           </p>
+          <Link href="/impact" className="shrink-0 text-xs font-bold text-[#00C853] hover:underline flex items-center gap-1">
+            Meer over GMS <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
       </div>
+
+      {/* ── Filter + grid (client) ── */}
+      <TochtenFilter tours={tourList} />
+
+      {/* ── Maatwerk CTA ── */}
+      <section className="bg-[#0F172A] px-4 md:px-8 py-14">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2
+            className="text-3xl md:text-5xl font-black italic text-white mb-3"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Geen tocht die past?<br />
+            <span style={{ color: '#00E676' }}>We bouwen er één voor jou.</span>
+          </h2>
+          <p className="text-[#64748B] text-sm max-w-md mx-auto mb-7">
+            Eigen locatie, eigen thema, eigen branding. De AI genereert een volledig tocht-concept in 60 seconden.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/tocht-op-maat"
+              className="inline-flex items-center gap-2 bg-[#00E676] text-[#0F172A] font-bold px-7 py-3.5 rounded-xl hover:bg-[#00C853] transition-colors text-sm"
+            >
+              <Sparkles className="w-4 h-4" />
+              Genereer mijn tocht
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 border border-white/20 text-white font-bold px-7 py-3.5 rounded-xl hover:bg-white/5 transition-colors text-sm"
+            >
+              Plan een gesprek <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Trust signals ── */}
+      <section className="bg-white px-4 md:px-8 py-10 border-t border-[#E2E8F0]">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { emoji: '⚡', title: 'Klaar in 5 minuten', desc: 'Boek, betaal en ontvang setup-link direct in je inbox.' },
+              { emoji: '🎮', title: 'Live spelleider dashboard', desc: 'Volg alle teams op de kaart, start/pauzeer de tocht, bekijk scores.' },
+              { emoji: '📋', title: 'PDF impactrapport', desc: 'Na afloop: GMS-score, coach inzicht en aanbevelingen per team.' },
+            ].map((item) => (
+              <div key={item.title} className="flex gap-4">
+                <span className="text-3xl shrink-0">{item.emoji}</span>
+                <div>
+                  <h3 className="font-bold text-[#0F172A] text-sm mb-1">{item.title}</h3>
+                  <p className="text-[#64748B] text-xs leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Payment methods */}
+          <div className="mt-10 pt-8 border-t border-[#E2E8F0] text-center">
+            <p className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold mb-4">Veilig betalen via</p>
+            <div className="flex justify-center gap-3 flex-wrap">
+              {['iDEAL', 'Creditcard', 'Bancontact', 'Factuur'].map((m) => (
+                <div key={m} className="px-4 py-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg">
+                  <span className="text-[#475569] text-sm font-medium">{m}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-[#CBD5E1] mt-4">
+              MultiSafepay · SSL beveiligd · AVG-compliant · KVK geregistreerd
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
