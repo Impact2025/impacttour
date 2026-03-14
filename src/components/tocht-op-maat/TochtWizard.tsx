@@ -2,7 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2 } from 'lucide-react'
+import {
+  ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2,
+  Building2, Heart, Home, Dumbbell, GraduationCap,
+  Smile, Zap, Leaf, Landmark, Trophy,
+  type LucideProps,
+} from 'lucide-react'
+
+type IconComponent = React.FC<LucideProps>
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,22 +45,22 @@ interface WizardData {
 
 // ─── Opties ───────────────────────────────────────────────────────────────────
 
-const GROEP_OPTIES = [
-  { value: 'bedrijf',       label: 'Bedrijf',       icon: '🏢' },
-  { value: 'vriendengroep', label: 'Vriendengroep', icon: '👯' },
-  { value: 'stel',          label: 'Stel',          icon: '💑' },
-  { value: 'familie',       label: 'Familie',       icon: '👨‍👩‍👧‍👦' },
-  { value: 'sportclub',     label: 'Sportclub',     icon: '⚽' },
-  { value: 'school',        label: 'School',        icon: '🏫' },
+const GROEP_OPTIES: { value: string; label: string; icon: IconComponent }[] = [
+  { value: 'bedrijf',       label: 'Bedrijf',       icon: Building2 },
+  { value: 'vriendengroep', label: 'Vriendengroep', icon: Users },
+  { value: 'stel',          label: 'Stel',          icon: Heart },
+  { value: 'familie',       label: 'Familie',       icon: Home },
+  { value: 'sportclub',     label: 'Sportclub',     icon: Dumbbell },
+  { value: 'school',        label: 'School',        icon: GraduationCap },
 ]
 
-const SFEER_OPTIES = [
-  { value: 'fun',     label: 'Fun & Speels', icon: '😄' },
-  { value: 'actie',   label: 'Actie & Avontuur', icon: '🏃' },
-  { value: 'liefde',  label: 'Romantisch', icon: '❤️' },
-  { value: 'impact',  label: 'Maatschappelijk', icon: '🌱' },
-  { value: 'cultuur', label: 'Cultuur & Historie', icon: '🏛️' },
-  { value: 'sportief', label: 'Sportief', icon: '🏆' },
+const SFEER_OPTIES: { value: string; label: string; icon: IconComponent }[] = [
+  { value: 'fun',      label: 'Fun & Speels',      icon: Smile },
+  { value: 'actie',    label: 'Actie & Avontuur',  icon: Zap },
+  { value: 'liefde',   label: 'Romantisch',        icon: Heart },
+  { value: 'impact',   label: 'Maatschappelijk',   icon: Leaf },
+  { value: 'cultuur',  label: 'Cultuur & Historie', icon: Landmark },
+  { value: 'sportief', label: 'Sportief',           icon: Trophy },
 ]
 
 const DUUR_OPTIES = [
@@ -68,12 +75,12 @@ const DUUR_OPTIES = [
 function OptionCard({
   selected,
   onClick,
-  icon,
+  icon: Icon,
   label,
 }: {
   selected: boolean
   onClick: () => void
-  icon: string
+  icon: IconComponent
   label: string
 }) {
   return (
@@ -86,7 +93,7 @@ function OptionCard({
           : 'border-[#E2E8F0] bg-white text-[#64748B] hover:border-[#00E676]/50'
       }`}
     >
-      <span className="text-2xl">{icon}</span>
+      <Icon className={`w-6 h-6 ${selected ? 'text-[#00C853]' : 'text-[#94A3B8]'}`} />
       <span className="text-sm font-semibold">{label}</span>
     </button>
   )
