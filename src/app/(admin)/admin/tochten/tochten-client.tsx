@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AdminActionButton } from '@/components/admin/admin-action-button'
-import { RefreshCw, ExternalLink, Loader2 } from 'lucide-react'
+import { RefreshCw, ExternalLink, Loader2, ImagePlus, X } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 type Tocht = {
@@ -12,6 +13,8 @@ type Tocht = {
   isPublished: boolean
   priceInCents: number | null
   pricingModel: string | null
+  pricePerPersonCents?: number | null
+  aiConfig?: Record<string, unknown> | null
   creatorEmail: string | null
   sessionCount: number
   createdAt: string
@@ -23,6 +26,77 @@ const VARIANT_COLORS: Record<string, string> = {
   familietocht: '#F59E0B',
   jeugdtocht: '#8B5CF6',
   voetbalmissie: '#EF4444',
+}
+
+function ImageCell({ tocht, onUpdated }: { tocht: Tocht; onUpdated: (id: string, url: string | null) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const imageUrl = (tocht.aiConfig?.imageUrl as string) || null
+
+  const handleFile = async (file: File) => {
+    setError('')
+    setUploading(true)
+    const form = new FormData()
+    form.append('image', file)
+    const res = await fetch(`/api/admin/tochten/${tocht.id}/image`, { method: 'POST', body: form })
+    const data = await res.json()
+    setUploading(false)
+    if (!res.ok) { setError(data.error ?? 'Upload mislukt'); return }
+    onUpdated(tocht.id, data.url)
+  }
+
+  const handleDelete = async () => {
+    setUploading(true)
+    await fetch(`/api/admin/tochten/${tocht.id}/image`, { method: 'DELETE' })
+    setUploading(false)
+    onUpdated(tocht.id, null)
+  }
+
+  return (
+    <td className="px-4 py-3">
+      <div className="flex items-center gap-2">
+        {imageUrl ? (
+          <div className="relative group/img shrink-0">
+            <Image
+              src={imageUrl}
+              alt={tocht.name}
+              width={48}
+              height={36}
+              className="rounded-lg object-cover border border-[#E2E8F0]"
+            />
+            <button
+              onClick={handleDelete}
+              disabled={uploading}
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#EF4444] text-white rounded-full hidden group-hover/img:flex items-center justify-center"
+              title="Foto verwijderen"
+            >
+              <X className="w-2.5 h-2.5" />
+            </button>
+          </div>
+        ) : null}
+
+        <button
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-1 px-2 py-1.5 border border-dashed border-[#CBD5E1] text-[#64748B] rounded-lg text-xs font-medium hover:border-[#00E676] hover:text-[#00C853] transition-colors"
+          title={imageUrl ? 'Foto vervangen' : 'Foto toevoegen'}
+        >
+          {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImagePlus className="w-3 h-3" />}
+          {imageUrl ? 'Vervangen' : 'Foto'}
+        </button>
+
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }}
+        />
+      </div>
+      {error && <p className="text-[10px] text-[#EF4444] mt-1">{error}</p>}
+    </td>
+  )
 }
 
 export function TochtenClient() {
@@ -58,6 +132,22 @@ export function TochtenClient() {
     setToggling(null)
   }
 
+  const handleImageUpdated = (id: string, url: string | null) => {
+    setTochten(prev => prev.map(t =>
+      t.id === id
+        ? { ...t, aiConfig: { ...(t.aiConfig ?? {}), imageUrl: url ?? undefined } }
+        : t
+    ))
+  }
+
+  const priceLabel = (t: Tocht) => {
+    if (t.pricingModel === 'per_person' && t.pricePerPersonCents && t.pricePerPersonCents > 0)
+      return `€${(t.pricePerPersonCents / 100).toFixed(0)} p.p.`
+    if (t.priceInCents && t.priceInCents > 0)
+      return `€${(t.priceInCents / 100).toFixed(0)} vast`
+    return 'Gratis'
+  }
+
   const inputCls = "h-9 px-3 border border-[#E2E8F0] rounded-lg text-sm bg-white text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#00E676]/30"
 
   return (
@@ -89,7 +179,7 @@ export function TochtenClient() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#E2E8F0]">
-                  {['Naam', 'Variant', 'Maker', 'Prijs', 'Sessies', 'Gepubliceerd', 'Acties'].map(h => (
+                  {['Naam', 'Variant', 'Foto', 'Prijs', 'Sessies', 'Gepubliceerd', 'Acties'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-[#94A3B8] uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -108,15 +198,12 @@ export function TochtenClient() {
                         {t.variant}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-[#64748B]">{t.creatorEmail ?? '—'}</td>
-                    <td className="px-4 py-3 text-xs text-[#0F172A]">
-                      {t.priceInCents && t.priceInCents > 0
-                        ? (t.pricingModel === 'per_person' ? `€${(t.priceInCents / 100).toFixed(2)}/p` : `€${(t.priceInCents / 100).toFixed(2)}`)
-                        : 'Gratis'}
-                    </td>
+
+                    <ImageCell tocht={t} onUpdated={handleImageUpdated} />
+
+                    <td className="px-4 py-3 text-xs text-[#0F172A]">{priceLabel(t)}</td>
                     <td className="px-4 py-3 text-sm font-semibold text-[#0F172A]">{t.sessionCount}</td>
                     <td className="px-4 py-3">
-                      {/* Toggle switch */}
                       <button
                         onClick={() => handleTogglePublish(t.id)}
                         disabled={toggling === t.id}

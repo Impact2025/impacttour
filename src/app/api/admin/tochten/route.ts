@@ -30,6 +30,8 @@ export async function GET(req: Request) {
       isPublished: tours.isPublished,
       priceInCents: tours.priceInCents,
       pricingModel: tours.pricingModel,
+      pricePerPersonCents: tours.pricePerPersonCents,
+      aiConfig: tours.aiConfig,
       creatorEmail: users.email,
       sessionCount: count(gameSessions.id),
       createdAt: tours.createdAt,
@@ -38,7 +40,7 @@ export async function GET(req: Request) {
     .leftJoin(users, eq(tours.createdById, users.id))
     .leftJoin(gameSessions, eq(gameSessions.tourId, tours.id))
     .where(conditions.length ? and(...conditions) : undefined)
-    .groupBy(tours.id, users.email)
+    .groupBy(tours.id, users.email, tours.pricePerPersonCents, tours.aiConfig)
     .orderBy(desc(tours.createdAt))
 
   return NextResponse.json(rows)
