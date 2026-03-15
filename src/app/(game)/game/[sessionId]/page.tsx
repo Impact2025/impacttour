@@ -85,6 +85,7 @@ interface SessionState {
   team: TeamInfo | null
   scoreboard: ScoreboardEntry[]
   isTestMode: boolean
+  geofencePolygon: { lat: number; lng: number }[] | null
 }
 
 type SessionAction =
@@ -102,6 +103,7 @@ const initialSession: SessionState = {
   team: null,
   scoreboard: [],
   isTestMode: false,
+  geofencePolygon: null,
 }
 
 function sessionReducer(state: SessionState, action: SessionAction): SessionState {
@@ -125,7 +127,7 @@ export default function GamePage() {
   const isOnline = useOnlineStatus()
   // Session-data: één reducer → één re-render bij data-load ipv 9 afzonderlijke
   const [session, dispatchSession] = useReducer(sessionReducer, initialSession)
-  const { status: sessionStatus, joinCode, variant, tourName, storyFrame, checkpoints, team, scoreboard, isTestMode } = session
+  const { status: sessionStatus, joinCode, variant, tourName, storyFrame, checkpoints, team, scoreboard, isTestMode, geofencePolygon } = session
   // scoreboardRef voor gebruik in Pusher callback (voorkomt stale-closure probleem)
   const scoreboardRef = useRef(scoreboard)
   useEffect(() => { scoreboardRef.current = scoreboard }, [scoreboard])
@@ -152,7 +154,11 @@ export default function GamePage() {
         })
           .then((r) => r.json())
           .then((data) => {
-            if (data.isOutsideGeofence) toast.error('Jullie zijn buiten de speelzone!', { id: 'geofence' })
+            if (data.isOutsideGeofence) {
+              toast.error('Jullie zijn buiten de speelzone! Keer terug.', { id: 'geofence', duration: Infinity })
+            } else {
+              toast.dismiss('geofence')
+            }
           })
           .catch(() => {})
 
@@ -227,6 +233,7 @@ export default function GamePage() {
             checkpoints: data.checkpoints ?? [],
             team: data.team,
             scoreboard: data.scoreboard ?? [],
+            geofencePolygon: data.geofencePolygon ?? null,
           },
         })
       } catch {
@@ -548,6 +555,7 @@ export default function GamePage() {
             teamPosition={position}
             nearbyCheckpoint={nearbyCheckpoint}
             variant={variant}
+            geofencePolygon={geofencePolygon}
           />
         )}
         {activeView === 'mission' && activeCheckpoint && (

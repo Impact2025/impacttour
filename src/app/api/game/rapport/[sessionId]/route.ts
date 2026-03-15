@@ -185,15 +185,22 @@ export async function GET(
         checkpointScores,
       })
       // Sla op in session_scores voor caching (fire-and-forget)
-      if (scoreRow) {
-        db.update(sessionScores)
-          .set({ coachInsight })
-          .where(and(
-            eq(sessionScores.sessionId, sessionId),
-            eq(sessionScores.teamId, team.id)
-          ))
-          .catch(() => null)
-      }
+      // Upsert zodat ook de fallback-path (submissions aggregatie) gecached wordt
+      db.insert(sessionScores)
+        .values({
+          sessionId,
+          teamId: team.id,
+          connection, meaning, joy, growth,
+          totalGms: connection + meaning + joy + growth,
+          checkpointsCount: checkpointScores.length,
+          checkpointScores,
+          coachInsight,
+        })
+        .onConflictDoUpdate({
+          target: [sessionScores.sessionId, sessionScores.teamId],
+          set: { coachInsight },
+        })
+        .catch(() => null)
     } catch {
       coachInsight =
         fallbackInsights[topDim.key] ??

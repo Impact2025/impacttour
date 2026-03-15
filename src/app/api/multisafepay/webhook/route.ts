@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { orders, gameSessions, users, webhookEvents } from '@/lib/db/schema'
+import { orders, gameSessions, users, webhookEvents, tours } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { sendBookingConfirmationEmail } from '@/lib/email'
 import { generateMagicLink } from '@/lib/auth/magic-link'
@@ -98,7 +98,7 @@ async function handleWebhook(req: Request) {
       // Niet-betaalde statussen (initialized, declined, etc.) loggen maar niet verwerken
       await db
         .update(webhookEvents)
-        .set({ status: 'duplicate', processedAt: new Date() })
+        .set({ status: 'skipped', processedAt: new Date() })
         .where(eq(webhookEvents.id, logEntry.id))
       return new Response('OK', { status: 200 })
     }
@@ -140,7 +140,7 @@ async function handleWebhook(req: Request) {
         appUrl,
       })
 
-      const tour = await db.query.tours.findFirst({ where: eq(gameSessions.tourId, order.tourId) })
+      const tour = await db.query.tours.findFirst({ where: eq(tours.id, order.tourId) })
 
       await sendBookingConfirmationEmail({
         to: user.email,

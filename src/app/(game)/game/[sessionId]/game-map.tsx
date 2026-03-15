@@ -11,14 +11,16 @@ interface Props {
   teamPosition: GPSPosition | null
   nearbyCheckpoint: CheckpointInfo | null
   variant?: string
+  geofencePolygon?: { lat: number; lng: number }[] | null
 }
 
-export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, variant }: Props) {
+export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, variant, geofencePolygon }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<ReturnType<typeof import('leaflet').map> | null>(null)
   const teamMarkerRef = useRef<ReturnType<typeof import('leaflet').circleMarker> | null>(null)
   const accuracyCircleRef = useRef<ReturnType<typeof import('leaflet').circle> | null>(null)
   const checkpointMarkersRef = useRef<Map<string, unknown>>(new Map())
+  const geofenceLayerRef = useRef<unknown>(null)
   const isVoetbal = variant === 'voetbalmissie' || variant === 'jeugdtocht'
 
   // Initialiseer kaart
@@ -172,7 +174,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     if (current && !teamPosition) {
       map.setView([current.latitude, current.longitude], 16)
     }
-  }, [checkpoints, nearbyCheckpoint, teamPosition, isVoetbal])
+  }, [checkpoints, nearbyCheckpoint, isVoetbal])
 
   // Update team positie (blauwe stip)
   useEffect(() => {
@@ -208,6 +210,33 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
 
     map.setView([latitude, longitude], map.getZoom())
   }, [teamPosition])
+
+  // Teken geofence grens (alleen voor kids-varianten met polygoon)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isVoetbal) return
+
+    const L = require('leaflet')
+
+    // Verwijder bestaande laag
+    if (geofenceLayerRef.current) {
+      (geofenceLayerRef.current as { remove: () => void }).remove()
+      geofenceLayerRef.current = null
+    }
+
+    if (!geofencePolygon || geofencePolygon.length < 3) return
+
+    const coords = geofencePolygon.map((p) => [p.lat, p.lng] as [number, number])
+    const polygon = L.polygon(coords, {
+      color: '#EF4444',
+      weight: 2.5,
+      dashArray: '8, 6',
+      fillColor: '#EF4444',
+      fillOpacity: 0.06,
+    }).addTo(map)
+
+    geofenceLayerRef.current = polygon
+  }, [geofencePolygon, isVoetbal])
 
   return (
     <>

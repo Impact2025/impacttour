@@ -59,7 +59,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const adminEmail = process.env.ADMIN_EMAIL
         const adminPassword = process.env.ADMIN_PASSWORD
 
-        if (!adminEmail || !adminPassword) return null
+        if (!adminEmail || !adminPassword) {
+          console.error('[auth] ADMIN_EMAIL of ADMIN_PASSWORD ontbreekt — admin login uitgeschakeld')
+          return null
+        }
 
         // Lockout check
         const now = Date.now()

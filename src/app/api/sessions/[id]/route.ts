@@ -1,10 +1,11 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { gameSessions } from '@/lib/db/schema'
+import { gameSessions, sessionScores } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { broadcastSessionStatus } from '@/lib/pusher'
+import { generateCoachInsight } from '@/lib/ai'
 
 const updateSchema = z.object({
   status: z.enum(['lobby', 'active', 'paused', 'completed', 'cancelled']).optional(),
@@ -77,5 +78,93 @@ export async function PUT(
     broadcastSessionStatus(id, parsed.data.status).catch(() => null)
   }
 
+  // Bij afronden: pre-genereer coach insights voor alle teams (fire-and-forget)
+  // Zodat het rapport direct opent zonder AI wachttijd
+  if (parsed.data.status === 'completed') {
+    preGenerateCoachInsights(id).catch(() => null)
+  }
+
   return NextResponse.json(updated)
+}
+
+/**
+ * Pre-genereert coach insights voor alle teams in een sessie.
+ * Wordt asynchroon aangeroepen bij status → 'completed'.
+ * Legt resultaten vast in session_scores.coach_insight zodat het rapport
+ * direct opent zonder AI wachttijd.
+ */
+async function preGenerateCoachInsights(sessionId: string) {
+  const session = await db.query.gameSessions.findFirst({
+    where: eq(gameSessions.id, sessionId),
+    with: {
+      tour: { with: { checkpoints: { orderBy: (c, { asc }) => [asc(c.orderIndex)] } } },
+      teams: true,
+    },
+  })
+  if (!session?.tour) return
+
+  const checkpoints = session.tour.checkpoints
+  const gmsMax = checkpoints.reduce((s, c) => s + c.gmsConnection + c.gmsMeaning + c.gmsJoy + c.gmsGrowth, 0)
+  const dimensionMaxes = checkpoints.reduce(
+    (acc, c) => ({
+      connection: acc.connection + c.gmsConnection,
+      meaning: acc.meaning + c.gmsMeaning,
+      joy: acc.joy + c.gmsJoy,
+      growth: acc.growth + c.gmsGrowth,
+    }),
+    { connection: 0, meaning: 0, joy: 0, growth: 0 }
+  )
+
+  for (const team of session.teams) {
+    // Sla over als insight al bestaat
+    const existing = await db.query.sessionScores.findFirst({
+      where: and(eq(sessionScores.sessionId, sessionId), eq(sessionScores.teamId, team.id)),
+    })
+    if (existing?.coachInsight) continue
+
+    try {
+      const scores = existing
+        ? {
+            connection: existing.connection,
+            meaning: existing.meaning,
+            joy: existing.joy,
+            growth: existing.growth,
+            checkpointScores: existing.checkpointScores as { name: string; gmsEarned: number; orderIndex: number }[],
+          }
+        : { connection: 0, meaning: 0, joy: 0, growth: 0, checkpointScores: [] }
+
+      const insight = await generateCoachInsight({
+        teamName: team.name,
+        tourName: session.tour!.name,
+        variant: session.variant,
+        totalScore: team.totalGmsScore,
+        gmsMax: gmsMax || 400,
+        dimensions: { connection: scores.connection, meaning: scores.meaning, joy: scores.joy, growth: scores.growth },
+        dimensionMaxes,
+        checkpointsCompleted: (scores.checkpointScores ?? []).length,
+        totalCheckpoints: checkpoints.length,
+        checkpointScores: scores.checkpointScores ?? [],
+      })
+
+      await db.insert(sessionScores)
+        .values({
+          sessionId,
+          teamId: team.id,
+          connection: scores.connection,
+          meaning: scores.meaning,
+          joy: scores.joy,
+          growth: scores.growth,
+          totalGms: scores.connection + scores.meaning + scores.joy + scores.growth,
+          checkpointsCount: (scores.checkpointScores ?? []).length,
+          checkpointScores: scores.checkpointScores ?? [],
+          coachInsight: insight,
+        })
+        .onConflictDoUpdate({
+          target: [sessionScores.sessionId, sessionScores.teamId],
+          set: { coachInsight: insight },
+        })
+    } catch {
+      // Stil falen — rapport valt terug op lazy generatie bij eerste view
+    }
+  }
 }

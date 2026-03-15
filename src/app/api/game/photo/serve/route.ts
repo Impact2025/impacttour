@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
         'Content-Type': contentType,
         'Cache-Control': 'private, max-age=3600',
         'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'no-referrer',
       },
     })
   } catch {
