@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   MapPin, Clock, Users, Star, ChevronRight, Zap, Heart, Shield, Target,
@@ -73,6 +74,7 @@ function TourCard({ tour }: { tour: TourRow }) {
   const location = (cfg.location as string) || ''
   const tagline  = (cfg.tagline  as string) || tour.description || ''
   const emoji    = (cfg.emoji    as string) || '📍'
+  const imageUrl = (cfg.imageUrl as string) || null
   const price    = priceDisplay(tour)
 
   return (
@@ -80,22 +82,37 @@ function TourCard({ tour }: { tour: TourRow }) {
       href={`/tochten/${tour.id}`}
       className="group flex flex-col bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#00E676] hover:shadow-xl transition-all duration-200 overflow-hidden"
     >
-      {/* Colored header */}
+      {/* Card header — photo when available, gradient+emoji fallback */}
       <div
-        className="relative h-40 flex flex-col items-center justify-center overflow-hidden"
-        style={{ background: `linear-gradient(145deg, ${meta.color}20 0%, ${meta.color}35 100%)` }}
+        className="relative h-44 flex flex-col items-center justify-center overflow-hidden"
+        style={imageUrl ? undefined : { background: `linear-gradient(145deg, ${meta.color}20 0%, ${meta.color}35 100%)` }}
       >
-        {/* Decorative blur */}
-        <div
-          className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full opacity-20"
-          style={{ backgroundColor: meta.color }}
-        />
-
-        <span className="text-5xl relative z-10 mb-1 select-none">{emoji}</span>
+        {imageUrl ? (
+          <>
+            <Image
+              src={imageUrl}
+              alt={tour.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            {/* Dark gradient overlay for legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          </>
+        ) : (
+          <>
+            {/* Decorative blur */}
+            <div
+              className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full opacity-20"
+              style={{ backgroundColor: meta.color }}
+            />
+            <span className="text-5xl relative z-10 mb-1 select-none">{emoji}</span>
+          </>
+        )}
 
         {/* Variant badge */}
         <div
-          className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+          className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest z-10"
           style={{ backgroundColor: meta.bg, color: meta.textColor, border: `1px solid ${meta.color}30` }}
         >
           <Icon className="w-3 h-3" />
@@ -103,7 +120,7 @@ function TourCard({ tour }: { tour: TourRow }) {
         </div>
 
         {/* Price badge */}
-        <div className="absolute top-3 right-3 bg-[#0F172A] text-white rounded-xl px-2.5 py-1 text-center">
+        <div className="absolute top-3 right-3 bg-[#0F172A] text-white rounded-xl px-2.5 py-1 text-center z-10">
           <p className="text-sm font-black leading-tight" style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
             {price.main}
           </p>

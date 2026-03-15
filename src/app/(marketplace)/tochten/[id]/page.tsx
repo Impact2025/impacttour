@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { tours, checkpoints } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   Clock, Users, MapPin, ArrowLeft, ArrowRight,
@@ -64,6 +65,7 @@ export default async function TourDetailPage({
   const location = (cfg.location as string) || ''
   const tagline  = (cfg.tagline  as string) || tour.description || ''
   const emoji    = (cfg.emoji    as string) || '📍'
+  const imageUrl = (cfg.imageUrl as string) || null
   const themes   = (cfg.themes   as string[]) || []
 
   const isFree      = (tour.priceInCents ?? 0) === 0 && tour.pricingModel === 'flat'
@@ -87,9 +89,24 @@ export default async function TourDetailPage({
 
       {/* ── Hero ── */}
       <div className="bg-[#0F172A] relative overflow-hidden">
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={tour.name}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-30"
+          />
+        )}
         <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ background: `radial-gradient(circle at 80% 40%, ${meta.color} 0%, transparent 50%)` }}
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: imageUrl
+              ? 'linear-gradient(to bottom, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.85) 60%, #0F172A 100%)'
+              : `radial-gradient(circle at 80% 40%, ${meta.color}1A 0%, transparent 50%)`,
+            opacity: imageUrl ? 1 : 0.1,
+          }}
         />
         <div className="max-w-5xl mx-auto px-5 md:px-8 py-12 relative z-10">
           {/* Breadcrumb */}
