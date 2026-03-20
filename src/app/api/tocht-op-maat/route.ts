@@ -118,9 +118,10 @@ ${extra ? `Extra wensen: ${extra}` : ''}`,
       { maxTokens: 2048 }
     )
   } catch (err) {
-    console.error('[tocht-op-maat] AI fout:', err)
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[tocht-op-maat] AI fout:', msg)
     return NextResponse.json(
-      { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.' },
+      { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.', _debug: msg },
       { status: 503 }
     )
   }
