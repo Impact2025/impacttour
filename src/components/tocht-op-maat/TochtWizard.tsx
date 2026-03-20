@@ -218,11 +218,9 @@ function StapDetails({
     if (!/^\d{4}[A-Z]{2}$/.test(cleaned)) return
     setLookupState('loading')
     try {
-      const res = await fetch(
-        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?q=${cleaned}&rows=1&fl=woonplaatsnaam`
-      )
+      const res = await fetch(`/api/postcode?q=${cleaned}`)
       const json = await res.json()
-      const city: string = json?.response?.docs?.[0]?.woonplaatsnaam ?? ''
+      const city: string = json?.city ?? ''
       if (city) {
         onChange('city', city)
         setLookupState('found')
