@@ -210,6 +210,30 @@ function StapDetails({
   onBack: () => void
   loading: boolean
 }) {
+  const [postcode, setPostcode] = useState('')
+  const [lookupState, setLookupState] = useState<'idle' | 'loading' | 'found' | 'error'>('idle')
+
+  async function lookupPostcode(value: string) {
+    const cleaned = value.replace(/\s/g, '').toUpperCase()
+    if (!/^\d{4}[A-Z]{2}$/.test(cleaned)) return
+    setLookupState('loading')
+    try {
+      const res = await fetch(
+        `https://geodata.nationaalgeoregister.nl/locatieserver/v3/free?q=${cleaned}&rows=1&fl=woonplaatsnaam`
+      )
+      const json = await res.json()
+      const city: string = json?.response?.docs?.[0]?.woonplaatsnaam ?? ''
+      if (city) {
+        onChange('city', city)
+        setLookupState('found')
+      } else {
+        setLookupState('error')
+      }
+    } catch {
+      setLookupState('error')
+    }
+  }
+
   const valid = data.duration && data.city.trim() && data.participants.trim()
   return (
     <div>
@@ -240,18 +264,54 @@ function StapDetails({
           </div>
         </div>
 
-        {/* Stad */}
+        {/* Postcode → Woonplaats */}
         <div>
           <label className="block text-sm font-semibold text-[#0F172A] mb-2 flex items-center gap-1.5">
-            <MapPin className="w-4 h-4" /> Stad
+            <MapPin className="w-4 h-4" /> Postcode
           </label>
-          <input
-            type="text"
-            placeholder="bijv. Amsterdam, Rotterdam, Utrecht..."
-            value={data.city}
-            onChange={(e) => onChange('city', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border-2 border-[#E2E8F0] focus:border-[#00E676] outline-none text-[#0F172A] placeholder:text-[#94A3B8] transition-colors"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="bijv. 1234 AB"
+              maxLength={7}
+              value={postcode}
+              onChange={(e) => {
+                setPostcode(e.target.value)
+                setLookupState('idle')
+                onChange('city', '')
+                lookupPostcode(e.target.value)
+              }}
+              className={`flex-1 px-4 py-3 rounded-xl border-2 outline-none text-[#0F172A] placeholder:text-[#94A3B8] transition-colors ${
+                lookupState === 'found'
+                  ? 'border-[#00E676] bg-[#F0FDF4]'
+                  : lookupState === 'error'
+                  ? 'border-red-300'
+                  : 'border-[#E2E8F0] focus:border-[#00E676]'
+              }`}
+            />
+            {lookupState === 'loading' && (
+              <div className="flex items-center px-3">
+                <Loader2 className="w-4 h-4 animate-spin text-[#94A3B8]" />
+              </div>
+            )}
+          </div>
+          {lookupState === 'found' && data.city && (
+            <p className="mt-1.5 text-sm text-[#00A854] font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> {data.city}
+            </p>
+          )}
+          {lookupState === 'error' && (
+            <p className="mt-1.5 text-xs text-red-400">Postcode niet gevonden — vul de stad handmatig in.</p>
+          )}
+          {lookupState === 'error' && (
+            <input
+              type="text"
+              placeholder="Vul je stad in"
+              value={data.city}
+              onChange={(e) => onChange('city', e.target.value)}
+              className="mt-2 w-full px-4 py-3 rounded-xl border-2 border-[#E2E8F0] focus:border-[#00E676] outline-none text-[#0F172A] placeholder:text-[#94A3B8] transition-colors"
+            />
+          )}
         </div>
 
         {/* Deelnemers */}
