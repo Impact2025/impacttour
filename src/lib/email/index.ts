@@ -13,6 +13,24 @@ function getTransporter() {
   })
 }
 
+// Retry wrapper: 3 pogingen met exponentiële backoff (1s, 2s, 4s)
+async function withEmailRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastError = err
+      if (attempt < 3) {
+        console.warn(`[email] ${label} poging ${attempt} mislukt, opnieuw over ${2 ** (attempt - 1)}s`, err)
+        await new Promise((r) => setTimeout(r, 2 ** (attempt - 1) * 1000))
+      }
+    }
+  }
+  console.error(`[email] ${label} definitief mislukt na 3 pogingen`, lastError)
+  throw lastError
+}
+
 const FROM = `IctusGo <${process.env.GMAIL_USER || 'weareimpactnl@gmail.com'}>`
 
 export async function sendMagicLinkEmail({
@@ -22,7 +40,7 @@ export async function sendMagicLinkEmail({
   to: string
   url: string
 }) {
-  await getTransporter().sendMail({
+  await withEmailRetry(() => getTransporter().sendMail({
     from: FROM,
     to,
     subject: 'Inloggen bij IctusGo',
@@ -65,7 +83,7 @@ export async function sendMagicLinkEmail({
       </body>
       </html>
     `,
-  })
+  }), 'magic-link')
 }
 
 export async function sendBookingConfirmationEmail({
@@ -113,7 +131,7 @@ export async function sendBookingConfirmationEmail({
             </div>
   `
 
-  await getTransporter().sendMail({
+  await withEmailRetry(() => getTransporter().sendMail({
     from: FROM,
     to,
     subject: isPaid
@@ -183,7 +201,7 @@ export async function sendBookingConfirmationEmail({
       </body>
       </html>
     `,
-  })
+  }), 'booking-confirmation')
 }
 
 export async function sendSessionInviteEmail({
@@ -199,7 +217,7 @@ export async function sendSessionInviteEmail({
   tourName: string
   joinUrl: string
 }) {
-  await getTransporter().sendMail({
+  await withEmailRetry(() => getTransporter().sendMail({
     from: FROM,
     to,
     subject: `Jullie tocht begint: ${tourName}`,
@@ -225,5 +243,5 @@ export async function sendSessionInviteEmail({
       </body>
       </html>
     `,
-  })
+  }), 'session-invite')
 }

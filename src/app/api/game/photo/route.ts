@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload naar Vercel Blob (gebruik arrayBuffer die al gelezen is voor magic bytes check)
-    // TODO (prod-milestone): verander access: 'public' → 'private' zodra Vercel Blob
-    // private blobs ondersteunt. Clients moeten dan /api/game/photo/serve gebruiken.
+    // Foto's worden als public blob opgeslagen maar worden via /api/game/photo/serve
+    // geserveerd zodat toegang altijd gevalideerd wordt op sessie + teamToken.
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80)
     const filename = `game/${sessionId}/${team.id}/${Date.now()}-${safeName}`
     const fileBlob = new Blob([arrayBuffer], { type: file.type })
@@ -79,7 +79,9 @@ export async function POST(req: NextRequest) {
       contentType: file.type,
     })
 
-    return NextResponse.json({ url: blob.url })
+    // Geef proxy-URL terug zodat clients nooit de directe blob-URL zien
+    const proxyUrl = `/api/game/photo/serve?url=${encodeURIComponent(blob.url)}&sessionId=${sessionId}&teamToken=${teamToken}`
+    return NextResponse.json({ url: proxyUrl })
   } catch (err) {
     console.error('Photo upload error:', err)
     return NextResponse.json({ error: 'Upload mislukt' }, { status: 500 })
