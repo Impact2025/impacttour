@@ -71,8 +71,13 @@ export async function POST(req: Request) {
     sportief: 'fysiek actief en competitief',
   }
 
+  const isFamilieOfKoppel = group === 'familie' || group === 'stel'
+  const impactRegel = isFamilieOfKoppel
+    ? `\nVERPLICHT: 1 van de 5 missies moet een sociale impact-opdracht zijn waarbij deelnemers iets doen VOOR of MET een onbekende buiten hun gezelschap (bijv. compliment geven, foto laten maken, kleine vriendelijkheid). Dit maakt de GMS-score eerlijk.`
+    : ''
+
   const systemPrompt = `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
-Genereer een maatwerk GPS-tocht op basis van de opgegeven parameters.
+Genereer een maatwerk GPS-tocht op basis van de opgegeven parameters.${impactRegel}
 
 Geef precies 5 missies terug, elk op een andere locatie in de genoemde stad.
 Antwoord UITSLUITEND in dit JSON formaat:

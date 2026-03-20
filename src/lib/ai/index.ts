@@ -397,7 +397,13 @@ export async function generateTour(
     : params.variant === 'jeugdtocht'
     ? 'Doelgroep kinderen 9-13 jaar. Eenvoudige taal. Alle checkpoints isKidsFriendly: true.'
     : params.variant === 'familietocht'
-    ? 'Gezinsactiviteit voor ouders en kinderen samen. Warm en toegankelijk.'
+    ? `Doelgroep: gezinnen én koppels. Warm, toegankelijk en verbindend.
+VERPLICHT: minimaal 1 checkpoint waarbij deelnemers iets doen VOOR of MET een onbekende buiten hun groep:
+- Geef een compliment aan een voorbijganger
+- Vraag iemand om een foto te maken en leer hun naam
+- Doe een kleine vriendelijkheid voor een buurtbewoner
+- Koop iets voor de volgende persoon in de rij
+Dit maakt de GMS impact-claim eerlijk: verbinding gaat ook naar buiten de eigen groep.`
     : params.variant === 'impactsprint'
     ? 'Compact format, snelle opdrachten, zakelijke teams.'
     : 'Zakelijke teambuilding voor volwassenen, maatschappelijke impact.'
