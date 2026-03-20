@@ -44,22 +44,13 @@ export async function aiComplete(
     timeoutMs?: number
   }
 ): Promise<string> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), options?.timeoutMs ?? 24_000)
-  try {
-    const response = await getOpenRouter().chat.completions.create(
-      {
-        model: options?.model ?? DEFAULT_MODEL,
-        messages,
-        max_tokens: options?.maxTokens ?? 1024,
-        temperature: options?.temperature ?? 0.7,
-      },
-      { signal: controller.signal }
-    )
-    return response.choices[0]?.message?.content ?? ''
-  } finally {
-    clearTimeout(timer)
-  }
+  const response = await getOpenRouter().chat.completions.create({
+    model: options?.model ?? DEFAULT_MODEL,
+    messages,
+    max_tokens: options?.maxTokens ?? 1024,
+    temperature: options?.temperature ?? 0.7,
+  })
+  return response.choices[0]?.message?.content ?? ''
 }
 
 /** AI completion met JSON output (forced JSON mode) */
@@ -71,26 +62,17 @@ export async function aiCompleteJSON<T = unknown>(
     timeoutMs?: number
   }
 ): Promise<T> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), options?.timeoutMs ?? 24_000)
-  try {
-    const response = await getOpenRouter().chat.completions.create(
-      {
-        model: options?.model ?? DEFAULT_MODEL,
-        messages,
-        max_tokens: options?.maxTokens ?? 2048,
-        temperature: 0.7,
-      },
-      { signal: controller.signal }
-    )
-    const content = response.choices[0]?.message?.content ?? '{}'
-    // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
-    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-    const jsonStr = match ? match[1].trim() : content.trim()
-    return JSON.parse(jsonStr) as T
-  } finally {
-    clearTimeout(timer)
-  }
+  const response = await getOpenRouter().chat.completions.create({
+    model: options?.model ?? DEFAULT_MODEL,
+    messages,
+    max_tokens: options?.maxTokens ?? 2048,
+    temperature: 0.7,
+  })
+  const content = response.choices[0]?.message?.content ?? '{}'
+  // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
+  const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+  const jsonStr = match ? match[1].trim() : content.trim()
+  return JSON.parse(jsonStr) as T
 }
 
 // ─── AI Functie A: Gepersonaliseerde opdrachten genereren ─────────────────────
