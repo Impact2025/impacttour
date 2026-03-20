@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { tochtAanvragen } from '@/lib/db/schema'
-import { aiCompleteJSON } from '@/lib/ai'
 
 export const maxDuration = 30
 
@@ -72,13 +71,7 @@ export async function POST(req: Request) {
     sportief: 'fysiek actief en competitief',
   }
 
-  let result: GeneratedTocht
-  try {
-    result = await aiCompleteJSON<GeneratedTocht>(
-      [
-        {
-          role: 'system',
-          content: `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
+  const systemPrompt = `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
 Genereer een maatwerk GPS-tocht op basis van de opgegeven parameters.
 
 Geef precies 5 missies terug, elk op een andere locatie in de genoemde stad.
@@ -103,23 +96,53 @@ Antwoord UITSLUITEND in dit JSON formaat:
   "impact_moment": "omschrijving van het meest impactvolle moment",
   "tips": ["tip 1", "tip 2", "tip 3"]
 }
-Taal: Nederlands. Wees creatief en specifiek voor de genoemde stad.`,
-        },
-        {
-          role: 'user',
-          content: `Groepstype: ${groepLabels[group] ?? group}
+Taal: Nederlands. Wees creatief en specifiek voor de genoemde stad.`
+
+  const userPrompt = `Groepstype: ${groepLabels[group] ?? group}
 Sfeer/thema: ${sfeerLabels[vibe] ?? vibe}
 Duur: ${duurMinuten} minuten
 Stad: ${city}
 Deelnemers: ${deelnemers} personen
-${extra ? `Extra wensen: ${extra}` : ''}`,
-        },
-      ],
-      { maxTokens: 2048 }
-    )
+${extra ? `Extra wensen: ${extra}` : ''}`
+
+  let result: GeneratedTocht
+  try {
+    const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl',
+        'X-Title': 'IctusGo',
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-5',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        max_tokens: 2048,
+        temperature: 0.7,
+      }),
+    })
+
+    if (!orRes.ok) {
+      const errText = await orRes.text()
+      console.error('[tocht-op-maat] OpenRouter fout:', orRes.status, errText)
+      return NextResponse.json(
+        { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.', _debug: `${orRes.status}: ${errText}` },
+        { status: 503 }
+      )
+    }
+
+    const orJson = await orRes.json()
+    const content: string = orJson.choices?.[0]?.message?.content ?? '{}'
+    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+    const jsonStr = match ? match[1].trim() : content.trim()
+    result = JSON.parse(jsonStr) as GeneratedTocht
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error('[tocht-op-maat] AI fout:', msg)
+    console.error('[tocht-op-maat] Fetch fout:', msg)
     return NextResponse.json(
       { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.', _debug: msg },
       { status: 503 }
