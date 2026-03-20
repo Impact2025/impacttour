@@ -33,7 +33,7 @@ const VARIANT_META: Record<string, {
 }> = {
   wijktocht:     { label: 'WijkTocht',     color: '#3B82F6', bg: '#EFF6FF', textColor: '#1D4ED8', icon: MapPin },
   impactsprint:  { label: 'ImpactSprint',  color: '#8B5CF6', bg: '#F5F3FF', textColor: '#6D28D9', icon: Zap },
-  familietocht:  { label: 'FamilieTocht',  color: '#EC4899', bg: '#FDF2F8', textColor: '#BE185D', icon: Heart },
+  familietocht:  { label: 'Familie & Koppels',  color: '#EC4899', bg: '#FDF2F8', textColor: '#BE185D', icon: Heart },
   jeugdtocht:    { label: 'JeugdTocht',    color: '#F59E0B', bg: '#FFFBEB', textColor: '#B45309', icon: Shield },
   voetbalmissie: { label: 'VoetbalMissie', color: '#00C853', bg: '#F0FDF4', textColor: '#166534', icon: Target },
 }
@@ -42,7 +42,7 @@ const FILTER_TABS = [
   { key: 'alle', label: 'Alle tochten' },
   { key: 'wijktocht',    label: 'WijkTocht' },
   { key: 'impactsprint', label: 'ImpactSprint' },
-  { key: 'familietocht', label: 'FamilieTocht' },
+  { key: 'familietocht', label: 'Familie & Koppels' },
   { key: 'jeugdtocht',   label: 'JeugdTocht' },
   { key: 'voetbalmissie', label: 'VoetbalMissie' },
 ]

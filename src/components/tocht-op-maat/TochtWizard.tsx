@@ -48,7 +48,7 @@ interface WizardData {
 const GROEP_OPTIES: { value: string; label: string; icon: IconComponent }[] = [
   { value: 'bedrijf',       label: 'Bedrijf',       icon: Building2 },
   { value: 'vriendengroep', label: 'Vriendengroep', icon: Users },
-  { value: 'stel',          label: 'Stel',          icon: Heart },
+  { value: 'stel',          label: 'Koppel',        icon: Heart },
   { value: 'familie',       label: 'Familie',       icon: Home },
   { value: 'sportclub',     label: 'Sportclub',     icon: Dumbbell },
   { value: 'school',        label: 'School',        icon: GraduationCap },
@@ -405,6 +405,17 @@ function StapResultaat({
     impact: 'Impact',
   }
 
+  // Koppel groepstype aan marketplace variant + prijs
+  const variantInfo: Record<string, { slug: string; label: string; prijs: string }> = {
+    bedrijf:      { slug: 'wijktocht',    label: 'WijkTocht',           prijs: '€12/pp' },
+    vriendengroep:{ slug: 'impactsprint', label: 'ImpactSprint',        prijs: '€9/pp' },
+    stel:         { slug: 'familietocht', label: 'Familie & Koppels',   prijs: '€9/pp · min. €18' },
+    familie:      { slug: 'familietocht', label: 'Familie & Koppels',   prijs: '€9/pp' },
+    sportclub:    { slug: 'wijktocht',    label: 'WijkTocht',           prijs: '€12/pp' },
+    school:       { slug: 'jeugdtocht',   label: 'JeugdTocht',          prijs: '€6/pp · min. €90' },
+  }
+  const variant = variantInfo[wizardData.group] ?? { slug: 'wijktocht', label: 'WijkTocht', prijs: '€12/pp' }
+
   return (
     <div>
       {/* Header */}
@@ -421,6 +432,13 @@ function StapResultaat({
           </div>
         </div>
         <p className="text-[#94A3B8] text-sm leading-relaxed">{tocht.description}</p>
+        {/* Variant + prijs hint */}
+        <div className="mt-3 flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2">
+          <Heart className="w-3.5 h-3.5 text-[#EC4899] shrink-0" />
+          <span className="text-xs text-[#94A3B8]">Passende variant:</span>
+          <span className="text-xs font-bold text-white">{variant.label}</span>
+          <span className="text-xs text-[#00E676] ml-auto font-semibold">{variant.prijs}</span>
+        </div>
         <div className="flex items-center gap-2 mt-3">
           <span className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-[#CBD5E1]">
             {tocht.difficulty}
@@ -539,16 +557,16 @@ function StapResultaat({
       {/* Secondary CTAs */}
       <div className="flex flex-col sm:flex-row gap-2">
         <Link
-          href="/contact"
+          href={`/tochten?variant=${variant.slug}`}
           className="flex-1 py-2.5 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center gap-2 transition-colors text-sm"
         >
-          Plan een gesprek <ArrowRight className="w-4 h-4" />
+          Boek {variant.label} <ArrowRight className="w-4 h-4" />
         </Link>
         <Link
-          href="/tochten"
+          href="/contact"
           className="py-2.5 px-4 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors text-sm font-medium text-center"
         >
-          Bekijk marketplace
+          Maatwerk aanvragen
         </Link>
         <button
           onClick={onReset}
