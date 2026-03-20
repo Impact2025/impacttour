@@ -72,11 +72,13 @@ export async function POST(req: Request) {
     sportief: 'fysiek actief en competitief',
   }
 
-  const result = await aiCompleteJSON<GeneratedTocht>(
-    [
-      {
-        role: 'system',
-        content: `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
+  let result: GeneratedTocht
+  try {
+    result = await aiCompleteJSON<GeneratedTocht>(
+      [
+        {
+          role: 'system',
+          content: `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
 Genereer een maatwerk GPS-tocht op basis van de opgegeven parameters.
 
 Geef precies 5 missies terug, elk op een andere locatie in de genoemde stad.
@@ -102,19 +104,26 @@ Antwoord UITSLUITEND in dit JSON formaat:
   "tips": ["tip 1", "tip 2", "tip 3"]
 }
 Taal: Nederlands. Wees creatief en specifiek voor de genoemde stad.`,
-      },
-      {
-        role: 'user',
-        content: `Groepstype: ${groepLabels[group] ?? group}
+        },
+        {
+          role: 'user',
+          content: `Groepstype: ${groepLabels[group] ?? group}
 Sfeer/thema: ${sfeerLabels[vibe] ?? vibe}
 Duur: ${duurMinuten} minuten
 Stad: ${city}
 Deelnemers: ${deelnemers} personen
 ${extra ? `Extra wensen: ${extra}` : ''}`,
-      },
-    ],
-    { maxTokens: 2048 }
-  )
+        },
+      ],
+      { maxTokens: 2048 }
+    )
+  } catch (err) {
+    console.error('[tocht-op-maat] AI fout:', err)
+    return NextResponse.json(
+      { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.' },
+      { status: 503 }
+    )
+  }
 
   // Log aanvraag naar database
   try {
