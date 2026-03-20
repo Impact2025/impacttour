@@ -80,12 +80,14 @@ export async function aiCompleteJSON<T = unknown>(
         messages,
         max_tokens: options?.maxTokens ?? 2048,
         temperature: 0.7,
-        response_format: { type: 'json_object' },
       },
       { signal: controller.signal }
     )
     const content = response.choices[0]?.message?.content ?? '{}'
-    return JSON.parse(content) as T
+    // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
+    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+    const jsonStr = match ? match[1].trim() : content.trim()
+    return JSON.parse(jsonStr) as T
   } finally {
     clearTimeout(timer)
   }
