@@ -26,51 +26,68 @@ const VARIANTS: Array<{
   desc: string
   color: string
   bg: string
+  price: string
+  badge?: string
+  bullets: string[]
 }> = [
   {
     icon: MapPin,
     slug: 'wijktocht',
     name: 'WijkTocht',
     target: 'Bedrijven & teams',
-    desc: 'GPS-opdrachten in de buurt. Teams verbinden met hun omgeving én met elkaar.',
+    desc: 'GPS-opdrachten door jouw buurt. Teams verbinden met hun omgeving én met elkaar.',
     color: '#3B82F6',
-    bg: '#3B82F615',
+    bg: '#EFF6FF',
+    price: 'Vanaf €750',
+    badge: 'Meest gekozen',
+    bullets: ['GPS checkpoints op de kaart', 'Persoonlijk impactrapport per team', '10 tot 200 deelnemers'],
   },
   {
     icon: Zap,
     slug: 'impactsprint',
     name: 'ImpactSprint',
-    target: 'Compact · 90 min',
-    desc: '5 checkpoints, 500m radius. Maximale impact in minimale tijd voor drukke agenda\'s.',
+    target: 'Compact · 90 minuten',
+    desc: '5 checkpoints, 500m radius. Maximale impact voor drukke agenda\'s.',
     color: '#8B5CF6',
-    bg: '#8B5CF615',
+    bg: '#F5F3FF',
+    price: 'Vanaf €450',
+    bullets: ['Klaar in 90 minuten', 'Setup in 5 minuten', 'Ideaal voor lunch of borrel'],
   },
   {
     icon: Heart,
     slug: 'familietocht',
     name: 'FamilieTocht',
-    target: 'Gezinnen · weekend',
+    target: 'Gezinnen · weekenden',
     desc: 'Ontdek je buurt als gezin. Scoor de Familie Geluksscore en maak echte herinneringen.',
     color: '#EC4899',
-    bg: '#EC489915',
+    bg: '#FDF2F8',
+    price: 'Vanaf €49',
+    badge: 'Weekend tip',
+    bullets: ['Voor ouders én kinderen', 'Familie Geluksscore', 'Zaterdag & zondag beschikbaar'],
   },
   {
     icon: Shield,
     slug: 'jeugdtocht',
     name: 'JeugdTocht',
-    target: 'Kinderen 9-13 jaar',
-    desc: 'Veilig GPS-avontuur met geofencing. Flits de assistent helpt kids onderweg.',
+    target: 'Kinderen 9–13 jaar',
+    desc: 'Veilig GPS-avontuur met geofencing. Flits de assistent helpt kids stap voor stap.',
     color: '#F59E0B',
-    bg: '#F59E0B15',
+    bg: '#FFFBEB',
+    price: '€6 per kind',
+    badge: 'AVG-veilig',
+    bullets: ['Geofencing & veiligheidsalarm', 'Geen PII opgeslagen', 'Flits AI (geen vrije chat)'],
   },
   {
     icon: Target,
     slug: 'voetbalmissie',
     name: 'VoetbalMissie',
     target: 'Voetbalclubs · scholen',
-    desc: '5 sociale checkpoints rondom het veld. Leer empathie terwijl je keihard speelt.',
-    color: '#00E676',
-    bg: '#00E67615',
+    desc: '5 sociale missies rondom het veld. Leer empathie terwijl je keihard speelt.',
+    color: '#00C853',
+    bg: '#F0FDF4',
+    price: '€6 per kind',
+    badge: 'Populair bij clubs',
+    bullets: ['Verhaalframe: trainer kwijt iets', 'Maatschappelijke impact verborgen in spel', 'Ideaal voor 9–12 jaar'],
   },
 ]
 
@@ -231,67 +248,144 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
 
           <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Voor iedereen</p>
-          <h2
-            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
-            Kies jouw variant.
-          </h2>
-          <p className="text-[#64748B] text-sm md:text-base mb-10 max-w-xl">
-            Van 90 minuten ImpactSprint tot een familiedag — er is een IctusGo variant voor elke groep en elk doel.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {VARIANTS.map(({ icon: Icon, name, target, desc, color, bg, slug }) => (
-              <div
-                key={slug}
-                className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] hover:border-[#00E676]/40 hover:shadow-sm transition-all group"
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
+            <div>
+              <h2
+                className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-2"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: bg }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color }} strokeWidth={1.75} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[#0F172A] text-sm">{name}</h3>
+                Kies jouw variant.
+              </h2>
+              <p className="text-[#64748B] text-sm md:text-base max-w-xl">
+                Van 90 minuten ImpactSprint tot een familiedag — er is altijd een variant die past bij jouw groep en doel.
+              </p>
+            </div>
+            <Link
+              href="/tochten"
+              className="shrink-0 inline-flex items-center gap-2 text-sm font-bold text-[#0F172A] border-2 border-[#E2E8F0] px-5 py-2.5 rounded-xl hover:border-[#00E676] hover:text-[#00C853] transition-colors"
+            >
+              Alle tochten bekijken <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {VARIANTS.map(({ icon: Icon, name, target, desc, color, bg, slug, price, badge, bullets }) => (
+              <Link
+                key={slug}
+                href={`/tochten?variant=${slug}`}
+                className="group flex flex-col bg-white rounded-2xl border-2 border-[#E2E8F0] hover:border-[#00E676] hover:shadow-xl transition-all duration-200 overflow-hidden"
+              >
+                {/* Card header — colored accent */}
+                <div
+                  className="relative px-5 pt-5 pb-4"
+                  style={{ backgroundColor: bg }}
+                >
+                  {badge && (
                     <span
-                      className="text-[10px] font-bold uppercase tracking-widest"
-                      style={{ color }}
+                      className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+                      style={{ backgroundColor: color, color: '#fff' }}
                     >
-                      {target}
+                      {badge}
+                    </span>
+                  )}
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
+                    style={{ backgroundColor: `${color}25` }}
+                  >
+                    <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
+                  </div>
+                  <h3
+                    className="font-black text-[#0F172A] text-lg leading-tight"
+                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                  >
+                    {name}
+                  </h3>
+                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>
+                    {target}
+                  </span>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 flex flex-col px-5 py-4">
+                  <p className="text-[#64748B] text-xs leading-relaxed mb-4">{desc}</p>
+
+                  <ul className="space-y-1.5 mb-5 flex-1">
+                    {bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-2 text-xs text-[#374151]">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00C853] shrink-0 mt-0.5" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-[#F1F5F9]">
+                    <span
+                      className="text-sm font-black"
+                      style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)', color }}
+                    >
+                      {price}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs font-bold text-[#94A3B8] group-hover:text-[#00C853] transition-colors">
+                      Bekijk tochten
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </span>
                   </div>
                 </div>
-                <p className="text-[#64748B] text-xs leading-relaxed">{desc}</p>
-                {slug === 'voetbalmissie' && (
-                  <Link
-                    href="/voetbalmissie"
-                    className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00E676] mt-3 group-hover:underline"
-                  >
-                    Meer over VoetbalMissie <ArrowRight className="w-3 h-3" />
-                  </Link>
-                )}
-              </div>
+              </Link>
             ))}
 
             {/* Maatwerk kaart */}
-            <div className="bg-[#0F172A] rounded-2xl p-5 border border-white/10">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-                <Sliders className="w-5 h-5 text-white" strokeWidth={1.75} />
+            <Link
+              href="/tocht-op-maat"
+              className="group flex flex-col bg-[#0F172A] rounded-2xl border-2 border-white/10 hover:border-[#00E676]/50 hover:shadow-xl transition-all duration-200 overflow-hidden"
+            >
+              <div className="relative px-5 pt-5 pb-4 bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
+                <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-[#00E676] text-[#0F172A]">
+                  AI-powered
+                </span>
+                <div className="w-11 h-11 rounded-xl bg-[#00E676]/15 flex items-center justify-center mb-3">
+                  <Sliders className="w-5 h-5 text-[#00E676]" strokeWidth={2} />
+                </div>
+                <h3
+                  className="font-black text-white text-lg leading-tight"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  Maatwerk tocht
+                </h3>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#00E676]">
+                  Jouw locatie · jouw thema
+                </span>
               </div>
-              <h3 className="font-bold text-white text-sm mb-1">Maatwerk tocht</h3>
-              <p className="text-[#94A3B8] text-xs leading-relaxed mb-3">
-                Eigen locaties, eigen opdrachten, eigen branding. Wij bouwen de tocht die bij jou past.
-              </p>
-              <Link
-                href="/tocht-op-maat"
-                className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00E676]"
-              >
-                Vraag maatwerk aan <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
+
+              <div className="flex-1 flex flex-col px-5 py-4">
+                <p className="text-[#94A3B8] text-xs leading-relaxed mb-4">
+                  Eigen locaties, eigen opdrachten, eigen branding. De AI genereert een volledig concept op maat.
+                </p>
+
+                <ul className="space-y-1.5 mb-5 flex-1">
+                  {['AI genereert concept in 60 seconden', 'Elke stad in Nederland', 'Eigen locatie & branding'].map((b) => (
+                    <li key={b} className="flex items-start gap-2 text-xs text-[#94A3B8]">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676] shrink-0 mt-0.5" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                  <span
+                    className="text-sm font-black text-[#00E676]"
+                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                  >
+                    Gratis concept
+                  </span>
+                  <span className="flex items-center gap-1 text-xs font-bold text-[#475569] group-hover:text-[#00E676] transition-colors">
+                    Probeer nu
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
