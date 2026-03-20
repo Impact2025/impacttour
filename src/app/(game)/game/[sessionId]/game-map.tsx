@@ -174,7 +174,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     if (current && !teamPosition) {
       map.setView([current.latitude, current.longitude], 16)
     }
-  }, [checkpoints, nearbyCheckpoint, isVoetbal])
+  }, [checkpoints, nearbyCheckpoint, isVoetbal, teamPosition])
 
   // Update team positie (blauwe stip)
   useEffect(() => {

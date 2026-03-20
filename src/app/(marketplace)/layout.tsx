@@ -1,7 +1,7 @@
 import { SiteNav } from '@/components/layout/site-nav'
 import { SiteFooter } from '@/components/layout/site-footer'
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteNav />

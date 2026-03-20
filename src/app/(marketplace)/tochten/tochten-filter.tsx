@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -177,7 +178,9 @@ function TourCard({ tour }: { tour: TourRow }) {
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function TochtenFilter({ tours }: { tours: TourRow[] }) {
-  const [activeVariant,  setActiveVariant]  = useState('alle')
+  const searchParams = useSearchParams()
+  const initialVariant = searchParams.get('variant') ?? 'alle'
+  const [activeVariant,  setActiveVariant]  = useState(initialVariant)
   const [activeLocation, setActiveLocation] = useState('alle')
   const [search,         setSearch]         = useState('')
 

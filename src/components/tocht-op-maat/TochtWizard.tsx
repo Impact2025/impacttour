@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2,
+  ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2, Mail,
   Building2, Heart, Home, Dumbbell, GraduationCap,
   Smile, Zap, Leaf, Landmark, Trophy,
   type LucideProps,
@@ -313,11 +313,32 @@ function StapDetails({
 
 function StapResultaat({
   tocht,
+  wizardData,
   onReset,
 }: {
   tocht: GeneratedTocht
+  wizardData: WizardData
   onReset: () => void
 }) {
+  const [email, setEmail] = useState('')
+  const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  async function handleEmailSend() {
+    if (!email.trim() || emailState === 'sending' || emailState === 'sent') return
+    setEmailState('sending')
+    try {
+      const res = await fetch('/api/tocht-op-maat/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), tocht, wizardData }),
+      })
+      if (!res.ok) throw new Error()
+      setEmailState('sent')
+    } catch {
+      setEmailState('error')
+    }
+  }
+
   const missionTypeLabel: Record<string, string> = {
     actie: 'Actie',
     quiz: 'Quiz',
@@ -417,17 +438,63 @@ function StapResultaat({
         </div>
       )}
 
-      {/* CTA */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Email capture */}
+      <div className="bg-[#0F172A] rounded-2xl p-5 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Mail className="w-4 h-4 text-[#00E676]" />
+          <p className="text-white font-bold text-sm">Ontvang dit concept in je inbox</p>
+        </div>
+        <p className="text-[#64748B] text-xs mb-4">
+          Wij sturen het complete plan per e-mail — en nemen contact op om het te realiseren.
+        </p>
+
+        {emailState === 'sent' ? (
+          <div className="flex items-center gap-2 bg-[#00E676]/10 border border-[#00E676]/30 rounded-xl px-4 py-3">
+            <CheckCircle2 className="w-4 h-4 text-[#00E676] shrink-0" />
+            <p className="text-[#00E676] text-sm font-semibold">Verzonden! Check je inbox — wij nemen binnenkort contact op.</p>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="email"
+              placeholder="jouw@email.nl"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleEmailSend()}
+              className="flex-1 px-3 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-[#475569] text-sm outline-none focus:border-[#00E676]/50 transition-colors"
+            />
+            <button
+              onClick={handleEmailSend}
+              disabled={!email.trim() || emailState === 'sending'}
+              className="px-4 py-2.5 rounded-xl bg-[#00E676] text-[#0F172A] font-bold text-sm hover:bg-[#00C853] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 shrink-0"
+            >
+              {emailState === 'sending' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+              {emailState === 'sending' ? 'Bezig...' : 'Stuur'}
+            </button>
+          </div>
+        )}
+        {emailState === 'error' && (
+          <p className="text-red-400 text-xs mt-2">Er ging iets mis, probeer het opnieuw.</p>
+        )}
+      </div>
+
+      {/* Secondary CTAs */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Link
+          href="/contact"
+          className="flex-1 py-2.5 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center gap-2 transition-colors text-sm"
+        >
+          Plan een gesprek <ArrowRight className="w-4 h-4" />
+        </Link>
         <Link
           href="/tochten"
-          className="flex-1 py-3 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center gap-2 transition-colors text-center"
+          className="py-2.5 px-4 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors text-sm font-medium text-center"
         >
-          Bekijk marketplace <ArrowRight className="w-4 h-4" />
+          Bekijk marketplace
         </Link>
         <button
           onClick={onReset}
-          className="py-3 px-5 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors text-sm font-medium"
+          className="py-2.5 px-4 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors text-sm font-medium"
         >
           Nieuwe tocht
         </button>
@@ -511,7 +578,7 @@ export default function TochtWizard() {
           loading={loading}
         />
       )}
-      {step === 3 && result && <StapResultaat tocht={result} onReset={handleReset} />}
+      {step === 3 && result && <StapResultaat tocht={result} wizardData={data} onReset={handleReset} />}
     </div>
   )
 }

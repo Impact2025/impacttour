@@ -340,7 +340,7 @@ export default function PrijzenPage() {
                 </ul>
 
                 <Link
-                  href="/tochten"
+                  href={`/tochten?variant=${v.slug}`}
                   className={`w-full py-3 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-1.5 transition-colors ${
                     v.popular
                       ? 'bg-[#00E676] text-[#0F172A] hover:bg-[#00C853]'

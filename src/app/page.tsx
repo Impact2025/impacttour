@@ -104,7 +104,7 @@ export default function HomePage() {
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-7 text-sm text-[#64748B]">
-            <a href="#varianten" className="hover:text-[#0F172A] transition-colors">Varianten</a>
+            <Link href="/tochten" className="hover:text-[#0F172A] transition-colors">Tochten</Link>
             <Link href="/impact"   className="hover:text-[#0F172A] transition-colors">Impact</Link>
             <Link href="/prijzen"  className="hover:text-[#0F172A] transition-colors">Prijzen</Link>
             <Link href="/over-ons" className="hover:text-[#0F172A] transition-colors">Over ons</Link>
@@ -166,7 +166,7 @@ export default function HomePage() {
                   href="/tochten"
                   className="inline-flex items-center justify-center gap-2 border border-white/10 md:border-[#E2E8F0] text-[#94A3B8] md:text-[#64748B] font-medium text-sm px-6 py-3.5 rounded-2xl hover:bg-white/5 md:hover:bg-[#F8FAFC] transition-colors"
                 >
-                  Bekijk de varianten
+                  Bekijk tochten
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -317,10 +317,10 @@ export default function HomePage() {
                 Eigen locaties, eigen opdrachten, eigen branding. Wij bouwen de tocht die bij jou past.
               </p>
               <Link
-                href="/tochten"
+                href="/tocht-op-maat"
                 className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00E676]"
               >
-                Neem contact op <ArrowRight className="w-3 h-3" />
+                Vraag maatwerk aan <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>

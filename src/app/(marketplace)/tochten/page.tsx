@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { tours, checkpoints } from '@/lib/db/schema'
 import { eq, count } from 'drizzle-orm'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { MapPin, Sparkles, ArrowRight } from 'lucide-react'
 import { TochtenFilter, type TourRow } from './tochten-filter'
 
@@ -128,7 +129,9 @@ export default async function TochtenMarketplace() {
       </div>
 
       {/* ── Filter + grid (client) ── */}
-      <TochtenFilter tours={tourList} />
+      <Suspense fallback={<div className="py-20 text-center text-[#94A3B8] text-sm">Tochten laden…</div>}>
+        <TochtenFilter tours={tourList} />
+      </Suspense>
 
       {/* ── Maatwerk CTA ── */}
       <section className="bg-[#0F172A] px-4 md:px-8 py-14">
