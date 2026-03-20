@@ -53,7 +53,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ tour
   if (!tour) return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 })
 
   const existing = (tour.aiConfig ?? {}) as Record<string, unknown>
-  const { imageUrl: _, ...rest } = existing
+  const rest = Object.fromEntries(Object.entries(existing).filter(([k]) => k !== 'imageUrl'))
   await db.update(tours)
     .set({ aiConfig: rest, updatedAt: new Date() })
     .where(eq(tours.id, tourId))
