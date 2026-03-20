@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2, Mail,
   Building2, Heart, Home, Dumbbell, GraduationCap,
-  Smile, Zap, Leaf, Landmark, Trophy,
+  Smile, Zap, Leaf, Landmark, Trophy, CreditCard, Tag, X,
   type LucideProps,
 } from 'lucide-react'
 
@@ -32,6 +32,7 @@ interface GeneratedTocht {
   missions: TochtMissie[]
   impact_moment: string
   tips: string[]
+  aanvraagId?: string
 }
 
 interface WizardData {
@@ -373,10 +374,12 @@ function StapResultaat({
   tocht,
   wizardData,
   onReset,
+  onCheckout,
 }: {
   tocht: GeneratedTocht
   wizardData: WizardData
   onReset: () => void
+  onCheckout: () => void
 }) {
   const [email, setEmail] = useState('')
   const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
@@ -554,19 +557,23 @@ function StapResultaat({
         )}
       </div>
 
+      {/* Primary CTA: speelbaar maken */}
+      {tocht.aanvraagId && (
+        <button
+          onClick={onCheckout}
+          className="w-full py-3.5 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center gap-2 transition-colors mb-3"
+        >
+          <CreditCard className="w-4 h-4" /> Maak speelbaar — €49
+        </button>
+      )}
+
       {/* Secondary CTAs */}
       <div className="flex flex-col sm:flex-row gap-2">
         <Link
           href={`/tochten?variant=${variant.slug}`}
-          className="flex-1 py-2.5 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] flex items-center justify-center gap-2 transition-colors text-sm"
+          className="flex-1 py-2.5 rounded-xl font-bold text-[#0F172A] border-2 border-[#00E676] hover:bg-[#F0FDF4] flex items-center justify-center gap-2 transition-colors text-sm"
         >
-          Boek {variant.label} <ArrowRight className="w-4 h-4" />
-        </Link>
-        <Link
-          href="/contact"
-          className="py-2.5 px-4 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors text-sm font-medium text-center"
-        >
-          Maatwerk aanvragen
+          Bekijk marketplace <ArrowRight className="w-4 h-4" />
         </Link>
         <button
           onClick={onReset}
@@ -575,6 +582,233 @@ function StapResultaat({
           Nieuwe tocht
         </button>
       </div>
+    </div>
+  )
+}
+
+// ─── Stap 5: Checkout ─────────────────────────────────────────────────────────
+
+interface CouponState {
+  status: 'idle' | 'checking' | 'valid' | 'invalid'
+  message: string
+  isFree: boolean
+  discountLabel: string
+  finalAmountCents: number
+}
+
+function StapCheckout({
+  tocht,
+  onBack,
+}: {
+  tocht: GeneratedTocht
+  onBack: () => void
+}) {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [couponInput, setCouponInput] = useState('')
+  const [coupon, setCoupon] = useState<CouponState>({
+    status: 'idle',
+    message: '',
+    isFree: false,
+    discountLabel: '',
+    finalAmountCents: 4900,
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const valid = firstName.trim() && lastName.trim() && email.includes('@')
+  const displayPrice = coupon.finalAmountCents === 0 ? 'Gratis' : `€${(coupon.finalAmountCents / 100).toFixed(2).replace('.', ',')}`
+
+  async function handleCouponCheck() {
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+    setCoupon((p) => ({ ...p, status: 'checking', message: '' }))
+    try {
+      const res = await fetch('/api/tocht-op-maat/coupon/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.valid) {
+        setCoupon({ status: 'invalid', message: json.error ?? 'Ongeldige code', isFree: false, discountLabel: '', finalAmountCents: 4900 })
+      } else {
+        setCoupon({
+          status: 'valid',
+          message: json.discountLabel,
+          isFree: json.isFree,
+          discountLabel: json.discountLabel,
+          finalAmountCents: json.finalAmountCents,
+        })
+      }
+    } catch {
+      setCoupon({ status: 'invalid', message: 'Kon coupon niet controleren', isFree: false, discountLabel: '', finalAmountCents: 4900 })
+    }
+  }
+
+  function clearCoupon() {
+    setCouponInput('')
+    setCoupon({ status: 'idle', message: '', isFree: false, discountLabel: '', finalAmountCents: 4900 })
+  }
+
+  async function handleBetaal() {
+    if (!valid || loading) return
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/tocht-op-maat/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          aanvraagId: tocht.aanvraagId,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          couponCode: coupon.status === 'valid' ? couponInput.trim().toUpperCase() : undefined,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`)
+      // Gratis flow → redirect naar bevestiging; betaald → MSP betaalpagina
+      window.location.href = json.free ? json.redirectUrl : json.paymentUrl
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Er ging iets mis, probeer het opnieuw.')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-[#0F172A] mb-1">Jouw speelbare tocht</h2>
+      <p className="text-[#64748B] text-sm mb-5">Vul je gegevens in en betaal eenmalig.</p>
+
+      {/* Tocht samenvatting */}
+      <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl px-4 py-3 mb-5 flex items-center gap-3">
+        <MapPin className="w-4 h-4 text-[#00C853] shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#0F172A] truncate">{tocht.title}</p>
+          <p className="text-xs text-[#64748B]">Eenmalig speelbaar · GPS-tocht op maat</p>
+        </div>
+        <div className="text-right shrink-0">
+          {coupon.status === 'valid' && coupon.finalAmountCents < 4900 && (
+            <p className="text-xs text-[#94A3B8] line-through">€49,00</p>
+          )}
+          <span className={`text-lg font-black ${coupon.isFree ? 'text-[#00C853]' : 'text-[#0F172A]'}`}>
+            {displayPrice}
+          </span>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-3 mb-5">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-[#0F172A] mb-1">Voornaam</label>
+            <input
+              type="text"
+              placeholder="Anna"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border-2 border-[#E2E8F0] focus:border-[#00E676] outline-none text-[#0F172A] placeholder:text-[#94A3B8] text-sm transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[#0F172A] mb-1">Achternaam</label>
+            <input
+              type="text"
+              placeholder="de Vries"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border-2 border-[#E2E8F0] focus:border-[#00E676] outline-none text-[#0F172A] placeholder:text-[#94A3B8] text-sm transition-colors"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-[#0F172A] mb-1">E-mailadres</label>
+          <input
+            type="email"
+            placeholder="jouw@email.nl"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-xl border-2 border-[#E2E8F0] focus:border-[#00E676] outline-none text-[#0F172A] placeholder:text-[#94A3B8] text-sm transition-colors"
+          />
+          <p className="text-xs text-[#94A3B8] mt-1">Je ontvangt de speellink op dit adres.</p>
+        </div>
+
+        {/* Coupon */}
+        <div>
+          <label className="block text-xs font-semibold text-[#0F172A] mb-1 flex items-center gap-1">
+            <Tag className="w-3.5 h-3.5" /> Kortingscode
+            <span className="text-[#94A3B8] font-normal">(optioneel)</span>
+          </label>
+          {coupon.status === 'valid' ? (
+            <div className="flex items-center gap-2 bg-[#F0FDF4] border-2 border-[#00E676] rounded-xl px-3 py-2.5">
+              <CheckCircle2 className="w-4 h-4 text-[#00C853] shrink-0" />
+              <span className="text-sm font-semibold text-[#0F172A] flex-1">
+                {couponInput.toUpperCase()}
+              </span>
+              <span className="text-xs text-[#00C853] font-medium">{coupon.discountLabel}</span>
+              <button onClick={clearCoupon} className="text-[#94A3B8] hover:text-[#0F172A] transition-colors ml-1">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="bijv. IMPACT2026"
+                value={couponInput}
+                onChange={(e) => { setCouponInput(e.target.value); if (coupon.status !== 'idle') clearCoupon() }}
+                onKeyDown={(e) => e.key === 'Enter' && handleCouponCheck()}
+                className={`flex-1 px-3 py-2.5 rounded-xl border-2 outline-none text-[#0F172A] placeholder:text-[#94A3B8] text-sm transition-colors ${
+                  coupon.status === 'invalid' ? 'border-red-300 bg-red-50' : 'border-[#E2E8F0] focus:border-[#00E676]'
+                }`}
+              />
+              <button
+                onClick={handleCouponCheck}
+                disabled={!couponInput.trim() || coupon.status === 'checking'}
+                className="px-4 py-2.5 rounded-xl border-2 border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:border-[#00E676] disabled:opacity-40 transition-colors shrink-0 flex items-center gap-1.5"
+              >
+                {coupon.status === 'checking' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                Toepassen
+              </button>
+            </div>
+          )}
+          {coupon.status === 'invalid' && (
+            <p className="text-xs text-red-500 mt-1">{coupon.message}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <button onClick={onBack} className="px-5 py-3 rounded-xl border-2 border-[#E2E8F0] text-[#64748B] hover:border-[#0F172A] transition-colors flex items-center gap-1">
+          <ArrowLeft className="w-4 h-4" /> Terug
+        </button>
+        <button
+          onClick={handleBetaal}
+          disabled={!valid || loading}
+          className="flex-1 py-3 rounded-xl font-bold text-[#0F172A] bg-[#00E676] hover:bg-[#00C853] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+        >
+          {loading ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> {coupon.isFree ? 'Tocht aanmaken…' : 'Doorsturen naar betaling…'}</>
+          ) : coupon.isFree ? (
+            <><CheckCircle2 className="w-4 h-4" /> Ontvang gratis tocht</>
+          ) : (
+            <><CreditCard className="w-4 h-4" /> Betaal {displayPrice}</>
+          )}
+        </button>
+      </div>
+      {!coupon.isFree && (
+        <p className="text-xs text-[#94A3B8] text-center mt-3">
+          Veilig betalen via MultiSafepay · iDEAL, creditcard &amp; meer
+        </p>
+      )}
     </div>
   )
 }
@@ -631,11 +865,13 @@ export default function TochtWizard() {
     setStep(0)
   }
 
+  // Stap 4 (checkout) toont geen progress indicator
+  const showIndicator = step < 4
   const TOTAL_STEPS = 4
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-6 sm:p-8 w-full max-w-lg mx-auto">
-      <StepIndicator step={step} total={TOTAL_STEPS} />
+      {showIndicator && <StepIndicator step={step} total={TOTAL_STEPS} />}
 
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -654,7 +890,20 @@ export default function TochtWizard() {
           loading={loading}
         />
       )}
-      {step === 3 && result && <StapResultaat tocht={result} wizardData={data} onReset={handleReset} />}
+      {step === 3 && result && (
+        <StapResultaat
+          tocht={result}
+          wizardData={data}
+          onReset={handleReset}
+          onCheckout={() => setStep(4)}
+        />
+      )}
+      {step === 4 && result && (
+        <StapCheckout
+          tocht={result}
+          onBack={() => setStep(3)}
+        />
+      )}
     </div>
   )
 }

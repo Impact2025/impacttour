@@ -121,7 +121,7 @@ ${extra ? `Extra wensen: ${extra}` : ''}`
         'X-Title': 'IctusGo',
       },
       body: JSON.stringify({
-        model: process.env.OPENROUTER_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-5',
+        model: process.env.OPENROUTER_FAST_MODEL ?? 'anthropic/claude-haiku-4-5-20251001',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -154,9 +154,10 @@ ${extra ? `Extra wensen: ${extra}` : ''}`
     )
   }
 
-  // Log aanvraag naar database
+  // Log aanvraag naar database + geef aanvraagId terug voor checkout
+  let aanvraagId: string | null = null
   try {
-    await db.insert(tochtAanvragen).values({
+    const [row] = await db.insert(tochtAanvragen).values({
       groepType: group,
       sfeer: vibe,
       stad: city,
@@ -164,13 +165,13 @@ ${extra ? `Extra wensen: ${extra}` : ''}`
       duurMinuten,
       extraWensen: extra || null,
       gegenereerdeJson: result as unknown as Record<string, unknown>,
-    })
+    }).returning({ id: tochtAanvragen.id })
+    aanvraagId = row.id
   } catch {
-    // Logging mag de response niet blokkeren
     console.error('Fout bij opslaan tocht aanvraag in database')
   }
 
-  return NextResponse.json(result, {
+  return NextResponse.json({ ...result, aanvraagId }, {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',

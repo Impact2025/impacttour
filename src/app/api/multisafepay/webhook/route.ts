@@ -3,8 +3,10 @@ import { orders, gameSessions, users, webhookEvents, tours } from '@/lib/db/sche
 import { eq, and } from 'drizzle-orm'
 import { sendBookingConfirmationEmail } from '@/lib/email'
 import { generateMagicLink } from '@/lib/auth/magic-link'
+import { buildSpeelbareTocht } from '@/lib/tocht-builder'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
 /**
  * GET/POST /api/multisafepay/webhook
@@ -116,42 +118,38 @@ async function handleWebhook(req: Request) {
       return new Response('OK', { status: 200 })
     }
 
-    // Markeer order als betaald
-    await db
-      .update(orders)
-      .set({ status: 'paid', paidAt: new Date() })
-      .where(eq(orders.id, order.id))
+    // Self-service flow: tocht bouwen na betaling
+    if (order.tochtAanvraagId) {
+      await buildSpeelbareTocht(order, appUrl)
+    } else {
+      // Bestaande marketplace flow
+      await db.update(orders).set({ status: 'paid', paidAt: new Date() }).where(eq(orders.id, order.id))
 
-    // Markeer sessie als betaald
-    if (order.sessionId) {
-      await db
-        .update(gameSessions)
-        .set({ paidAt: new Date() })
-        .where(eq(gameSessions.id, order.sessionId))
-    }
+      if (order.sessionId) {
+        await db.update(gameSessions).set({ paidAt: new Date() }).where(eq(gameSessions.id, order.sessionId))
+      }
 
-    // Stuur magic link + bevestigingsmail
-    const user = await db.query.users.findFirst({ where: eq(users.id, order.userId) })
-
-    if (user && order.sessionId) {
-      const magicLink = await generateMagicLink({
-        email: user.email,
-        callbackPath: `/klant/${order.sessionId}/setup?betaald=1`,
-        appUrl,
-      })
-
-      const tour = await db.query.tours.findFirst({ where: eq(tours.id, order.tourId) })
-
-      await sendBookingConfirmationEmail({
-        to: user.email,
-        customerName: (user.name || 'klant').split(' ')[0],
-        tourName: tour?.name || 'IctusGo',
-        setupUrl: magicLink,
-        loginUrl: `${appUrl}/login`,
-        isPaid: true,
-        amountFormatted: `€${(order.amountCents / 100).toFixed(2)}`,
-        accountEmail: user.email,
-      })
+      const user = await db.query.users.findFirst({ where: eq(users.id, order.userId) })
+      if (user && order.sessionId) {
+        const magicLink = await generateMagicLink({
+          email: user.email,
+          callbackPath: `/klant/${order.sessionId}/setup?betaald=1`,
+          appUrl,
+        })
+        const tour = order.tourId
+          ? await db.query.tours.findFirst({ where: eq(tours.id, order.tourId) })
+          : null
+        await sendBookingConfirmationEmail({
+          to: user.email,
+          customerName: (user.name || 'klant').split(' ')[0],
+          tourName: tour?.name || 'IctusGo',
+          setupUrl: magicLink,
+          loginUrl: `${appUrl}/login`,
+          isPaid: true,
+          amountFormatted: `€${(order.amountCents / 100).toFixed(2)}`,
+          accountEmail: user.email,
+        })
+      }
     }
 
     // Markeer event als succesvol verwerkt

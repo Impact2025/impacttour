@@ -193,15 +193,14 @@ export const orders = pgTable('orders', {
     .notNull()
     .references(() => users.id),
   sessionId: uuid('session_id').references(() => gameSessions.id),
-  tourId: uuid('tour_id')
-    .notNull()
-    .references(() => tours.id),
+  tourId: uuid('tour_id').references(() => tours.id), // nullable voor self-service orders
+  tochtAanvraagId: uuid('tocht_aanvraag_id'), // set voor self-service orders
   couponCode: text('coupon_code').references(() => coupons.code),
-  amountCents: integer('amount_cents').notNull().default(0), // te betalen bedrag
+  amountCents: integer('amount_cents').notNull().default(0),
   originalAmountCents: integer('original_amount_cents').notNull().default(0),
   participantCount: integer('participant_count'),
   status: text('status').notNull().default('pending'), // 'pending' | 'paid' | 'free' | 'refunded'
-  mspOrderId: text('msp_order_id'), // MultiSafepay order ID
+  mspOrderId: text('msp_order_id'),
   paidAt: timestamp('paid_at'),
   organizationName: text('organization_name'),
   customerName: text('customer_name'),
@@ -462,6 +461,13 @@ export const tochtAanvragen = pgTable('tocht_aanvragen', {
   duurMinuten: integer('duur_minuten').notNull(),
   extraWensen: text('extra_wensen'),
   gegenereerdeJson: jsonb('gegenereerde_json'),
+  // Self-service betaalflow
+  customerEmail: text('customer_email'),
+  customerName: text('customer_name'),
+  orderId: uuid('order_id'), // gekoppeld order na checkout
+  tourId: uuid('tour_id'),   // aangemaakte tour na betaling
+  sessionId: uuid('session_id'), // aangemaakte sessie na betaling
+  status: text('status').notNull().default('concept'), // concept | pending_payment | building | active | failed
   createdAt: timestamp('created_at').defaultNow(),
 })
 
