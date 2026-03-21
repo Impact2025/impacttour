@@ -110,32 +110,49 @@ Stad: ${city}
 Deelnemers: ${deelnemers} personen
 ${extra ? `Extra wensen: ${extra}` : ''}`
 
+  const FAST_MODEL = process.env.OPENROUTER_FAST_MODEL ?? 'anthropic/claude-haiku-4-5-20251001'
+  const DEFAULT_MODEL = process.env.OPENROUTER_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-5'
+  const orHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl',
+    'X-Title': 'IctusGo',
+  }
+  const orBody = (model: string) => JSON.stringify({
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    max_tokens: 2048,
+    temperature: 0.7,
+  })
+
+  async function callOpenRouter(model: string) {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: orHeaders,
+      body: orBody(model),
+    })
+    return res
+  }
+
   let result: GeneratedTocht
   try {
-    const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl',
-        'X-Title': 'IctusGo',
-      },
-      body: JSON.stringify({
-        model: process.env.OPENROUTER_FAST_MODEL ?? 'anthropic/claude-haiku-4-5-20251001',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: 2048,
-        temperature: 0.7,
-      }),
-    })
+    // Probeer eerst het snelle model; val terug op Sonnet als dat faalt
+    let orRes = await callOpenRouter(FAST_MODEL)
 
     if (!orRes.ok) {
       const errText = await orRes.text()
-      console.error('[tocht-op-maat] OpenRouter fout:', orRes.status, errText)
+      console.warn(`[tocht-op-maat] ${FAST_MODEL} fout (${orRes.status}): ${errText} — probeer fallback`)
+      orRes = await callOpenRouter(DEFAULT_MODEL)
+    }
+
+    if (!orRes.ok) {
+      const errText = await orRes.text()
+      console.error('[tocht-op-maat] Beide modellen faalden:', orRes.status, errText)
       return NextResponse.json(
-        { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.', _debug: `${orRes.status}: ${errText}` },
+        { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.' },
         { status: 503 }
       )
     }
@@ -149,7 +166,7 @@ ${extra ? `Extra wensen: ${extra}` : ''}`
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[tocht-op-maat] Fetch fout:', msg)
     return NextResponse.json(
-      { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.', _debug: msg },
+      { error: 'De AI kon geen tocht genereren. Probeer het opnieuw.' },
       { status: 503 }
     )
   }
