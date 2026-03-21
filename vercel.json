@@ -10,7 +10,7 @@
       "maxDuration": 30
     },
     "src/app/api/tocht-op-maat/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "src/app/api/tocht-op-maat/checkout/route.ts": {
       "maxDuration": 60
