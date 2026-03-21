@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { tochtAanvragen } from '@/lib/db/schema'
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 interface TochtMissie {
   number: number
@@ -76,32 +76,12 @@ export async function POST(req: Request) {
     ? `\nVERPLICHT: 1 van de 5 missies moet een sociale impact-opdracht zijn waarbij deelnemers iets doen VOOR of MET een onbekende buiten hun gezelschap (bijv. compliment geven, foto laten maken, kleine vriendelijkheid). Dit maakt de GMS-score eerlijk.`
     : ''
 
-  const systemPrompt = `Je bent een expert tocht-ontwerper voor IctusGo GPS teambuilding.
-Genereer een maatwerk GPS-tocht op basis van de opgegeven parameters.${impactRegel}
+  const systemPrompt = `Je bent een tocht-ontwerper voor IctusGo GPS teambuilding.
+Genereer een GPS-tocht. Antwoord ALLEEN in JSON, geen uitleg.${impactRegel}
 
-Geef precies 5 missies terug, elk op een andere locatie in de genoemde stad.
-Antwoord UITSLUITEND in dit JSON formaat:
-{
-  "title": "pakkende tochtnaam",
-  "tagline": "korte tagline van max 10 woorden",
-  "description": "beschrijving van 2-3 zinnen over de tocht",
-  "gms_prediction": 0-100,
-  "difficulty": "Makkelijk|Middel|Uitdagend",
-  "highlights": ["highlight 1", "highlight 2", "highlight 3"],
-  "missions": [
-    {
-      "number": 1,
-      "title": "missienaam",
-      "location": "specifieke locatie in de stad",
-      "description": "beschrijving van de opdracht in 2-3 zinnen",
-      "type": "actie|quiz|creatief|sociaal|impact",
-      "points": 100
-    }
-  ],
-  "impact_moment": "omschrijving van het meest impactvolle moment",
-  "tips": ["tip 1", "tip 2", "tip 3"]
-}
-Taal: Nederlands. Wees creatief en specifiek voor de genoemde stad.`
+JSON formaat (precies 5 missies, elke missie op andere locatie in de stad):
+{"title":"naam","tagline":"max 8 woorden","description":"1 zin","gms_prediction":75,"difficulty":"Makkelijk|Middel|Uitdagend","highlights":["h1","h2","h3"],"missions":[{"number":1,"title":"naam","location":"locatie in stad","description":"1 zin opdracht","type":"actie|quiz|creatief|sociaal|impact","points":100}],"impact_moment":"1 zin","tips":["tip1","tip2","tip3"]}
+Taal: Nederlands.`
 
   const userPrompt = `Groepstype: ${groepLabels[group] ?? group}
 Sfeer/thema: ${sfeerLabels[vibe] ?? vibe}
