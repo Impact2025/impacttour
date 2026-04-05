@@ -79,9 +79,9 @@ export async function POST(req: NextRequest) {
       contentType: file.type,
     })
 
-    // Geef proxy-URL terug zodat clients nooit de directe blob-URL zien
-    const proxyUrl = `/api/game/photo/serve?url=${encodeURIComponent(blob.url)}&sessionId=${sessionId}&teamToken=${teamToken}`
-    return NextResponse.json({ url: proxyUrl })
+    // Geef de ruwe blob-URL terug; de client bouwt de proxy-URL voor weergave.
+    // De submit route valideert met z.string().url() — dus moet dit een absolute URL zijn.
+    return NextResponse.json({ url: blob.url })
   } catch (err) {
     console.error('Photo upload error:', err)
     return NextResponse.json({ error: 'Upload mislukt' }, { status: 500 })

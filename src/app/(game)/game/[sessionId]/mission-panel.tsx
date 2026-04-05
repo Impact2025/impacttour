@@ -52,6 +52,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
   const [hintLevel, setHintLevel] = useState<HintLevel>(0)
   const [currentHint, setCurrentHint] = useState<string | null>(null)
   const [isLoadingHint, setIsLoadingHint] = useState(false)
+  const [fetchedHints, setFetchedHints] = useState<Partial<Record<1 | 2 | 3, string>>>({})
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number | null>(checkpoint.timeLimitSeconds ?? null)
@@ -74,10 +75,18 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
   }, [checkpoint.timeLimitSeconds, result])
 
   const handleHint = async (level: 1 | 2 | 3) => {
+    // If already fetched, just re-show it without a new API call
+    if (fetchedHints[level]) {
+      setCurrentHint(fetchedHints[level]!)
+      setHintLevel((prev) => (level > prev ? level : prev) as HintLevel)
+      return
+    }
     if (isKids) {
       const hintMap = { 1: checkpoint.hint1, 2: checkpoint.hint2, 3: checkpoint.hint3 }
-      setCurrentHint(hintMap[level])
-      setHintLevel(level)
+      const text = hintMap[level] ?? ''
+      setFetchedHints((prev) => ({ ...prev, [level]: text }))
+      setCurrentHint(text)
+      setHintLevel((prev) => (level > prev ? level : prev) as HintLevel)
       return
     }
     setIsLoadingHint(true)
@@ -88,7 +97,11 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
         body: JSON.stringify({ sessionId, teamToken, checkpointId: checkpoint.id, level: String(level) }),
       })
       const data = await res.json()
-      if (res.ok) { setCurrentHint(data.hint); setHintLevel(level) }
+      if (res.ok) {
+        setFetchedHints((prev) => ({ ...prev, [level]: data.hint }))
+        setCurrentHint(data.hint)
+        setHintLevel((prev) => (level > prev ? level : prev) as HintLevel)
+      }
     } finally {
       setIsLoadingHint(false)
     }
@@ -291,7 +304,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
                   <button
                     key={level}
                     onClick={() => handleHint(level)}
-                    disabled={isLoadingHint || isUsed || isLocked}
+                    disabled={isLoadingHint || isLocked}
                     className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-xs font-semibold border transition-all active:scale-95 ${
                       isUsed
                         ? 'bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]'
@@ -309,7 +322,9 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
 
             {currentHint && (
               <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3.5">
-                <p className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider mb-1">Hint {hintLevel}</p>
+                <p className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider mb-1">
+                  Hint {Object.entries(fetchedHints).find(([, v]) => v === currentHint)?.[0] ?? hintLevel}
+                </p>
                 <p className="text-sm text-[#92400E] leading-relaxed">{currentHint}</p>
               </div>
             )}
