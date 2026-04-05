@@ -1,11 +1,12 @@
 import { db } from '@/lib/db'
-import { gameSessions } from '@/lib/db/schema'
+import { gameSessions, sessionScores } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Trophy, ArrowLeft, Download, RotateCcw, Target } from 'lucide-react'
 import { gmsLabel } from '@/lib/utils'
+import { GMS_DIMENSIONS } from '@/lib/gms-dimensions'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,20 @@ export default async function ResultatenPage({
   const gmsPercentage = maxGmsPossible > 0 ? Math.round((avgGms / maxGmsPossible) * 100) : 0
 
   const impactLabel = gmsLabel(gmsPercentage)
+
+  // Per-dimensie gemiddelden voor HR sectie
+  const scores = await db.select().from(sessionScores).where(eq(sessionScores.sessionId, sessionId))
+  const dimAvg = (key: 'connection' | 'meaning' | 'joy' | 'growth') =>
+    scores.length > 0 ? Math.round(scores.reduce((s, r) => s + r[key], 0) / scores.length) : 0
+  const dimMax = (key: 'gmsConnection' | 'gmsMeaning' | 'gmsJoy' | 'gmsGrowth') =>
+    (gameSession.tour?.checkpoints ?? []).reduce((s, cp) => s + cp[key], 0)
+
+  const hrDimensions = [
+    { key: 'connection' as const, avgScore: dimAvg('connection'), maxScore: dimMax('gmsConnection') },
+    { key: 'meaning'    as const, avgScore: dimAvg('meaning'),    maxScore: dimMax('gmsMeaning')    },
+    { key: 'joy'        as const, avgScore: dimAvg('joy'),         maxScore: dimMax('gmsJoy')        },
+    { key: 'growth'     as const, avgScore: dimAvg('growth'),     maxScore: dimMax('gmsGrowth')     },
+  ].map((d) => ({ ...d, ...GMS_DIMENSIONS[d.key] }))
 
   const podiumHeights = ['h-32', 'h-24', 'h-20']
 
@@ -158,6 +173,89 @@ export default async function ResultatenPage({
               {impactLabel} · {gmsPercentage}% van max
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* HR Impact One-Pager */}
+      <div className="px-6 pb-6">
+        <div className="rounded-2xl overflow-hidden border border-[#E2E8F0]">
+
+          {/* Header */}
+          <div className="bg-[#0F172A] px-5 py-4 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest mb-0.5">
+                Voor de boardroom
+              </p>
+              <h3
+                className="text-white font-black text-lg uppercase tracking-wide"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)', fontStyle: 'italic' }}
+              >
+                HR Impact Dashboard
+              </h3>
+            </div>
+            <div className="bg-[#00E676]/15 border border-[#00E676]/40 rounded-full px-3 py-1.5 text-center shrink-0">
+              <span className="text-[#00E676] text-sm font-black block leading-none">{gmsPercentage}%</span>
+              <span className="text-[#00E676]/60 text-[9px] font-semibold uppercase">GMS</span>
+            </div>
+          </div>
+
+          {/* Dimensie rijen */}
+          <div className="divide-y divide-[#F1F5F9]">
+            {hrDimensions.map((dim) => {
+              const pct = dim.maxScore > 0 ? Math.round((dim.avgScore / dim.maxScore) * 100) : 0
+              const qualColor = pct >= 70 ? '#16a34a' : pct >= 40 ? '#D97706' : '#DC2626'
+              return (
+                <div key={dim.key} className="flex items-center gap-4 px-5 py-3.5">
+                  <div className="w-1.5 h-10 rounded-full shrink-0" style={{ backgroundColor: dim.color }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-bold text-[#0F172A] text-sm">{dim.label}</span>
+                      <span
+                        className="text-[9px] font-black uppercase tracking-wider"
+                        style={{ color: dim.color }}
+                      >
+                        {dim.hrLabel}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#64748B] mt-0.5 leading-snug">{dim.hrOutcome}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {dim.maxScore > 0 ? (
+                      <>
+                        <div
+                          className="text-xl font-black leading-none"
+                          style={{
+                            fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+                            color: dim.color,
+                          }}
+                        >
+                          {dim.avgScore}
+                        </div>
+                        <div className="text-[10px] text-[#94A3B8]">/{dim.maxScore}</div>
+                        <div className="text-[10px] font-bold mt-0.5" style={{ color: qualColor }}>
+                          {pct >= 70 ? 'Sterk' : pct >= 40 ? 'Gemiddeld' : 'Aandacht'}
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-[#CBD5E1] text-xs">—</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Boardroom statement */}
+          <div className="bg-[#F0FDF4] border-t border-[#DCFCE7] px-5 py-4">
+            <p className="text-sm text-[#166534] leading-relaxed font-medium">
+              &ldquo;ImpactTocht helpt bij het verlagen van ziekteverzuim door verbinding en
+              zingeving op de werkvloer.&rdquo;
+            </p>
+            <p className="text-[10px] text-[#86EFAC] mt-2 font-bold uppercase tracking-widest">
+              TeambuildingMetImpact.nl
+            </p>
+          </div>
+
         </div>
       </div>
 

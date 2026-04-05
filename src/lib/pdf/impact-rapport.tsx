@@ -191,6 +191,14 @@ const styles = StyleSheet.create({
     color: C.slate,
     textAlign: 'center',
   },
+  dimensionHrLabel: {
+    fontSize: 6,
+    fontFamily: 'Helvetica-Bold',
+    textAlign: 'center',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   dimensionPct: {
     fontSize: 7,
     color: C.muted,
@@ -441,10 +449,10 @@ function Page1({
   ]
 
   const dims = [
-    { label: 'Verbinding', value: gmsBreakdown.connection, pct: gmsBreakdownPct.connection, max: dimensionMaxes.connection, color: '#EC4899' },
-    { label: 'Betekenis',  value: gmsBreakdown.meaning,    pct: gmsBreakdownPct.meaning,    max: dimensionMaxes.meaning,    color: '#8B5CF6' },
-    { label: 'Plezier',    value: gmsBreakdown.joy,        pct: gmsBreakdownPct.joy,        max: dimensionMaxes.joy,        color: '#F59E0B' },
-    { label: 'Groei',      value: gmsBreakdown.growth,     pct: gmsBreakdownPct.growth,     max: dimensionMaxes.growth,     color: '#3B82F6' },
+    { label: 'Verbinding', hrLabel: 'Verzuimpreventie',      value: gmsBreakdown.connection, pct: gmsBreakdownPct.connection, max: dimensionMaxes.connection, color: '#EC4899' },
+    { label: 'Betekenis',  hrLabel: 'Retentie',               value: gmsBreakdown.meaning,    pct: gmsBreakdownPct.meaning,    max: dimensionMaxes.meaning,    color: '#8B5CF6' },
+    { label: 'Plezier',    hrLabel: 'Vitaliteit',             value: gmsBreakdown.joy,        pct: gmsBreakdownPct.joy,        max: dimensionMaxes.joy,        color: '#F59E0B' },
+    { label: 'Groei',      hrLabel: 'Duurzame Inzetbaarheid', value: gmsBreakdown.growth,     pct: gmsBreakdownPct.growth,     max: dimensionMaxes.growth,     color: '#3B82F6' },
   ]
 
   return (
@@ -526,6 +534,7 @@ function Page1({
               <View key={d.label} style={[styles.dimensionCard, { borderTopWidth: 3, borderTopColor: d.color }]}>
                 <Text style={[styles.dimensionValue, { color: d.color }]}>{d.value}</Text>
                 <Text style={styles.dimensionLabel}>{d.label}</Text>
+                <Text style={[styles.dimensionHrLabel, { color: d.color }]}>{d.hrLabel}</Text>
                 <Text style={styles.dimensionPct}>{d.pct}% van {d.max}</Text>
               </View>
             ))}
@@ -571,15 +580,17 @@ function Page1({
           </Text>
         </View>
 
-        {/* ROI kader */}
+        {/* ROI kader — HR-taal voor boardroom */}
         <View style={styles.roiBox}>
-          <Text style={styles.roiTitle}>Wat dit betekent voor jullie organisatie</Text>
+          <Text style={styles.roiTitle}>HR Impact — wat dit betekent voor jullie organisatie</Text>
           <Text style={styles.roiText}>
-            Teams met een GMS-score boven 70% rapporteren na afloop aantoonbaar sterkere onderlinge
-            verbinding en hogere betrokkenheid bij sociale thema&apos;s. Met {avgGmsPct}% scoort
-            {' '}{variantLabel[variant] ?? variant} {avgGmsPct >= 70 ? 'bovengemiddeld' : 'op een goed niveau'} voor
-            teambuilding in deze categorie. Pagina 2 bevat concrete aanbevelingen om dit resultaat
-            te borgen en de laagst scorende dimensies te versterken.
+            ImpactTocht meet vier dimensies die direct aansluiten op de HR-agenda: Verbinding
+            (verzuimpreventie), Betekenis (retentie), Plezier (vitaliteit) en Groei (duurzame
+            inzetbaarheid). Met een GMS-score van {avgGmsPct}% scoort {variantLabel[variant] ?? variant}{' '}
+            {avgGmsPct >= 70
+              ? 'boven het branchegemiddelde van 65% — een aantoonbaar positief effect op werknemersbetrokkenheid.'
+              : 'op een solide basisniveau. Pagina 2 bevat gerichte aanbevelingen om de zwakste HR-dimensies te versterken.'
+            }
           </Text>
         </View>
 

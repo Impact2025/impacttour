@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Sparkles, Heart, Lightbulb, Smile, TrendingUp, ArrowUpRight, RefreshCw, FileText, Share2 } from 'lucide-react'
+import { GMS_DIMENSIONS } from '@/lib/gms-dimensions'
 import { MobileShell } from '@/components/layout/mobile-shell'
 import { PageHeader } from '@/components/layout/page-header'
 import { BottomNav } from '@/components/ui/bottom-nav'
@@ -166,11 +167,11 @@ export default function RapportPage() {
   const qualitative = (pct: number) => pct >= 70 ? 'Hoog' : pct >= 40 ? 'Gemiddeld' : 'Laag'
 
   const dimensionCards = [
-    { label: 'Verbinding', icon: Heart,      value: dimensions.connection, pct: dimensionPercentages.connection, color: '#EC4899' },
-    { label: 'Betekenis',  icon: Lightbulb,  value: dimensions.meaning,    pct: dimensionPercentages.meaning,    color: '#8B5CF6' },
-    { label: 'Plezier',    icon: Smile,      value: dimensions.joy,         pct: dimensionPercentages.joy,        color: '#F59E0B' },
-    { label: 'Groei',      icon: TrendingUp, value: dimensions.growth,     pct: dimensionPercentages.growth,     color: '#00E676' },
-  ]
+    { key: 'connection' as const, icon: Heart,      value: dimensions.connection, pct: dimensionPercentages.connection },
+    { key: 'meaning'    as const, icon: Lightbulb,  value: dimensions.meaning,    pct: dimensionPercentages.meaning    },
+    { key: 'joy'        as const, icon: Smile,      value: dimensions.joy,        pct: dimensionPercentages.joy        },
+    { key: 'growth'     as const, icon: TrendingUp, value: dimensions.growth,     pct: dimensionPercentages.growth     },
+  ].map((d) => ({ ...d, ...GMS_DIMENSIONS[d.key] }))
 
   const chartData = checkpointScores.map((cp, i) => ({
     day: `CP${i + 1}`,
@@ -254,7 +255,12 @@ export default function RapportPage() {
                     style={{ backgroundColor: `${dim.color}18` }}>
                     <dim.icon className="w-4 h-4" style={{ color: dim.color }} />
                   </div>
-                  <span className="text-xs font-semibold text-[#64748B]">{dim.label}</span>
+                  <div>
+                    <span className="text-xs font-semibold text-[#64748B] block leading-tight">{dim.label}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider leading-tight" style={{ color: dim.color }}>
+                      {dim.hrLabel}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="text-[40px] font-black leading-none mb-2"
