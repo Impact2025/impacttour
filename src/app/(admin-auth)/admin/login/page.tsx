@@ -18,11 +18,11 @@ export default function AdminLoginPage() {
     setLoading(true)
     setError('')
 
-    const result = await signIn('admin-credentials', {
-      email,
-      password,
-      redirect: false,
-    })
+    // Probeer eerst admin-credentials (env var), dan customer-credentials (DB)
+    let result = await signIn('admin-credentials', { email, password, redirect: false })
+    if (result?.error) {
+      result = await signIn('customer-credentials', { email, password, redirect: false })
+    }
 
     if (result?.error) {
       setError('Onbekend e-mailadres of onjuist wachtwoord.')

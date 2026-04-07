@@ -163,13 +163,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async session({ session, user }) {
-      if (user) {
-        session.user.id = user.id
-        // Haal rol op uit database
+      // user is populated for database sessions (OAuth/magic link)
+      // Voor credentials logins: user kan undefined zijn — gebruik session.user.id als fallback
+      const userId = user?.id ?? session.user?.id
+      if (userId) {
+        session.user.id = userId
         const dbUser = await db
           .select({ role: users.role })
           .from(users)
-          .where(eq(users.id, user.id))
+          .where(eq(users.id, userId))
           .limit(1)
         session.user.role = dbUser[0]?.role ?? 'spelleider'
       }
