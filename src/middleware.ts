@@ -13,10 +13,9 @@ export function middleware(req: NextRequest) {
     req.cookies.has('authjs.session-token') ||
     req.cookies.has('__Secure-authjs.session-token')
 
-  if (pathname.startsWith('/spelleider') || pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/spelleider') || (pathname.startsWith('/admin') && pathname !== '/admin/login')) {
     if (!hasSession) {
-      const loginUrl = new URL('/login', req.url)
-      loginUrl.searchParams.set('callbackUrl', pathname)
+      const loginUrl = new URL('/admin/login', req.url)
       return NextResponse.redirect(loginUrl)
     }
   }
