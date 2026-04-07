@@ -59,12 +59,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(item => (
+          {navItems.map(({ href, label, Icon }) => (
             <AdminNavLink
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              icon={<item.Icon className="w-4 h-4 flex-shrink-0" />}
+              key={href}
+              href={href}
+              label={label}
+              icon={<Icon className="w-4 h-4 flex-shrink-0" />}
             />
           ))}
 
