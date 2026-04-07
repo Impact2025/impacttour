@@ -12,84 +12,77 @@ import {
   Zap,
   Shield,
   Footprints,
-  Target,
   Sliders,
   FileText,
-  type LucideIcon,
+  Clock,
+  Star,
 } from 'lucide-react'
+import { db } from '@/lib/db'
+import { tours, checkpoints } from '@/lib/db/schema'
+import { eq, count } from 'drizzle-orm'
 
-const VARIANTS: Array<{
-  icon: LucideIcon
-  slug: string
+export const dynamic = 'force-dynamic'
+
+// ─── Types & helpers ──────────────────────────────────────────────────────────
+
+interface TourRow {
+  id: string
   name: string
-  target: string
-  desc: string
-  color: string
-  bg: string
-  price: string
-  badge?: string
-  bullets: string[]
-}> = [
-  {
-    icon: MapPin,
-    slug: 'wijktocht',
-    name: 'WijkTocht',
-    target: 'Bedrijven & teams',
-    desc: 'GPS-opdrachten door jouw buurt. Teams verbinden met hun omgeving én met elkaar.',
-    color: '#3B82F6',
-    bg: '#EFF6FF',
-    price: 'Vanaf €750',
-    badge: 'Meest gekozen',
-    bullets: ['GPS checkpoints op de kaart', 'Persoonlijk impactrapport per team', '10 tot 200 deelnemers'],
-  },
-  {
-    icon: Zap,
-    slug: 'impactsprint',
-    name: 'ImpactSprint',
-    target: 'Compact · 90 minuten',
-    desc: '5 checkpoints, 500m radius. Maximale impact voor drukke agenda\'s.',
-    color: '#8B5CF6',
-    bg: '#F5F3FF',
-    price: 'Vanaf €450',
-    bullets: ['Klaar in 90 minuten', 'Setup in 5 minuten', 'Ideaal voor lunch of borrel'],
-  },
-  {
-    icon: Heart,
-    slug: 'familietocht',
-    name: 'FamilieTocht',
-    target: 'Gezinnen · weekenden',
-    desc: 'Ontdek je buurt als gezin. Scoor de Familie Geluksscore en maak echte herinneringen.',
-    color: '#EC4899',
-    bg: '#FDF2F8',
-    price: 'Vanaf €49',
-    badge: 'Weekend tip',
-    bullets: ['Voor ouders én kinderen', 'Familie Geluksscore', 'Zaterdag & zondag beschikbaar'],
-  },
-  {
-    icon: Shield,
-    slug: 'jeugdtocht',
-    name: 'JeugdTocht',
-    target: 'Kinderen 9–13 jaar',
-    desc: 'Veilig GPS-avontuur met geofencing. Flits de assistent helpt kids stap voor stap.',
-    color: '#F59E0B',
-    bg: '#FFFBEB',
-    price: '€6 per kind',
-    badge: 'AVG-veilig',
-    bullets: ['Geofencing & veiligheidsalarm', 'Geen PII opgeslagen', 'Flits AI (geen vrije chat)'],
-  },
-  {
-    icon: Target,
-    slug: 'voetbalmissie',
-    name: 'VoetbalMissie',
-    target: 'Voetbalclubs · scholen',
-    desc: '5 sociale missies rondom het veld. Leer empathie terwijl je keihard speelt.',
-    color: '#00C853',
-    bg: '#F0FDF4',
-    price: '€6 per kind',
-    badge: 'Populair bij clubs',
-    bullets: ['Verhaalframe: trainer kwijt iets', 'Maatschappelijke impact verborgen in spel', 'Ideaal voor 9–12 jaar'],
-  },
-]
+  description: string | null
+  variant: string
+  estimatedDurationMin: number | null
+  maxTeams: number | null
+  priceInCents: number | null
+  pricingModel: string
+  pricePerPersonCents: number
+  aiConfig: Record<string, unknown> | null
+  checkpointCount: number
+}
+
+const VARIANT_META: Record<string, { label: string; color: string; bg: string; textColor: string }> = {
+  wijktocht:     { label: 'WijkTocht',          color: '#3B82F6', bg: '#EFF6FF', textColor: '#1D4ED8' },
+  impactsprint:  { label: 'ImpactSprint',        color: '#8B5CF6', bg: '#F5F3FF', textColor: '#6D28D9' },
+  familietocht:  { label: 'Familie & Koppels',   color: '#EC4899', bg: '#FDF2F8', textColor: '#BE185D' },
+  jeugdtocht:    { label: 'JeugdTocht',          color: '#F59E0B', bg: '#FFFBEB', textColor: '#B45309' },
+  voetbalmissie: { label: 'VoetbalMissie',       color: '#00C853', bg: '#F0FDF4', textColor: '#166534' },
+}
+
+function priceDisplay(tour: TourRow) {
+  if (tour.pricingModel === 'per_person' && tour.pricePerPersonCents > 0)
+    return { main: `€${(tour.pricePerPersonCents / 100).toFixed(0)}`, sub: 'p.p.' }
+  if ((tour.priceInCents ?? 0) > 0)
+    return { main: `€${((tour.priceInCents ?? 0) / 100).toFixed(0)}`, sub: 'vast' }
+  return { main: 'Gratis', sub: '' }
+}
+
+function durationLabel(min: number | null): string {
+  if (!min) return '—'
+  const h = Math.floor(min / 60), m = min % 60
+  return m > 0 ? `${h}u ${m}m` : `${h} uur`
+}
+
+async function getPublishedTours(): Promise<TourRow[]> {
+  const rows = await db
+    .select({
+      id: tours.id,
+      name: tours.name,
+      description: tours.description,
+      variant: tours.variant,
+      estimatedDurationMin: tours.estimatedDurationMin,
+      maxTeams: tours.maxTeams,
+      priceInCents: tours.priceInCents,
+      pricingModel: tours.pricingModel,
+      pricePerPersonCents: tours.pricePerPersonCents,
+      aiConfig: tours.aiConfig,
+      checkpointCount: count(checkpoints.id),
+    })
+    .from(tours)
+    .leftJoin(checkpoints, eq(checkpoints.tourId, tours.id))
+    .where(eq(tours.isPublished, true))
+    .groupBy(tours.id)
+    .orderBy(tours.createdAt)
+  return rows as TourRow[]
+}
 
 const TESTIMONIALS = [
   {
@@ -108,7 +101,9 @@ const TESTIMONIALS = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const tourList = await getPublishedTours()
+
   return (
     <main className="min-h-screen bg-white">
 
@@ -269,119 +264,125 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {VARIANTS.map(({ icon: Icon, name, target, desc, color, bg, slug, price, badge, bullets }) => (
-              <Link
-                key={slug}
-                href={`/tochten?variant=${slug}`}
-                className="group flex flex-col bg-white rounded-2xl border-2 border-[#E2E8F0] hover:border-[#00E676] hover:shadow-xl transition-all duration-200 overflow-hidden"
-              >
-                {/* Card header — colored accent */}
-                <div
-                  className="relative px-5 pt-5 pb-4"
-                  style={{ backgroundColor: bg }}
+            {tourList.map((tour) => {
+              const meta = VARIANT_META[tour.variant] ?? VARIANT_META.wijktocht
+              const cfg = tour.aiConfig ?? {}
+              const location = (cfg.location as string) || ''
+              const tagline  = (cfg.tagline  as string) || tour.description || ''
+              const emoji    = (cfg.emoji    as string) || '📍'
+              const imageUrl = (cfg.imageUrl as string) || null
+              const price    = priceDisplay(tour)
+
+              return (
+                <Link
+                  key={tour.id}
+                  href={`/tochten/${tour.id}`}
+                  className="group flex flex-col bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#00E676] hover:shadow-xl transition-all duration-200 overflow-hidden"
                 >
-                  {badge && (
-                    <span
-                      className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
-                      style={{ backgroundColor: color, color: '#fff' }}
-                    >
-                      {badge}
-                    </span>
-                  )}
+                  {/* Card header — photo or gradient */}
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-3"
-                    style={{ backgroundColor: `${color}25` }}
+                    className="relative h-44 flex flex-col items-center justify-center overflow-hidden"
+                    style={imageUrl ? undefined : { background: `linear-gradient(145deg, ${meta.color}20 0%, ${meta.color}35 100%)` }}
                   >
-                    <Icon className="w-5 h-5" style={{ color }} strokeWidth={2} />
-                  </div>
-                  <h3
-                    className="font-black text-[#0F172A] text-lg leading-tight"
-                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                  >
-                    {name}
-                  </h3>
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color }}>
-                    {target}
-                  </span>
-                </div>
-
-                {/* Body */}
-                <div className="flex-1 flex flex-col px-5 py-4">
-                  <p className="text-[#64748B] text-xs leading-relaxed mb-4">{desc}</p>
-
-                  <ul className="space-y-1.5 mb-5 flex-1">
-                    {bullets.map((b) => (
-                      <li key={b} className="flex items-start gap-2 text-xs text-[#374151]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#00C853] shrink-0 mt-0.5" />
-                        {b}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-3 border-t border-[#F1F5F9]">
-                    <span
-                      className="text-sm font-black"
-                      style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)', color }}
+                    {imageUrl ? (
+                      <>
+                        <Image
+                          src={imageUrl}
+                          alt={tour.name}
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                      </>
+                    ) : (
+                      <>
+                        <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full opacity-20" style={{ backgroundColor: meta.color }} />
+                        <span className="text-5xl relative z-10 mb-1 select-none">{emoji}</span>
+                      </>
+                    )}
+                    {/* Variant badge */}
+                    <div
+                      className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest z-10"
+                      style={{ backgroundColor: meta.bg, color: meta.textColor, border: `1px solid ${meta.color}30` }}
                     >
-                      {price}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-bold text-[#94A3B8] group-hover:text-[#00C853] transition-colors">
-                      Bekijk tochten
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                    </span>
+                      {meta.label}
+                    </div>
+                    {/* Price badge */}
+                    <div className="absolute top-3 right-3 bg-[#0F172A] text-white rounded-xl px-2.5 py-1 text-center z-10">
+                      <p className="text-sm font-black leading-tight" style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
+                        {price.main}
+                      </p>
+                      {price.sub && <p className="text-[8px] text-[#94A3B8] leading-none">{price.sub}</p>}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+
+                  {/* Body */}
+                  <div className="flex-1 flex flex-col p-5">
+                    {location && (
+                      <div className="flex items-center gap-1 text-[#94A3B8] text-xs mb-1.5">
+                        <MapPin className="w-3 h-3" />
+                        {location}
+                      </div>
+                    )}
+                    <h3
+                      className="font-black text-[#0F172A] text-lg leading-tight mb-1.5 group-hover:text-[#00C853] transition-colors"
+                      style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                    >
+                      {tour.name}
+                    </h3>
+                    {tagline && (
+                      <p className="text-[#64748B] text-xs leading-relaxed mb-4 line-clamp-2 flex-1">{tagline}</p>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-[#94A3B8] pt-3 border-t border-[#F1F5F9]">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {durationLabel(tour.estimatedDurationMin)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        max {tour.maxTeams}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Star className="w-3 h-3" />
+                        {tour.checkpointCount} CP
+                      </span>
+                      <span className="ml-auto flex items-center gap-1 text-[#0F172A] font-bold group-hover:text-[#00C853] transition-colors">
+                        Bekijk <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
 
             {/* Maatwerk kaart */}
             <Link
               href="/tocht-op-maat"
-              className="group flex flex-col bg-[#0F172A] rounded-2xl border-2 border-white/10 hover:border-[#00E676]/50 hover:shadow-xl transition-all duration-200 overflow-hidden"
+              className="group flex flex-col bg-[#0F172A] rounded-2xl border border-white/10 hover:border-[#00E676]/50 hover:shadow-xl transition-all duration-200 overflow-hidden"
             >
-              <div className="relative px-5 pt-5 pb-4 bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
+              <div className="relative h-44 flex flex-col items-center justify-center bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
                 <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-[#00E676] text-[#0F172A]">
                   AI-powered
                 </span>
-                <div className="w-11 h-11 rounded-xl bg-[#00E676]/15 flex items-center justify-center mb-3">
-                  <Sliders className="w-5 h-5 text-[#00E676]" strokeWidth={2} />
-                </div>
+                <Sliders className="w-10 h-10 text-[#00E676] opacity-30" />
+              </div>
+              <div className="flex-1 flex flex-col p-5">
                 <h3
-                  className="font-black text-white text-lg leading-tight"
+                  className="font-black text-white text-lg leading-tight mb-1.5"
                   style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 >
                   Maatwerk tocht
                 </h3>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#00E676]">
-                  Jouw locatie · jouw thema
-                </span>
-              </div>
-
-              <div className="flex-1 flex flex-col px-5 py-4">
-                <p className="text-[#94A3B8] text-xs leading-relaxed mb-4">
-                  Eigen locaties, eigen opdrachten, eigen branding. De AI genereert een volledig concept op maat.
+                <p className="text-[#94A3B8] text-xs leading-relaxed mb-4 flex-1">
+                  Eigen locatie, eigen thema, eigen branding. De AI genereert een volledig concept in 60 seconden.
                 </p>
-
-                <ul className="space-y-1.5 mb-5 flex-1">
-                  {['AI genereert concept in 60 seconden', 'Elke stad in Nederland', 'Eigen locatie & branding'].map((b) => (
-                    <li key={b} className="flex items-start gap-2 text-xs text-[#94A3B8]">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#00E676] shrink-0 mt-0.5" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-
                 <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                  <span
-                    className="text-sm font-black text-[#00E676]"
-                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                  >
+                  <span className="text-sm font-black text-[#00E676]" style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
                     Gratis concept
                   </span>
                   <span className="flex items-center gap-1 text-xs font-bold text-[#475569] group-hover:text-[#00E676] transition-colors">
-                    Probeer nu
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    Probeer nu <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
               </div>
