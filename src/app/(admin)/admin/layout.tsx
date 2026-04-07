@@ -64,7 +64,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               key={item.href}
               href={item.href}
               label={item.label}
-              Icon={item.Icon}
+              icon={<item.Icon className="w-4 h-4 flex-shrink-0" />}
             />
           ))}
 
