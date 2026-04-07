@@ -25,7 +25,8 @@ async function deleteTour(name: string) {
   const sessions = await sql`SELECT id, status FROM game_sessions WHERE tour_id = ${tour.id}`
   console.log(`   📋 Sessies: ${sessions.length}`)
 
-  const sessionIds = sessions.map((s: { id: string }) => s.id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sessionIds = sessions.map((s: any) => s.id as string)
   if (sessionIds.length > 0) {
     const ordersDeleted = await sql`DELETE FROM orders WHERE session_id = ANY(${sessionIds}) RETURNING id`
     if (ordersDeleted.length > 0) console.log(`   🗑️  ${ordersDeleted.length} order(s) verwijderd`)
