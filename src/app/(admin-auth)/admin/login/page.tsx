@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminLoginPage() {
@@ -11,7 +10,6 @@ export default function AdminLoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,8 +26,8 @@ export default function AdminLoginPage() {
       setError('Onbekend e-mailadres of onjuist wachtwoord.')
       setLoading(false)
     } else {
-      router.push('/admin/dashboard')
-      router.refresh()
+      // Harde redirect zodat session cookie zeker meegestuurd wordt
+      window.location.href = '/admin/dashboard'
     }
   }
 
