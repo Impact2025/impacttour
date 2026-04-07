@@ -75,9 +75,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // Constant-time vergelijking (voorkomt timing attacks)
-        const emailOk = credentials.email === adminEmail
-        const inputBuf = Buffer.from(String(credentials.password))
-        const adminBuf = Buffer.from(adminPassword)
+        // .trim() voorkomt problemen met verborgen whitespace/newlines in env vars
+        const cleanAdminEmail = adminEmail.trim()
+        const cleanAdminPassword = adminPassword.trim()
+        const emailOk = (credentials.email as string).trim() === cleanAdminEmail
+        const inputBuf = Buffer.from(String(credentials.password).trim())
+        const adminBuf = Buffer.from(cleanAdminPassword)
         const passwordOk =
           inputBuf.length === adminBuf.length &&
           timingSafeEqual(inputBuf, adminBuf)

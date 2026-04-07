@@ -7,9 +7,9 @@ import { users } from '../src/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { hashPassword } from '../src/lib/auth/password'
 
-const EMAIL = 'v.munster@weareimpact.nl'
-const PASSWORD = 'Demo1234!'
-const NAME = 'Vincent Munster'
+const EMAIL = 'admin@impacttocht.nl'
+const PASSWORD = 'Demo2024!'
+const NAME = 'Admin'
 
 async function main() {
   const hashed = hashPassword(PASSWORD)
