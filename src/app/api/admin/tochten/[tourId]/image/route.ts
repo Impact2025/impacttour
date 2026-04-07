@@ -32,7 +32,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ tourId:
 
   const ext = file.type === 'image/webp' ? 'webp' : file.type === 'image/png' ? 'png' : 'jpg'
   const filename = `tours/${tourId}/hero.${ext}`
-  const blob = await put(filename, file, { access: 'public', contentType: file.type })
+
+  let blob: { url: string }
+  try {
+    blob = await put(filename, file, { access: 'public', contentType: file.type })
+  } catch (err) {
+    console.error('Blob upload failed:', err)
+    return NextResponse.json({ error: 'Upload naar storage mislukt' }, { status: 500 })
+  }
 
   const existing = (tour.aiConfig ?? {}) as Record<string, unknown>
   await db.update(tours)

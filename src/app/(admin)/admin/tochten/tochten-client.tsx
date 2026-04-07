@@ -40,10 +40,11 @@ function ImageCell({ tocht, onUpdated }: { tocht: Tocht; onUpdated: (id: string,
     const form = new FormData()
     form.append('image', file)
     const res = await fetch(`/api/admin/tochten/${tocht.id}/image`, { method: 'POST', body: form })
-    const data = await res.json()
     setUploading(false)
-    if (!res.ok) { setError(data.error ?? 'Upload mislukt'); return }
-    onUpdated(tocht.id, data.url)
+    let data: Record<string, unknown> = {}
+    try { data = await res.json() } catch { /* lege of niet-JSON response */ }
+    if (!res.ok) { setError((data.error as string) ?? 'Upload mislukt'); return }
+    onUpdated(tocht.id, data.url as string)
   }
 
   const handleDelete = async () => {
