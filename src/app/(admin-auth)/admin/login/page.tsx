@@ -1,35 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useActionState } from 'react'
+import { adminLoginAction } from './actions'
 import { Lock, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    // Probeer eerst admin-credentials (env var), dan customer-credentials (DB)
-    let result = await signIn('admin-credentials', { email, password, redirect: false })
-    if (result?.error) {
-      result = await signIn('customer-credentials', { email, password, redirect: false })
-    }
-
-    if (result?.error) {
-      setError('Onbekend e-mailadres of onjuist wachtwoord.')
-      setLoading(false)
-    } else {
-      // Harde redirect zodat session cookie zeker meegestuurd wordt
-      window.location.href = '/admin/dashboard'
-    }
-  }
+  const [error, formAction, pending] = useActionState(adminLoginAction, '')
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#0F172A] p-4">
@@ -45,15 +23,14 @@ export default function AdminLoginPage() {
 
         {/* Card */}
         <div className="bg-[#1E293B] rounded-2xl p-6 border border-white/10">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-[#64748B] mb-2">
                 E-mailadres
               </label>
               <input
+                name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@ictusgo.nl"
                 required
                 autoComplete="email"
@@ -67,9 +44,8 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative">
                 <input
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
@@ -94,11 +70,11 @@ export default function AdminLoginPage() {
 
             <button
               type="submit"
-              disabled={loading || !email || !password}
+              disabled={pending}
               className="w-full py-3.5 bg-[#00E676] text-[#0F172A] rounded-xl font-bold text-sm uppercase tracking-wide hover:bg-[#00C853] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               <Lock className="w-4 h-4" />
-              {loading ? 'Inloggen...' : 'Inloggen als admin'}
+              {pending ? 'Inloggen...' : 'Inloggen als admin'}
             </button>
           </form>
         </div>
