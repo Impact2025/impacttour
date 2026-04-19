@@ -2,7 +2,20 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import {
+  ArrowRight,
+  ChevronLeft,
+  Briefcase,
+  GraduationCap,
+  Heart,
+  Zap,
+  Clock,
+  Calendar,
+  User,
+  Users,
+  Building2,
+  type LucideIcon,
+} from 'lucide-react'
 
 type Audience = 'bedrijf' | 'school' | 'gezin'
 type Duration = 'kort' | 'halve-dag' | 'flexibel'
@@ -13,6 +26,13 @@ interface Answers {
   audience: Audience | null
   duration: Duration | null
   size: Size | null
+}
+
+interface Option {
+  value: string
+  label: string
+  desc: string
+  Icon: LucideIcon
 }
 
 const RESULT_MAP: Record<string, {
@@ -82,23 +102,41 @@ function recommend(answers: Answers): string {
   return 'impactsprint'
 }
 
-const Q1_OPTIONS = [
-  { value: 'bedrijf' as Audience,  label: 'Bedrijf of team',     emoji: '🏢', desc: 'Collega\'s, teamdag, corporate' },
-  { value: 'school'  as Audience,  label: 'School of sportclub', emoji: '⚽', desc: 'Kinderen, jeugd, club' },
-  { value: 'gezin'   as Audience,  label: 'Gezin of vrienden',   emoji: '👨‍👩‍👧‍👦', desc: 'Familie, koppel, weekend' },
+const Q1_OPTIONS: Option[] = [
+  { value: 'bedrijf', label: 'Bedrijf of team',     desc: "Collega's, teamdag, corporate", Icon: Briefcase },
+  { value: 'school',  label: 'School of sportclub', desc: 'Kinderen, jeugd, club',         Icon: GraduationCap },
+  { value: 'gezin',   label: 'Gezin of vrienden',   desc: 'Familie, koppel, weekend',      Icon: Heart },
 ]
 
-const Q2_OPTIONS = [
-  { value: 'kort'      as Duration, label: '90 minuten',  emoji: '⚡', desc: 'Compact, maximale impact' },
-  { value: 'halve-dag' as Duration, label: 'Halve dag',   emoji: '🕐', desc: '3–4 uur, uitgebreid' },
-  { value: 'flexibel'  as Duration, label: 'Flexibel',    emoji: '📅', desc: 'Wij denken mee' },
+const Q2_OPTIONS: Option[] = [
+  { value: 'kort',      label: '90 minuten', desc: 'Compact, maximale impact', Icon: Zap },
+  { value: 'halve-dag', label: 'Halve dag',  desc: '3–4 uur, uitgebreid',      Icon: Clock },
+  { value: 'flexibel',  label: 'Flexibel',   desc: 'Wij denken mee',           Icon: Calendar },
 ]
 
-const Q3_OPTIONS = [
-  { value: 'klein'       as Size, label: '2–15 personen',   emoji: '👥', desc: 'Klein team' },
-  { value: 'middelgroot' as Size, label: '16–50 personen',  emoji: '👫', desc: 'Afdeling of club' },
-  { value: 'groot'       as Size, label: '50+ personen',    emoji: '🏟️', desc: 'Grote organisatie' },
+const Q3_OPTIONS: Option[] = [
+  { value: 'klein',       label: '2–15 personen',  desc: 'Klein team',         Icon: User },
+  { value: 'middelgroot', label: '16–50 personen', desc: 'Afdeling of club',   Icon: Users },
+  { value: 'groot',       label: '50+ personen',   desc: 'Grote organisatie',  Icon: Building2 },
 ]
+
+function OptionCard({ opt, onClick }: { opt: Option; onClick: () => void }) {
+  const { Icon } = opt
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-4 text-left p-4 rounded-xl border border-[#E2E8F0] hover:border-[#00E676] hover:bg-[#F0FDF4] transition-all group"
+    >
+      <div className="w-9 h-9 rounded-lg bg-[#F1F5F9] flex items-center justify-center shrink-0 group-hover:bg-[#DCFCE7] transition-colors">
+        <Icon className="w-4 h-4 text-[#64748B] group-hover:text-[#16a34a] transition-colors" />
+      </div>
+      <div>
+        <p className="font-bold text-sm text-[#0F172A] group-hover:text-[#0F172A]">{opt.label}</p>
+        <p className="text-[11px] text-[#94A3B8] mt-0.5">{opt.desc}</p>
+      </div>
+    </button>
+  )
+}
 
 export function VariantWizard() {
   const [step, setStep] = useState<Step>(1)
@@ -107,13 +145,8 @@ export function VariantWizard() {
   function answer(field: keyof Answers, value: string) {
     const next = { ...answers, [field]: value } as Answers
     setAnswers(next)
-
     if (field === 'audience') {
-      if (value === 'school' || value === 'gezin') {
-        setStep('result')
-      } else {
-        setStep(2)
-      }
+      setStep(value === 'school' || value === 'gezin' ? 'result' : 2)
     } else if (field === 'duration') {
       setStep(3)
     } else {
@@ -128,127 +161,83 @@ export function VariantWizard() {
 
   const slug = step === 'result' ? recommend(answers) : null
   const result = slug ? RESULT_MAP[slug] : null
-
-  const totalSteps = answers.audience === 'bedrijf' ? 3 : 1
-  const currentStepNum = step === 'result' ? totalSteps : (step as number)
+  const currentStepNum = step === 'result' ? (answers.audience === 'bedrijf' ? 3 : 1) : (step as number)
 
   return (
-    <div className="bg-white rounded-3xl border-2 border-[#E2E8F0] p-6 md:p-8 max-w-2xl mx-auto shadow-sm">
+    <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 md:p-8 max-w-2xl mx-auto">
 
-      {/* Progress bar */}
+      {/* Progress */}
       {step !== 'result' && (
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-1.5 mb-7">
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className="h-1.5 flex-1 rounded-full transition-colors duration-300"
-              style={{
-                backgroundColor:
-                  s <= currentStepNum ? '#00E676' : '#E2E8F0',
-              }}
+              className="h-0.5 flex-1 rounded-full transition-colors duration-300"
+              style={{ backgroundColor: s <= currentStepNum ? '#00E676' : '#E2E8F0' }}
             />
           ))}
         </div>
       )}
 
-      {/* Q1: Voor wie? */}
+      {/* Q1 */}
       {step === 1 && (
         <>
-          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">
+          <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
             Vraag 1 van 3
           </p>
-          <h3
-            className="text-xl font-black text-[#0F172A] mb-6"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
+          <p className="font-bold text-[#0F172A] text-base mb-5">
             Voor wie organiseer je de tocht?
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          </p>
+          <div className="flex flex-col gap-2">
             {Q1_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => answer('audience', opt.value)}
-                className="flex flex-col items-center text-center p-4 rounded-2xl border-2 border-[#E2E8F0] hover:border-[#00E676] hover:bg-[#F0FDF4] transition-all group"
-              >
-                <span className="text-3xl mb-2">{opt.emoji}</span>
-                <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#16a34a]">
-                  {opt.label}
-                </span>
-                <span className="text-[10px] text-[#94A3B8] mt-0.5">{opt.desc}</span>
-              </button>
+              <OptionCard key={opt.value} opt={opt} onClick={() => answer('audience', opt.value)} />
             ))}
           </div>
         </>
       )}
 
-      {/* Q2: Hoeveel tijd? */}
+      {/* Q2 */}
       {step === 2 && (
         <>
-          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">
+          <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
             Vraag 2 van 3
           </p>
-          <h3
-            className="text-xl font-black text-[#0F172A] mb-6"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
+          <p className="font-bold text-[#0F172A] text-base mb-5">
             Hoeveel tijd heb je?
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          </p>
+          <div className="flex flex-col gap-2">
             {Q2_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => answer('duration', opt.value)}
-                className="flex flex-col items-center text-center p-4 rounded-2xl border-2 border-[#E2E8F0] hover:border-[#00E676] hover:bg-[#F0FDF4] transition-all group"
-              >
-                <span className="text-3xl mb-2">{opt.emoji}</span>
-                <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#16a34a]">
-                  {opt.label}
-                </span>
-                <span className="text-[10px] text-[#94A3B8] mt-0.5">{opt.desc}</span>
-              </button>
+              <OptionCard key={opt.value} opt={opt} onClick={() => answer('duration', opt.value)} />
             ))}
           </div>
           <button
             onClick={() => setStep(1)}
-            className="mt-4 text-xs text-[#94A3B8] hover:text-[#64748B] underline"
+            className="mt-5 flex items-center gap-1 text-xs text-[#94A3B8] hover:text-[#64748B] transition-colors"
           >
-            ← Terug
+            <ChevronLeft className="w-3.5 h-3.5" /> Terug
           </button>
         </>
       )}
 
-      {/* Q3: Groepsgrootte? */}
+      {/* Q3 */}
       {step === 3 && (
         <>
-          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">
+          <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
             Vraag 3 van 3
           </p>
-          <h3
-            className="text-xl font-black text-[#0F172A] mb-6"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
+          <p className="font-bold text-[#0F172A] text-base mb-5">
             Hoe groot is je groep?
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          </p>
+          <div className="flex flex-col gap-2">
             {Q3_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => answer('size', opt.value)}
-                className="flex flex-col items-center text-center p-4 rounded-2xl border-2 border-[#E2E8F0] hover:border-[#00E676] hover:bg-[#F0FDF4] transition-all group"
-              >
-                <span className="text-3xl mb-2">{opt.emoji}</span>
-                <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#16a34a]">
-                  {opt.label}
-                </span>
-                <span className="text-[10px] text-[#94A3B8] mt-0.5">{opt.desc}</span>
-              </button>
+              <OptionCard key={opt.value} opt={opt} onClick={() => answer('size', opt.value)} />
             ))}
           </div>
           <button
             onClick={() => setStep(2)}
-            className="mt-4 text-xs text-[#94A3B8] hover:text-[#64748B] underline"
+            className="mt-5 flex items-center gap-1 text-xs text-[#94A3B8] hover:text-[#64748B] transition-colors"
           >
-            ← Terug
+            <ChevronLeft className="w-3.5 h-3.5" /> Terug
           </button>
         </>
       )}
@@ -256,50 +245,47 @@ export function VariantWizard() {
       {/* Result */}
       {step === 'result' && result && (
         <>
-          <p className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest mb-2">
-            Aanbeveling voor jou
+          <p className="text-[10px] font-semibold text-[#00E676] uppercase tracking-widest mb-1.5">
+            Aanbeveling
           </p>
-          <h3
-            className="text-2xl font-black italic text-[#0F172A] mb-5"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-          >
-            {result.name} past perfect bij jouw groep.
-          </h3>
-          <div className="rounded-2xl p-5 mb-5" style={{ backgroundColor: result.bg }}>
+          <p className="font-bold text-[#0F172A] text-lg mb-5">
+            {result.name} past het best bij jouw groep.
+          </p>
+          <div className="rounded-xl border border-[#E2E8F0] p-4 mb-4" style={{ backgroundColor: result.bg }}>
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
-                <p className="font-black text-[#0F172A] text-lg">{result.name}</p>
+                <p className="font-bold text-[#0F172A]">{result.name}</p>
                 <p className="text-sm text-[#64748B]">{result.tagline}</p>
               </div>
               <span
-                className="text-2xl font-black shrink-0"
+                className="text-xl font-black shrink-0"
                 style={{ color: result.color, fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
                 {result.price}
               </span>
             </div>
-            <ul className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {result.features.map((f) => (
-                <li
+                <span
                   key={f}
-                  className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white border"
-                  style={{ color: result.color, borderColor: `${result.color}40` }}
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white border"
+                  style={{ color: result.color, borderColor: `${result.color}30` }}
                 >
                   {f}
-                </li>
+                </span>
               ))}
-            </ul>
+            </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Link
               href={result.href}
-              className="flex-1 py-3 rounded-xl bg-[#00E676] text-[#0F172A] font-bold text-sm text-center flex items-center justify-center gap-1.5 hover:bg-[#00C853] transition-colors"
+              className="flex-1 py-2.5 rounded-xl bg-[#00E676] text-[#0F172A] font-bold text-sm text-center flex items-center justify-center gap-1.5 hover:bg-[#00C853] transition-colors"
             >
               Bekijk {result.name} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <button
               onClick={reset}
-              className="px-4 py-3 rounded-xl border border-[#E2E8F0] text-sm text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
             >
               Opnieuw
             </button>
