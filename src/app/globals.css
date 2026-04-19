@@ -51,9 +51,9 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* PWA: full height op mobiel */
+  /* PWA: min-height zodat marketing-pagina's kunnen scrollen; game-pages gebruiken h-screen expliciet */
   html, body {
-    height: 100%;
+    min-height: 100%;
     overscroll-behavior: none;
   }
 
