@@ -191,7 +191,9 @@ export async function POST(req: Request) {
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-  const checkout = await stripe.checkout.sessions.create({
+  let checkout: Stripe.Checkout.Session
+  try {
+    checkout = await stripe.checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
     line_items: [
@@ -216,6 +218,13 @@ export async function POST(req: Request) {
     success_url: `${appUrl}/klant/${gameSession.id}/setup?betaald=1`,
     cancel_url: `${appUrl}/tochten/${tourId}?geannuleerd=1`,
   })
+  } catch (err) {
+    console.error('[marketplace-checkout] Stripe fout:', err)
+    return NextResponse.json(
+      { error: 'Betalingsprovider fout', details: err instanceof Error ? err.message : String(err) },
+      { status: 502 }
+    )
+  }
 
   // Stripe session ID opslaan
   await db.update(orders)
