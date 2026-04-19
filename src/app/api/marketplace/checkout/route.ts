@@ -7,6 +7,7 @@ import { sendBookingConfirmationEmail } from '@/lib/email'
 import { generateMagicLink } from '@/lib/auth/magic-link'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
 import { z } from 'zod'
+import Stripe from 'stripe'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,11 +25,10 @@ const schema = z.object({
 
 /**
  * POST /api/marketplace/checkout
- * Verwerkt een marketplace-boeking:
  * 1. Maak/vind gebruiker
- * 2. Maak gameSessions aan
- * 3. Coupon valideren + order aanmaken
- * 4. Gratis → magic link sturen, betaald → MultiSafepay redirect URL retourneren
+ * 2. Maak gameSession aan
+ * 3. Valideer coupon + maak order aan
+ * 4. Gratis → magic link sturen; betaald → Stripe Checkout URL retourneren
  */
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null)
@@ -44,9 +44,8 @@ export async function POST(req: Request) {
 
   const fullName = `${firstName} ${lastName}`
 
-  // Gebruik de origin van de inkomende request (werkt voor elke poort/domein)
   const reqUrl = new URL(req.url)
-  const appUrl = `${reqUrl.protocol}//${reqUrl.host}`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`
 
   // ── Tocht ophalen ────────────────────────────────────────────────────────
   const tour = await db.query.tours.findFirst({
@@ -94,7 +93,7 @@ export async function POST(req: Request) {
 
   // ── Gebruiker aanmaken of vinden ─────────────────────────────────────────
   let user = await db.query.users.findFirst({ where: eq(users.email, email) })
-  let plainPassword: string | null = null // alleen gevuld voor nieuwe gebruikers
+  let plainPassword: string | null = null
 
   if (!user) {
     plainPassword = generatePassword()
@@ -107,7 +106,6 @@ export async function POST(req: Request) {
     }).returning()
     user = newUser
   } else {
-    // Update naam/org als ze er nog niet staan
     if (!user.name || !user.organizationName) {
       await db.update(users)
         .set({
@@ -155,14 +153,13 @@ export async function POST(req: Request) {
     customerEmail: email,
   }).returning()
 
-  // ── Magic link genereren ─────────────────────────────────────────────────
+  // ── Magic link helper ────────────────────────────────────────────────────
   const sendMagicLink = async (sessionId: string) => {
     const magicLink = await generateMagicLink({
       email,
       callbackPath: `/klant/${sessionId}/setup`,
       appUrl,
     })
-
     await sendBookingConfirmationEmail({
       to: email,
       customerName: firstName,
@@ -179,7 +176,6 @@ export async function POST(req: Request) {
   // ── Gratis: direct magic link sturen ────────────────────────────────────
   if (finalAmountCents === 0) {
     await sendMagicLink(gameSession.id)
-
     return NextResponse.json({
       success: true,
       free: true,
@@ -188,73 +184,48 @@ export async function POST(req: Request) {
     })
   }
 
-  // ── Betaald: MultiSafepay order aanmaken ─────────────────────────────────
-  const mspApiKey = process.env.MULTISAFEPAY_API_KEY!
-  const mspBaseUrl = process.env.MULTISAFEPAY_TEST === 'true'
-    ? 'https://testapi.multisafepay.com/v1/json'
-    : 'https://api.multisafepay.com/v1/json'
-
-  const mspOrderId = `IT-${order.id.replace(/-/g, '').slice(0, 16).toUpperCase()}`
-
-  const mspPayload = {
-    type: 'redirect',
-    order_id: mspOrderId,
-    gateway: '',
-    currency: 'EUR',
-    amount: finalAmountCents,
-    description: `IctusGo — ${tour.name}${organizationName ? ` (${organizationName})` : ''}`,
-    payment_options: {
-      notification_url: `${appUrl}/api/multisafepay/webhook`,
-      redirect_url: `${appUrl}/klant/${gameSession.id}/setup?betaald=1`,
-      cancel_url: `${appUrl}/tochten/${tourId}?geannuleerd=1`,
-    },
-    customer: {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      locale: 'nl_NL',
-    },
-    order_data: {
-      items: [
-        {
-          name: tour.name,
-          description: `${tour.variant} — ${tour.estimatedDurationMin ?? 120} min`,
-          unit_price: originalAmountCents,
-          quantity: 1,
-        },
-      ],
-    },
+  // ── Betaald: Stripe Checkout sessie aanmaken ─────────────────────────────
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Betalingsprovider niet geconfigureerd' }, { status: 503 })
   }
 
-  const mspRes = await fetch(`${mspBaseUrl}/orders`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api_key': mspApiKey,
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+  const checkout = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    customer_email: email,
+    line_items: [
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: tour.name,
+            description: `${tour.variant} — ${tour.estimatedDurationMin ?? 120} min${organizationName ? ` · ${organizationName}` : ''}`,
+          },
+          unit_amount: finalAmountCents,
+        },
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      source: 'marketplace',
+      orderId: order.id,
+      sessionId: gameSession.id,
+      userId: user.id,
     },
-    body: JSON.stringify(mspPayload),
+    success_url: `${appUrl}/klant/${gameSession.id}/setup?betaald=1`,
+    cancel_url: `${appUrl}/tochten/${tourId}?geannuleerd=1`,
   })
 
-  const mspData = await mspRes.json()
-
-  if (!mspData.success) {
-    console.error('MultiSafepay fout:', mspData)
-    return NextResponse.json({ error: 'Betalingsprovider onbeschikbaar. Probeer het later opnieuw.' }, { status: 502 })
-  }
-
-  // Sla MSP order ID op
-  await db.update(gameSessions)
-    .set({ mspOrderId })
-    .where(eq(gameSessions.id, gameSession.id))
-
+  // Stripe session ID opslaan
   await db.update(orders)
-    .set({ mspOrderId })
+    .set({ stripeSessionId: checkout.id })
     .where(eq(orders.id, order.id))
 
   return NextResponse.json({
     success: true,
     free: false,
-    paymentUrl: mspData.data.payment_url,
+    paymentUrl: checkout.url,
     sessionId: gameSession.id,
   })
 }

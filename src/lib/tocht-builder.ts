@@ -3,7 +3,7 @@
  * een echte Tour + Checkpoints + GameSession + magic link email.
  *
  * Wordt gebruikt door:
- *  - /api/multisafepay/webhook (na betaling)
+ *  - /api/stripe/webhook (na betaling, source='tocht-op-maat')
  *  - /api/tocht-op-maat/checkout (gratis flow via coupon)
  */
 import { db } from '@/lib/db'

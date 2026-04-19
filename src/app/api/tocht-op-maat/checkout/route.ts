@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { hashPassword, generatePassword } from '@/lib/auth/password'
 import { buildSpeelbareTocht } from '@/lib/tocht-builder'
 import { z } from 'zod'
+import Stripe from 'stripe'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -147,69 +148,48 @@ export async function POST(req: Request) {
     })
   }
 
-  // ── Betaalde flow: MultiSafepay order aanmaken ────────────────────────────
-  const mspApiKey = process.env.MULTISAFEPAY_API_KEY
-  if (!mspApiKey) {
+  // ── Betaalde flow: Stripe Checkout sessie aanmaken ───────────────────────
+  if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Betalingsprovider niet geconfigureerd' }, { status: 503 })
   }
 
-  const mspBaseUrl =
-    process.env.MULTISAFEPAY_TEST === 'true'
-      ? 'https://testapi.multisafepay.com/v1/json'
-      : 'https://api.multisafepay.com/v1/json'
-
-  const mspOrderId = `IT-SPEEL-${order.id.replace(/-/g, '').slice(0, 12).toUpperCase()}`
   const tocht = aanvraag.gegenereerdeJson as { title?: string } | null
   const tochtNaam = tocht?.title ?? `Tocht in ${aanvraag.stad}`
 
-  const mspPayload = {
-    type: 'redirect',
-    order_id: mspOrderId,
-    gateway: '',
-    currency: 'EUR',
-    amount: finalAmountCents,
-    description: `IctusGo Speelbare Tocht — ${tochtNaam}`,
-    payment_options: {
-      notification_url: `${appUrl}/api/multisafepay/webhook`,
-      redirect_url: `${appUrl}/tocht-op-maat/bevestiging?orderId=${order.id}`,
-      cancel_url: `${appUrl}/tocht-op-maat?geannuleerd=1`,
-    },
-    customer: {
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      locale: 'nl_NL',
-    },
-    order_data: {
-      items: [
-        {
-          name: 'Speelbare Tocht (zelfservice)',
-          description: `${tochtNaam} · ${aanvraag.duurMinuten} min · ${aanvraag.stad}`,
-          unit_price: finalAmountCents,
-          quantity: 1,
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
+  const checkout = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    customer_email: email,
+    line_items: [
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: `Speelbare Tocht — ${tochtNaam}`,
+            description: `${aanvraag.duurMinuten} min · ${aanvraag.stad}`,
+          },
+          unit_amount: finalAmountCents,
         },
-      ],
+        quantity: 1,
+      },
+    ],
+    metadata: {
+      source: 'tocht-op-maat',
+      orderId: order.id,
+      aanvraagId,
+      userId: user.id,
     },
-  }
-
-  const mspRes = await fetch(`${mspBaseUrl}/orders`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', api_key: mspApiKey },
-    body: JSON.stringify(mspPayload),
+    success_url: `${appUrl}/tocht-op-maat/bevestiging?orderId=${order.id}`,
+    cancel_url: `${appUrl}/tocht-op-maat?geannuleerd=1`,
   })
-  const mspData = await mspRes.json()
 
-  if (!mspData.success) {
-    console.error('[tocht-checkout] MSP fout:', mspData)
-    return NextResponse.json({ error: 'Betalingsprovider fout. Probeer opnieuw.' }, { status: 502 })
-  }
-
-  await db.update(orders).set({ mspOrderId }).where(eq(orders.id, order.id))
+  await db.update(orders).set({ stripeSessionId: checkout.id }).where(eq(orders.id, order.id))
 
   return NextResponse.json({
     success: true,
     free: false,
-    paymentUrl: mspData.data.payment_url,
+    paymentUrl: checkout.url,
     orderId: order.id,
   })
 }

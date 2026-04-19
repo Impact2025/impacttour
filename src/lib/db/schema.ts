@@ -200,7 +200,8 @@ export const orders = pgTable('orders', {
   originalAmountCents: integer('original_amount_cents').notNull().default(0),
   participantCount: integer('participant_count'),
   status: text('status').notNull().default('pending'), // 'pending' | 'paid' | 'free' | 'refunded'
-  mspOrderId: text('msp_order_id'),
+  mspOrderId: text('msp_order_id'), // legacy — behouden voor historische orders
+  stripeSessionId: text('stripe_session_id'),
   paidAt: timestamp('paid_at'),
   organizationName: text('organization_name'),
   customerName: text('customer_name'),
