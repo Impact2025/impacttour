@@ -194,7 +194,7 @@ export default async function TochtenMarketplace() {
               ))}
             </div>
             <p className="text-xs text-[#CBD5E1] mt-4">
-              MultiSafepay · SSL beveiligd · AVG-compliant · KVK geregistreerd
+              Stripe · SSL beveiligd · AVG-compliant · KVK geregistreerd
             </p>
           </div>
         </div>

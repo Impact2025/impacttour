@@ -24,7 +24,7 @@ const SECTIONS = [
       '**Spelersgegevens (kinderen, JeugdTocht / VoetbalMissie):** uitsluitend teamnaam en teamtoken. Geen enkele vorm van persoonsgegevens van kinderen.',
       '**Foto\'s:** door teams geüploade afbeeldingen als onderdeel van opdrachten. Voor kindsvarianten worden foto\'s automatisch verwijderd na 30 dagen.',
       '**Technische gegevens:** IP-adres, browsertype, sessie-cookies (voor authenticatie en beveiliging).',
-      '**Betalingsgegevens:** worden volledig verwerkt door MultiSafepay. IctusGo slaat geen betaalkaartgegevens op.',
+      '**Betalingsgegevens:** worden volledig verwerkt door Stripe. TeambuildingMetImpact.nl slaat geen betaalkaartgegevens op.',
     ],
   },
   {
@@ -91,7 +91,7 @@ const SECTIONS = [
       '**Neon (database):** EU-hosted PostgreSQL. Verwerkersovereenkomst aanwezig.',
       '**Vercel (hosting):** edge-functies gehost in EU. Verwerkersovereenkomst aanwezig.',
       '**Resend (e-mail):** transactionele e-mails. Verwerkersovereenkomst aanwezig.',
-      '**MultiSafepay (betalingen):** PCI DSS-gecertificeerde betalingsverwerker. Verwerkt betalingsgegevens — IctusGo heeft geen inzage in betaalkaartdata.',
+      '**Stripe (betalingen):** PCI DSS-gecertificeerde betalingsverwerker. Verwerkt betalingsgegevens — TeambuildingMetImpact.nl heeft geen inzage in betaalkaartdata.',
       '**Pusher (realtime):** voor live scorebord en geofence-alerts. Geen persoonsgegevens worden doorgestuurd.',
       '**OpenRouter / Anthropic (AI):** AI-evaluaties worden verwerkt door het model. Antwoorden van deelnemers worden niet bewaard door OpenRouter na verwerking.',
     ],

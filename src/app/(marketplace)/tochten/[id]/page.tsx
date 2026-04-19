@@ -455,7 +455,7 @@ export default async function TourDetailPage({
                 <span className="text-sm font-semibold text-[#166534]">Veilig betalen</span>
               </div>
               <p className="text-xs text-[#15803D] leading-relaxed">
-                SSL beveiligd via MultiSafepay. iDEAL, Bancontact, creditcard en factuur.
+                SSL beveiligd via Stripe. iDEAL, Bancontact, creditcard en factuur.
               </p>
             </div>
           </div>

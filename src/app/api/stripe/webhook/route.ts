@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const stripeSessionId = checkoutSession.id
 
   const reqUrl = new URL(req.url)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`).trim().replace(/\/$/, '')
 
   // ── Deduplicatie via webhookEvents ──────────────────────────────────────
   const existing = await db.query.webhookEvents.findFirst({

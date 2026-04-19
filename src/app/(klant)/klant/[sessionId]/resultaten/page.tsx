@@ -248,7 +248,7 @@ export default async function ResultatenPage({
           {/* Boardroom statement */}
           <div className="bg-[#F0FDF4] border-t border-[#DCFCE7] px-5 py-4">
             <p className="text-sm text-[#166534] leading-relaxed font-medium">
-              &ldquo;IctusGo helpt bij het verlagen van ziekteverzuim door verbinding en
+              &ldquo;TeambuildingMetImpact.nl helpt bij het verlagen van ziekteverzuim door verbinding en
               zingeving op de werkvloer.&rdquo;
             </p>
             <p className="text-[10px] text-[#86EFAC] mt-2 font-bold uppercase tracking-widest">
@@ -295,11 +295,11 @@ export default async function ResultatenPage({
       {/* CTA knoppen — zoals screen11 */}
       <div className="px-6 pb-10 space-y-3">
         <Link
-          href={`/spelleider/sessies/${sessionId}`}
+          href={`/klant/${sessionId}/beheer`}
           className="block w-full py-4 border-2 border-[#0F172A] rounded-xl text-center font-black text-sm uppercase tracking-wider text-[#0F172A] hover:bg-[#F8FAFC] transition-colors"
           style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)', fontStyle: 'italic' }}
         >
-          Bekijk Rapport
+          Terug naar Dashboard
         </Link>
         <a
           href={`/api/pdf/${sessionId}`}

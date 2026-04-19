@@ -410,12 +410,12 @@ function StapResultaat({
 
   // Koppel groepstype aan marketplace variant + prijs
   const variantInfo: Record<string, { slug: string; label: string; prijs: string }> = {
-    bedrijf:      { slug: 'wijktocht',    label: 'WijkTocht',           prijs: '€12/pp' },
-    vriendengroep:{ slug: 'impactsprint', label: 'ImpactSprint',        prijs: '€9/pp' },
-    stel:         { slug: 'familietocht', label: 'Familie & Koppels',   prijs: '€9/pp · min. €18' },
-    familie:      { slug: 'familietocht', label: 'Familie & Koppels',   prijs: '€9/pp' },
-    sportclub:    { slug: 'wijktocht',    label: 'WijkTocht',           prijs: '€12/pp' },
-    school:       { slug: 'jeugdtocht',   label: 'JeugdTocht',          prijs: '€6/pp · min. €90' },
+    bedrijf:      { slug: 'wijktocht',     label: 'WijkTocht',          prijs: '€12/pp · of €180 vast' },
+    vriendengroep:{ slug: 'impactsprint',  label: 'ImpactSprint',       prijs: '€9/pp · of €120 vast' },
+    stel:         { slug: 'familietocht',  label: 'Familie & Koppels',  prijs: '€9/pp · min. 2 pers.' },
+    familie:      { slug: 'familietocht',  label: 'Familie & Koppels',  prijs: '€9/pp' },
+    sportclub:    { slug: 'voetbalmissie', label: 'VoetbalMissie',      prijs: '€6/pp · of €65 vast' },
+    school:       { slug: 'jeugdtocht',    label: 'JeugdTocht',         prijs: '€6/pp · of €90 vast' },
   }
   const variant = variantInfo[wizardData.group] ?? { slug: 'wijktocht', label: 'WijkTocht', prijs: '€12/pp' }
 
@@ -806,7 +806,7 @@ function StapCheckout({
       </div>
       {!coupon.isFree && (
         <p className="text-xs text-[#94A3B8] text-center mt-3">
-          Veilig betalen via MultiSafepay · iDEAL, creditcard &amp; meer
+          Veilig betalen via Stripe · iDEAL, creditcard &amp; meer
         </p>
       )}
     </div>

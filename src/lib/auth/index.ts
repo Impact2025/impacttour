@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
-import Nodemailer from 'next-auth/providers/nodemailer'
+import Resend from 'next-auth/providers/resend'
 import Credentials from 'next-auth/providers/credentials'
 import { timingSafeEqual } from 'crypto'
 import { db } from '@/lib/db'
@@ -29,17 +29,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   providers: [
-    // Magic link voor spelleiders via Gmail SMTP
-    Nodemailer({
-      server: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-      },
-      from: process.env.GMAIL_USER || 'weareimpactnl@gmail.com',
+    // Magic link voor spelleiders via Resend
+    Resend({
+      apiKey: process.env.RESEND_API_KEY,
+      from: 'ImpactTour <noreply@ictusgo.nl>',
       sendVerificationRequest: async ({ identifier, url }) => {
         await sendMagicLinkEmail({ to: identifier, url })
       },

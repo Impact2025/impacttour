@@ -55,7 +55,7 @@ const VARIANTS = [
     target: 'Gezinnen · koppels · weekends',
     pricePerPerson: 9,
     priceFixed: 0,
-    minPersons: 1,
+    minPersons: 2,
     popular: false,
     color: '#EC4899',
     bg: '#EC489915',
@@ -126,7 +126,7 @@ const FAQ = [
   },
   {
     q: 'Hoe werkt de betaling?',
-    a: 'We werken met MultiSafepay — je kunt betalen via iDEAL, creditcard, of bankoverschrijving op factuur (voor organisaties).',
+    a: 'We werken met Stripe — je kunt betalen via iDEAL, creditcard, of bankoverschrijving op factuur (voor organisaties).',
   },
   {
     q: 'Is er een korting voor scholen of non-profits?',
@@ -404,7 +404,7 @@ export default function PrijzenPage() {
                 Demo tocht beschikbaar
               </h3>
               <p className="text-[#64748B] text-sm leading-relaxed">
-                Wil je IctusGo eerst uitproberen? Vraag een gratis demo-sessie aan voor maximaal 10 deelnemers.
+                Wil je het platform eerst uitproberen? Vraag een gratis demo-sessie aan voor maximaal 10 deelnemers.
                 We lopen samen door de werking en je kunt zelf alles testen.
               </p>
             </div>

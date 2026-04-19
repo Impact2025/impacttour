@@ -23,7 +23,7 @@ const CATEGORIES = [
       },
       {
         q: 'Welke betaalmethoden worden geaccepteerd?',
-        a: 'We accepteren iDEAL, creditcard (Visa/Mastercard), Bancontact en meer — via MultiSafepay. Facturatie op rekening is mogelijk voor scholen en grote organisaties op aanvraag.',
+        a: 'We accepteren iDEAL, creditcard (Visa/Mastercard), Bancontact en meer — via Stripe. Facturatie op rekening is mogelijk voor scholen en grote organisaties op aanvraag.',
       },
       {
         q: 'Kan ik een couponcode gebruiken?',

@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { gameSessions, sessionScores } from '@/lib/db/schema'
+import { gameSessions, sessionScores, users } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { broadcastSessionStatus } from '@/lib/pusher'
 import { generateCoachInsight } from '@/lib/ai'
+import { sendDebriefingEmail } from '@/lib/email'
 
 const updateSchema = z.object({
   status: z.enum(['lobby', 'active', 'paused', 'completed', 'cancelled']).optional(),
@@ -78,13 +79,38 @@ export async function PUT(
     broadcastSessionStatus(id, parsed.data.status).catch(() => null)
   }
 
-  // Bij afronden: pre-genereer coach insights voor alle teams (fire-and-forget)
-  // Zodat het rapport direct opent zonder AI wachttijd
+  // Bij afronden: pre-genereer coach insights + stuur debriefing-mail (fire-and-forget)
   if (parsed.data.status === 'completed') {
     preGenerateCoachInsights(id).catch(() => null)
+    sendDebriefingNotification(id, session.user.id, session.user.name ?? session.user.email ?? '').catch(() => null)
   }
 
   return NextResponse.json(updated)
+}
+
+/**
+ * Stuur debriefing-email met rapport-link + review-verzoek naar de spelleider.
+ */
+async function sendDebriefingNotification(sessionId: string, userId: string, organizerName: string) {
+  const [gameSession, user] = await Promise.all([
+    db.query.gameSessions.findFirst({
+      where: eq(gameSessions.id, sessionId),
+      with: { tour: true },
+    }),
+    db.query.users.findFirst({ where: eq(users.id, userId) }),
+  ])
+  if (!gameSession || !user?.email) return
+
+  const baseUrl = process.env.NEXTAUTH_URL ?? 'https://ictusgo.nl'
+  const resultsUrl = `${baseUrl}/klant/${sessionId}/resultaten`
+
+  await sendDebriefingEmail({
+    to: user.email,
+    organizerName,
+    tourName: gameSession.tour?.name ?? 'Jullie tocht',
+    sessionName: gameSession.customSessionName,
+    resultsUrl,
+  })
 }
 
 /**

@@ -57,10 +57,12 @@
     overscroll-behavior: none;
   }
 
-  /* Verberg scrollbar op mobile */
-  ::-webkit-scrollbar {
-    width: 0;
-    background: transparent;
+  /* Verberg scrollbar alleen op mobile (game interface) */
+  @media (max-width: 767px) {
+    ::-webkit-scrollbar {
+      width: 0;
+      background: transparent;
+    }
   }
 }
 

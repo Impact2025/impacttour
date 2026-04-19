@@ -51,7 +51,7 @@ const SECTIONS = [
     nr: '5',
     title: 'Betaling',
     content: [
-      'Betalingen worden verwerkt via MultiSafepay. Alle bedragen zijn inclusief btw, tenzij anders vermeld.',
+      'Betalingen worden verwerkt via Stripe. Alle bedragen zijn inclusief btw, tenzij anders vermeld.',
       'Betaling dient te geschieden vóór aanvang van de Tocht. Bij niet-tijdige betaling kan IctusGo de toegang weigeren.',
       'Facturen worden digitaal verzonden en dienen binnen 14 dagen te worden voldaan, tenzij schriftelijk anders afgesproken.',
       'Bij betalingsverzuim is de klant van rechtswege in verzuim en is de wettelijke handelsrente verschuldigd.',
