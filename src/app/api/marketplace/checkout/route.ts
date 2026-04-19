@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const fullName = `${firstName} ${lastName}`
 
   const reqUrl = new URL(req.url)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`).replace(/\/$/, '')
 
   // ── Tocht ophalen ────────────────────────────────────────────────────────
   const tour = await db.query.tours.findFirst({
@@ -191,6 +191,10 @@ export async function POST(req: Request) {
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
+  const successUrl = `${appUrl}/klant/${gameSession.id}/setup?betaald=1`
+  const cancelUrl = `${appUrl}/tochten/${tourId}?geannuleerd=1`
+  console.log('[marketplace-checkout] appUrl:', appUrl, '| successUrl:', successUrl)
+
   let checkout: Stripe.Checkout.Session
   try {
     checkout = await stripe.checkout.sessions.create({
@@ -215,13 +219,13 @@ export async function POST(req: Request) {
       sessionId: gameSession.id,
       userId: user.id,
     },
-    success_url: `${appUrl}/klant/${gameSession.id}/setup?betaald=1`,
-    cancel_url: `${appUrl}/tochten/${tourId}?geannuleerd=1`,
+    success_url: successUrl,
+    cancel_url: cancelUrl,
   })
   } catch (err) {
     console.error('[marketplace-checkout] Stripe fout:', err)
     return NextResponse.json(
-      { error: 'Betalingsprovider fout', details: err instanceof Error ? err.message : String(err) },
+      { error: 'Betalingsprovider fout', details: err instanceof Error ? err.message : String(err), successUrl, cancelUrl },
       { status: 502 }
     )
   }
