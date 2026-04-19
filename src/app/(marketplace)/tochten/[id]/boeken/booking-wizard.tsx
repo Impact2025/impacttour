@@ -565,14 +565,14 @@ export default function BookingWizard({ tour }: { tour: Tour }) {
               ) : isFree ? (
                 <><CheckCircle2 className="w-5 h-5" /> Gratis reserveren</>
               ) : (
-                <><ArrowRight className="w-5 h-5" /> Betalen via iDEAL / Bancontact</>
+                <><ArrowRight className="w-5 h-5" /> Veilig betalen via Stripe</>
               )}
             </button>
 
             {!isFree && (
               <div className="text-center">
                 <p className="text-xs text-[#94A3B8]">
-                  Je wordt doorgestuurd naar MultiSafepay voor veilig betalen.
+                  Je wordt doorgestuurd naar Stripe voor veilig betalen.
                 </p>
                 <div className="flex justify-center gap-3 mt-3 flex-wrap">
                   {['iDEAL', 'Bancontact', 'Visa', 'Mastercard'].map((m) => (
