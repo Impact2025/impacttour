@@ -200,13 +200,23 @@ export default function PrijzenPage() {
       </section>
 
       {/* ── Rekentool ── */}
-      <section className="bg-white px-4 md:px-8 py-10 border-b border-[#E2E8F0]">
+      <section className="bg-white px-4 md:px-8 py-10 border-b border-[#E2E8F0] md:sticky md:top-16 md:z-10 md:shadow-sm">
         <div className="max-w-3xl mx-auto">
           <div className="bg-[#F8FAFC] rounded-2xl p-6 md:p-8">
-            <h2 className="font-bold text-[#0F172A] mb-5">
-              Bereken de prijs voor{' '}
-              <span className="text-[#00C853] font-black">{persons} deelnemers</span>
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
+              <div>
+                <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-1">
+                  Totaalprijs voor jullie groep
+                </p>
+                <h2
+                  className="text-xl font-black text-[#0F172A]"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  <span className="text-[#00C853]">{persons} personen</span> — wat kost het?
+                </h2>
+              </div>
+              <p className="text-xs text-[#94A3B8]">Prijzen ex. 21% BTW · alles inbegrepen</p>
+            </div>
             <input
               type="range"
               min={10}
@@ -216,9 +226,30 @@ export default function PrijzenPage() {
               onChange={(e) => setPersons(Number(e.target.value))}
               className="w-full h-2 bg-[#E2E8F0] rounded-full appearance-none cursor-pointer accent-[#00E676] mb-3"
             />
-            <div className="flex justify-between text-xs text-[#94A3B8] mb-6">
+            <div className="flex justify-between text-xs text-[#94A3B8] mb-5">
               <span>10 deelnemers</span>
               <span>200 deelnemers</span>
+            </div>
+
+            {/* ImpactSprint hero strip */}
+            <div className="bg-[#0F172A] rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold text-[#00E676] uppercase tracking-widest">
+                  Meest gekozen · ImpactSprint
+                </span>
+                <p className="text-white font-bold text-sm mt-0.5">
+                  {persons} personen · 90 min · alles inbegrepen
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <p
+                  className="text-2xl font-black text-[#00E676]"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  €{9 * persons}
+                </p>
+                <p className="text-[10px] text-[#64748B]">€9/p.p. ex. BTW</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -234,7 +265,8 @@ export default function PrijzenPage() {
                     >
                       €{total}
                     </div>
-                    <p className="text-[10px] text-[#94A3B8]">€{pp}/p.p.</p>
+                    <p className="text-[11px] font-semibold text-[#0F172A]">voor {persons} pers.</p>
+                    <p className="text-[10px] text-[#94A3B8]">incl. alles · €{pp}/p.p.</p>
                   </div>
                 )
               })}
@@ -314,18 +346,22 @@ export default function PrijzenPage() {
                 </div>
 
                 {/* Prijs */}
-                <div className="mb-5">
+                <div className="mb-5 bg-[#F8FAFC] rounded-xl p-3">
+                  <p className="text-[10px] text-[#94A3B8] mb-1 font-bold uppercase tracking-widest">
+                    Prijs voor {persons} pers.
+                  </p>
                   <div className="flex items-baseline gap-1.5">
                     <span
-                      className="text-4xl font-black"
+                      className="text-3xl font-black"
                       style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)', color: v.popular ? '#00C853' : '#0F172A' }}
                     >
-                      €{v.pricePerPerson}
+                      €{v.pricePerPerson * persons}
                     </span>
-                    <span className="text-sm text-[#94A3B8]">/ persoon</span>
+                    <span className="text-sm text-[#94A3B8]">incl. alles</span>
                   </div>
+                  <p className="text-xs text-[#94A3B8] mt-0.5">€{v.pricePerPerson}/p.p. ex. BTW</p>
                   {v.priceFixed > 0 && (
-                    <p className="text-xs text-[#94A3B8] mt-0.5">of €{v.priceFixed} vaste prijs (kleine groepen)</p>
+                    <p className="text-xs text-[#64748B] mt-0.5">of €{v.priceFixed} vaste groepsprijs</p>
                   )}
                 </div>
 

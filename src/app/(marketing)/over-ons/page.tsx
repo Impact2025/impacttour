@@ -3,12 +3,12 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Over Ons — 15 Jaar Sociale Impact | ImpactTocht',
+  title: 'Over Ons — 15 Jaar Sociale Impact | IctusGo',
   description:
     'WeAreImpact brengt mensen in beweging. Lees ons verhaal: van GPS-pionieren in 2015 tot een nationwide platform met AI-begeleiding en GMS-meting.',
   openGraph: {
-    title: 'Over Ons — 15 Jaar Sociale Impact | ImpactTocht',
-    description: 'Ontdek het team en de missie achter ImpactTocht en IctusGo.',
+    title: 'Over Ons — 15 Jaar Sociale Impact | IctusGo',
+    description: 'Ontdek het team en de missie achter IctusGo en IctusGo.',
     url: '/over-ons',
   },
 }

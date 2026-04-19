@@ -6,11 +6,11 @@ import { eq, count } from 'drizzle-orm'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Meetbare Impact — Geluksmomenten Score | ImpactTocht',
+  title: 'Meetbare Impact — Geluksmomenten Score | IctusGo',
   description:
     'Ontdek hoe de Geluksmomenten Score (GMS) verbinding, betekenis, plezier en groei meet tijdens elke GPS-tocht. Echte impact, meetbaar gemaakt.',
   openGraph: {
-    title: 'Meetbare Impact — Geluksmomenten Score | ImpactTocht',
+    title: 'Meetbare Impact — Geluksmomenten Score | IctusGo',
     description: 'Verbinding, betekenis, plezier en groei — gemeten per checkpoint. Bekijk hoe de GMS werkt.',
     url: '/impact',
   },

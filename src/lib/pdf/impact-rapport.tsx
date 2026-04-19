@@ -584,7 +584,7 @@ function Page1({
         <View style={styles.roiBox}>
           <Text style={styles.roiTitle}>HR Impact — wat dit betekent voor jullie organisatie</Text>
           <Text style={styles.roiText}>
-            ImpactTocht meet vier dimensies die direct aansluiten op de HR-agenda: Verbinding
+            IctusGo meet vier dimensies die direct aansluiten op de HR-agenda: Verbinding
             (verzuimpreventie), Betekenis (retentie), Plezier (vitaliteit) en Groei (duurzame
             inzetbaarheid). Met een GMS-score van {avgGmsPct}% scoort {variantLabel[variant] ?? variant}{' '}
             {avgGmsPct >= 70
@@ -671,7 +671,7 @@ function Page2({ recommendations, narrative, tourName }: RapportProps) {
               Boek een vervolgsessie gericht op de laagst scorende dimensies,
               of bekijk het team-specifieke rapport via de app.
             </Text>
-            <Text style={styles.ctaUrl}>impacttocht.nl · chat@weareimpact.nl</Text>
+            <Text style={styles.ctaUrl}>ictusgo.nl · chat@weareimpact.nl</Text>
           </View>
         </View>
 

@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'nl_NL',
-    url: 'https://impacttocht.nl',
+    url: 'https://ictusgo.nl',
     siteName: 'IctusGo',
     title: 'IctusGo — GPS Teambuilding met Sociale Impact',
     description:

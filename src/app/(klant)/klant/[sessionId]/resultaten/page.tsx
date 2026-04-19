@@ -248,7 +248,7 @@ export default async function ResultatenPage({
           {/* Boardroom statement */}
           <div className="bg-[#F0FDF4] border-t border-[#DCFCE7] px-5 py-4">
             <p className="text-sm text-[#166534] leading-relaxed font-medium">
-              &ldquo;ImpactTocht helpt bij het verlagen van ziekteverzuim door verbinding en
+              &ldquo;IctusGo helpt bij het verlagen van ziekteverzuim door verbinding en
               zingeving op de werkvloer.&rdquo;
             </p>
             <p className="text-[10px] text-[#86EFAC] mt-2 font-bold uppercase tracking-widest">

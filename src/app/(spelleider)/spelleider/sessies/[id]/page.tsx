@@ -93,7 +93,7 @@ export default async function SessieDetailPage({
               {gameSession.joinCode}
             </p>
             <p className="text-xs text-gray-400 mt-2">
-              Teams gaan naar impacttocht.nl/join en voeren deze code in
+              Teams gaan naar ictusgo.nl/join en voeren deze code in
             </p>
           </div>
 

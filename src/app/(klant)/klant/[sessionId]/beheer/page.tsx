@@ -283,7 +283,7 @@ export default function BeheerPage() {
             </div>
           </div>
           <p className="text-xs text-[#94A3B8] text-center">
-            Teams gaan naar <strong className="text-[#0F172A]">impacttocht.nl/join</strong> en voeren deze code in
+            Teams gaan naar <strong className="text-[#0F172A]">ictusgo.nl/join</strong> en voeren deze code in
           </p>
         </div>
 

@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { SiteNav } from '@/components/layout/site-nav'
+import { VariantWizard } from '@/components/marketing/variant-wizard'
+import { RapportPreview } from '@/components/marketing/rapport-preview'
+import { HrValueProp } from '@/components/marketing/hr-value-prop'
 import {
   MapPin,
   Heart,
@@ -242,25 +245,25 @@ export default async function HomePage() {
       <section id="varianten" className="bg-white px-4 md:px-8 py-14 md:py-20">
         <div className="max-w-6xl mx-auto">
 
-          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Voor iedereen</p>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
-            <div>
-              <h2
-                className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-2"
-                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-              >
-                Kies jouw variant.
-              </h2>
-              <p className="text-[#64748B] text-sm md:text-base max-w-xl">
-                Van 90 minuten ImpactSprint tot een familiedag — er is altijd een variant die past bij jouw groep en doel.
-              </p>
-            </div>
-            <Link
-              href="/tochten"
-              className="shrink-0 inline-flex items-center gap-2 text-sm font-bold text-[#0F172A] border-2 border-[#E2E8F0] px-5 py-2.5 rounded-xl hover:border-[#00E676] hover:text-[#00C853] transition-colors"
-            >
-              Alle tochten bekijken <ArrowRight className="w-4 h-4" />
-            </Link>
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2">Vind jouw variant</p>
+          <h2
+            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Welke tocht past bij jou?
+          </h2>
+          <p className="text-[#64748B] text-sm md:text-base max-w-xl mb-10">
+            Beantwoord 3 vragen — wij raden de beste variant aan voor jouw groep.
+          </p>
+
+          {/* Variant wizard */}
+          <VariantWizard />
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-10">
+            <div className="flex-1 h-px bg-[#E2E8F0]" />
+            <span className="text-xs text-[#94A3B8] font-medium whitespace-nowrap">of bekijk alle varianten</span>
+            <div className="flex-1 h-px bg-[#E2E8F0]" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -610,6 +613,29 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Rapport Preview ────────────────────────────────────────── */}
+      <section className="bg-[#F8FAFC] px-4 md:px-8 py-14 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest mb-2 text-center">
+            Wat je meekrijgt
+          </p>
+          <h2
+            className="text-3xl md:text-5xl font-black text-[#0F172A] leading-tight mb-3 text-center"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
+            Je rapport ziet er zo uit.
+          </h2>
+          <p className="text-[#64748B] text-sm md:text-base max-w-xl mx-auto text-center mb-10">
+            Na elke sessie ontvangt elk team automatisch dit PDF-rapport — 2 pagina&apos;s,
+            professioneel opgemaakt, klaar om intern te delen.
+          </p>
+          <RapportPreview />
+        </div>
+      </section>
+
+      {/* ── HR Value Prop ───────────────────────────────────────────── */}
+      <HrValueProp />
 
       {/* ── Hoe het werkt ──────────────────────────────────────────── */}
       <section id="hoe-het-werkt" className="bg-white px-4 md:px-8 py-14 md:py-20">
