@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const fullName = `${firstName} ${lastName}`
 
   const reqUrl = new URL(req.url)
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`).replace(/\/$/, '')
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || `${reqUrl.protocol}//${reqUrl.host}`).trim().replace(/\/$/, '')
 
   // ── Tocht ophalen ────────────────────────────────────────────────────────
   const tour = await db.query.tours.findFirst({
