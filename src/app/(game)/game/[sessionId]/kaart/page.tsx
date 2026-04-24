@@ -117,7 +117,7 @@ export default function KaartPage() {
     if (distanceToCheckpoint === null) return
     const prev = lastDistRef.current
     if (prev !== null && prev > 150 && distanceToCheckpoint <= 150) {
-      navigator.vibrate?.([50, 30, 50])
+      if (document.hasFocus()) navigator.vibrate?.([50, 30, 50])
     }
     lastDistRef.current = distanceToCheckpoint
   }, [distanceToCheckpoint])

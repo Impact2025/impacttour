@@ -63,17 +63,32 @@ export async function aiCompleteJSON<T = unknown>(
     timeoutMs?: number
   }
 ): Promise<T> {
-  const response = await getOpenRouter().chat.completions.create({
-    model: options?.model ?? DEFAULT_MODEL,
-    messages,
-    max_tokens: options?.maxTokens ?? 2048,
-    temperature: 0.7,
-  })
-  const content = response.choices[0]?.message?.content ?? '{}'
-  // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
-  const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-  const jsonStr = match ? match[1].trim() : content.trim()
-  return JSON.parse(jsonStr) as T
+  const model = options?.model ?? DEFAULT_MODEL
+
+  async function attempt(m: string): Promise<T> {
+    const response = await getOpenRouter().chat.completions.create({
+      model: m,
+      messages,
+      max_tokens: options?.maxTokens ?? 2048,
+      temperature: 0.7,
+    })
+    const content = response.choices[0]?.message?.content ?? '{}'
+    // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
+    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+    const jsonStr = match ? match[1].trim() : content.trim()
+    return JSON.parse(jsonStr) as T
+  }
+
+  try {
+    return await attempt(model)
+  } catch (err) {
+    // Als fast model faalt (verkeerd ID, unavailable), val terug op default model
+    if (model !== DEFAULT_MODEL) {
+      console.error(`[AI] Model "${model}" gefaald, retry met "${DEFAULT_MODEL}":`, err instanceof Error ? err.message : err)
+      return await attempt(DEFAULT_MODEL)
+    }
+    throw err
+  }
 }
 
 // ─── AI Functie A: Gepersonaliseerde opdrachten genereren ─────────────────────
