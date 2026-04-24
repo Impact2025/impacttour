@@ -87,9 +87,9 @@ export function PWARegister() {
         className="bg-[#0F172A] rounded-2xl p-4 flex items-center gap-3 max-w-md mx-auto"
         style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)' }}
       >
-        <div className="w-11 h-11 rounded-xl bg-[#00E676] flex items-center justify-center shrink-0 overflow-hidden">
+        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/icon-72.png" alt="" className="w-8 h-8" />
+          <img src="/images/IctusGo.png" alt="" className="w-10 h-10 object-contain" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white font-bold text-sm leading-tight">Voeg toe aan startscherm</p>
