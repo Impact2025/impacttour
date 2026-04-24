@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v3'
+const CACHE_VERSION = 'v4'
 const CACHE_NAME = `impacttour-${CACHE_VERSION}`
 const TILE_CACHE_NAME = `osm-tiles-${CACHE_VERSION}`
 const STATIC_CACHE_NAME = `impacttour-static-${CACHE_VERSION}`
