@@ -18,6 +18,7 @@ import { Scoreboard } from './scoreboard'
 import { ImpactPanel } from './impact-panel'
 import { ChatPanel } from './chat-panel'
 import { CelebrationOverlay } from '@/components/game/celebration-overlay'
+import { WelcomeOverlay } from '@/components/game/welcome-overlay'
 
 const GameMap = dynamic(() => import('./game-map'), {
   ssr: false,
@@ -82,6 +83,7 @@ interface SessionState {
   variant: string
   tourName: string
   storyFrame: { introText: string; finaleReveal: string } | null
+  welcomeMessage: string | null
   checkpoints: CheckpointInfo[]
   team: TeamInfo | null
   scoreboard: ScoreboardEntry[]
@@ -100,6 +102,7 @@ const initialSession: SessionState = {
   variant: 'wijktocht',
   tourName: '',
   storyFrame: null,
+  welcomeMessage: null,
   checkpoints: [],
   team: null,
   scoreboard: [],
@@ -128,7 +131,7 @@ export default function GamePage() {
   const isOnline = useOnlineStatus()
   // Session-data: één reducer → één re-render bij data-load ipv 9 afzonderlijke
   const [session, dispatchSession] = useReducer(sessionReducer, initialSession)
-  const { status: sessionStatus, joinCode, variant, tourName, storyFrame, checkpoints, team, scoreboard, isTestMode, geofencePolygon } = session
+  const { status: sessionStatus, joinCode, variant, tourName, storyFrame, welcomeMessage, checkpoints, team, scoreboard, isTestMode, geofencePolygon } = session
   // Refs voor gebruik in Pusher callbacks (voorkomt stale-closure probleem)
   const scoreboardRef = useRef(scoreboard)
   useEffect(() => { scoreboardRef.current = scoreboard }, [scoreboard])
@@ -138,6 +141,7 @@ export default function GamePage() {
   // UI state (bewust apart — verandert onafhankelijk van session data)
   const [teamToken, setTeamToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showWelcome, setShowWelcome] = useState(false)
   const [activeView, setActiveView] = useState<GameView>('map')
   const [chatOpen, setChatOpen] = useState(false)
   const [nearbyCheckpoint, setNearbyCheckpoint] = useState<CheckpointInfo | null>(null)
@@ -242,6 +246,7 @@ export default function GamePage() {
             variant: data.variant,
             tourName: data.tour?.name ?? '',
             storyFrame: data.tour?.storyFrame ?? null,
+            welcomeMessage: data.welcomeMessage ?? null,
             joinCode: data.joinCode ?? '',
             isTestMode: data.isTestMode ?? false,
             checkpoints: data.checkpoints ?? [],
@@ -250,6 +255,11 @@ export default function GamePage() {
             geofencePolygon: data.geofencePolygon ?? null,
           },
         })
+        // Welkomst-overlay tonen als eerste bezoek aan deze sessie
+        const seenKey = `welcome-seen-${sessionId}`
+        if (!sessionStorage.getItem(seenKey)) {
+          setShowWelcome(true)
+        }
       } catch {
         toast.error('Fout bij laden van game data')
       } finally {
@@ -681,6 +691,21 @@ export default function GamePage() {
               Open missie
             </button>
           </div>
+        )}
+
+        {/* ── WELKOMST OVERLAY ── */}
+        {showWelcome && (
+          <WelcomeOverlay
+            tourName={tourName}
+            teamName={team?.name ?? ''}
+            welcomeMessage={welcomeMessage}
+            variant={variant}
+            totalCheckpoints={checkpoints.length}
+            onStart={() => {
+              setShowWelcome(false)
+              sessionStorage.setItem(`welcome-seen-${sessionId}`, '1')
+            }}
+          />
         )}
 
         {/* ── UNLOCK CELEBRATION OVERLAY ── */}
