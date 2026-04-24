@@ -40,6 +40,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Geen antwoord of foto opgegeven' }, { status: 400 })
   }
 
+  // Valideer dat photoUrl afkomstig is van Vercel Blob én bij deze sessie hoort
+  if (photoUrl) {
+    try {
+      const parsedPhoto = new URL(photoUrl)
+      const BLOB_HOSTS = ['public.blob.vercel-storage.com', 'blob.vercel-storage.com']
+      if (!BLOB_HOSTS.some((h) => parsedPhoto.hostname.endsWith(h))) {
+        return NextResponse.json({ error: 'Ongeldige foto URL' }, { status: 400 })
+      }
+      if (!parsedPhoto.pathname.startsWith(`/game/${sessionId}/`)) {
+        return NextResponse.json({ error: 'Foto behoort niet tot deze sessie' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'Ongeldige foto URL' }, { status: 400 })
+    }
+  }
+
   // Haal team en sessie op
   const session = await db.query.gameSessions.findFirst({
     where: eq(gameSessions.id, sessionId),

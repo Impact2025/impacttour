@@ -7,7 +7,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
-  joinCode: z.string().length(6).toUpperCase(),
+  joinCode: z.string().min(4).max(10).toUpperCase(),
   teamName: z.string().min(1).max(30).trim(),
 })
 

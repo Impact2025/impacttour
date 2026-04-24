@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { tours } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { put } from '@vercel/blob'
+import { put, del } from '@vercel/blob'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -60,10 +60,16 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ tour
   if (!tour) return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 })
 
   const existing = (tour.aiConfig ?? {}) as Record<string, unknown>
+  const existingUrl = existing.imageUrl as string | undefined
   const rest = Object.fromEntries(Object.entries(existing).filter(([k]) => k !== 'imageUrl'))
+
   await db.update(tours)
     .set({ aiConfig: rest, updatedAt: new Date() })
     .where(eq(tours.id, tourId))
+
+  if (existingUrl) {
+    try { await del(existingUrl) } catch { /* blob al verwijderd of niet gevonden */ }
+  }
 
   return NextResponse.json({ success: true })
 }

@@ -23,7 +23,7 @@ export default function JoinForm() {
   const router = useRouter()
 
   const [code, setCode] = useState(
-    (searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+    (searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10)
   )
   const [teamName, setTeamName] = useState(searchParams.get('team') ?? '')
   const [isLoading, setIsLoading] = useState(false)
@@ -49,7 +49,7 @@ export default function JoinForm() {
   }, [])
 
   useEffect(() => {
-    if (code.length !== 6) {
+    if (code.length < 4) {
       setSessionPreview(null)
       setPreviewStatus('idle')
       return
@@ -188,7 +188,7 @@ export default function JoinForm() {
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                   placeholder="ABC123"
-                  maxLength={6}
+                  maxLength={10}
                   required
                   className={`w-full px-4 py-4 pr-12 text-center text-3xl font-bold tracking-widest border-2 rounded-xl focus:outline-none uppercase transition-colors ${
                     isFootball
@@ -297,7 +297,7 @@ export default function JoinForm() {
 
             <button
               type="submit"
-              disabled={isLoading || code.length < 6 || !teamName}
+              disabled={isLoading || code.length < 4 || !teamName}
               className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${
                 isFootball
                   ? 'bg-green-500 text-black hover:bg-green-400'

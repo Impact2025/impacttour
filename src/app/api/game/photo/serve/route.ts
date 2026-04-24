@@ -46,9 +46,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Ongeldig brondomein' }, { status: 400 })
   }
 
-  // Controleer of de blob-path de sessieId bevat (path: game/{sessionId}/{teamId}/...)
+  // Controleer of de blob-path begint met het verwachte prefix (path: game/{sessionId}/{teamId}/...)
   const expectedPrefix = `/game/${sessionId}/`
-  if (!parsedUrl.pathname.includes(expectedPrefix)) {
+  if (!parsedUrl.pathname.startsWith(expectedPrefix)) {
     return NextResponse.json({ error: 'Foto behoort niet tot deze sessie' }, { status: 403 })
   }
 

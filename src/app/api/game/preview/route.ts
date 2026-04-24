@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')?.toUpperCase()
 
-  if (!code || code.length !== 6) {
+  if (!code || code.length < 4 || code.length > 10) {
     return NextResponse.json({ error: 'Ongeldige code' }, { status: 400 })
   }
 
