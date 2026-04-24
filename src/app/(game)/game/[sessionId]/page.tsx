@@ -129,9 +129,11 @@ export default function GamePage() {
   // Session-data: één reducer → één re-render bij data-load ipv 9 afzonderlijke
   const [session, dispatchSession] = useReducer(sessionReducer, initialSession)
   const { status: sessionStatus, joinCode, variant, tourName, storyFrame, checkpoints, team, scoreboard, isTestMode, geofencePolygon } = session
-  // scoreboardRef voor gebruik in Pusher callback (voorkomt stale-closure probleem)
+  // Refs voor gebruik in Pusher callbacks (voorkomt stale-closure probleem)
   const scoreboardRef = useRef(scoreboard)
   useEffect(() => { scoreboardRef.current = scoreboard }, [scoreboard])
+  const teamRef = useRef(team)
+  useEffect(() => { teamRef.current = team }, [team])
 
   // UI state (bewust apart — verandert onafhankelijk van session data)
   const [teamToken, setTeamToken] = useState<string | null>(null)
@@ -185,6 +187,7 @@ export default function GamePage() {
     sessionId,
     {
       'score-update': (data) => {
+        // Scorebord bijwerken
         dispatchSession({
           type: 'SET_SCOREBOARD',
           payload: scoreboardRef.current
@@ -192,6 +195,14 @@ export default function GamePage() {
             .sort((a, b) => b.totalGmsScore - a.totalGmsScore || a.teamName.localeCompare(b.teamName))
             .map((s, idx) => ({ ...s, rank: idx + 1 })),
         })
+        // Eigen GMS-score direct bijwerken (zonder wachten op poll)
+        const currentTeam = teamRef.current
+        if (currentTeam && currentTeam.name === data.teamName) {
+          dispatchSession({
+            type: 'LOAD',
+            payload: { team: { ...currentTeam, totalGmsScore: data.totalGmsScore } },
+          })
+        }
       },
       'checkpoint-unlocked': (data) => {
         toast.success(`${data.teamName} voltooide checkpoint ${data.checkpointIndex + 1}!`, { duration: 3000 })

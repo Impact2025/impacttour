@@ -17,7 +17,7 @@ interface Props {
 export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, variant, geofencePolygon }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<ReturnType<typeof import('leaflet').map> | null>(null)
-  const teamMarkerRef = useRef<ReturnType<typeof import('leaflet').circleMarker> | null>(null)
+  const teamMarkerRef = useRef<ReturnType<typeof import('leaflet').marker> | null>(null)
   const accuracyCircleRef = useRef<ReturnType<typeof import('leaflet').circle> | null>(null)
   const checkpointMarkersRef = useRef<Map<string, unknown>>(new Map())
   const geofenceLayerRef = useRef<unknown>(null)
@@ -196,13 +196,31 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
       map.panTo([latitude, longitude], { animate: true, duration: 0.5 })
     } else {
       // Eerste GPS fix: markers aanmaken
-      const marker = L.circleMarker([latitude, longitude], {
-        radius: 8,
-        color: '#1d4ed8',
-        fillColor: '#3b82f6',
-        fillOpacity: 1,
-        weight: 3,
-      }).addTo(map)
+      const gpsIcon = L.divIcon({
+        html: `
+          <div style="position:relative;width:22px;height:22px;">
+            <div style="
+              position:absolute;top:50%;left:50%;
+              width:44px;height:44px;
+              margin:-22px 0 0 -22px;
+              border-radius:50%;
+              background:#3b82f6;
+              animation:gpsRing 2s ease-out infinite;
+            "></div>
+            <div style="
+              width:22px;height:22px;
+              border-radius:50%;
+              background:#2563EB;
+              border:3px solid white;
+              box-shadow:0 2px 10px rgba(37,99,235,0.6);
+            "></div>
+          </div>`,
+        className: '',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      })
+
+      const marker = L.marker([latitude, longitude], { icon: gpsIcon, interactive: false, zIndexOffset: 1000 }).addTo(map)
       teamMarkerRef.current = marker
 
       const circle = L.circle([latitude, longitude], {
@@ -261,6 +279,10 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
         @keyframes mapPulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.5); }
           50% { box-shadow: 0 0 0 10px rgba(245,158,11,0); }
+        }
+        @keyframes gpsRing {
+          0%   { transform: scale(0.4); opacity: 0.5; }
+          100% { transform: scale(1);   opacity: 0; }
         }
       `}</style>
       <div ref={containerRef} className="w-full h-full" />
