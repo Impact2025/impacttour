@@ -229,8 +229,9 @@ export async function POST(req: Request) {
         growth: checkpoint.gmsGrowth,
       },
     })
-  } catch {
+  } catch (aiErr) {
     // AI niet beschikbaar — valt terug op statische basisbeoordeling (60% van max)
+    console.error('[submit] AI evaluatie mislukt:', aiErr instanceof Error ? aiErr.message : aiErr)
     const connectionEarned = Math.round(checkpoint.gmsConnection * FALLBACK_FACTOR)
     const meaningEarned    = Math.round(checkpoint.gmsMeaning   * FALLBACK_FACTOR)
     const joyEarned        = Math.round(checkpoint.gmsJoy       * FALLBACK_FACTOR)

@@ -26,8 +26,9 @@ const DEFAULT_MODEL =
 
 // Snel + goedkoop model voor hoog-volume gameplay calls (B, C, C2)
 // Haiku is 10-15× goedkoper en sneller voor structured JSON scoring
+// OpenRouter model ID formaat: zonder datum-suffix (anders: 404 model not found)
 const FAST_MODEL =
-  process.env.OPENROUTER_FAST_MODEL || 'anthropic/claude-haiku-4-5-20251001'
+  process.env.OPENROUTER_FAST_MODEL || 'anthropic/claude-3-5-haiku'
 
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant'
