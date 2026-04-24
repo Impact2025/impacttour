@@ -67,6 +67,31 @@ export function isPointInPolygon(point: GeoPoint, polygon: GeoPoint[]): boolean 
 }
 
 /**
+ * Berekent de bearing (richting in graden, 0=N, 90=O, 180=Z, 270=W)
+ * van punt 1 naar punt 2. Retourneert 0–360.
+ */
+export function calculateBearing(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLon = toRad(lon2 - lon1)
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2))
+  const x =
+    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon)
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360
+}
+
+/** Zet bearing (0–360) om naar compasrichting in het Nederlands */
+export function bearingToCardinal(bearing: number): string {
+  const dirs = ['N', 'NNO', 'NO', 'ONO', 'O', 'OZO', 'ZO', 'ZZO', 'Z', 'ZZW', 'ZW', 'WZW', 'W', 'WNW', 'NW', 'NNW']
+  return dirs[Math.round(bearing / 22.5) % 16]
+}
+
+/**
  * Berekent het middelpunt van een polygoon (voor kaart centering)
  */
 export function polygonCenter(polygon: GeoPoint[]): GeoPoint {

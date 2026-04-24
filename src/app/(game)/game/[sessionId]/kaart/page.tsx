@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { List, Map, RefreshCw, MapPin, Clock, Navigation, Flag, ChevronRight } from 'lucide-react'
+import { List, Map, RefreshCw, MapPin, Clock, Flag, ArrowUp, CheckCircle2 } from 'lucide-react'
 import { BottomNav } from '@/components/ui/bottom-nav'
 import { PageHeader } from '@/components/layout/page-header'
-import { haversineDistance } from '@/lib/geo'
+import { haversineDistance, calculateBearing, bearingToCardinal } from '@/lib/geo'
+import { useGPS } from '@/hooks/use-gps'
 import type { CheckpointInfo, TeamInfo } from '../page'
 
 const GameMap = dynamic(() => import('../game-map'), {
@@ -53,6 +54,10 @@ export default function KaartPage() {
   const [team, setTeam] = useState<TeamInfo | null>(null)
   const [variant, setVariant] = useState<string>('wijktocht')
 
+  // GPS tracking voor live navigatie
+  const { position: teamPosition, startWatching } = useGPS({ minDistance: 3, maxAccuracy: 50 })
+  useEffect(() => { startWatching() }, [startWatching])
+
   const load = useCallback(async () => {
     const teamToken = sessionStorage.getItem('teamToken')
     if (!teamToken) { router.replace('/join'); return }
@@ -85,6 +90,37 @@ export default function KaartPage() {
   const startedAt = typeof window !== 'undefined' ? sessionStorage.getItem('startedAt') : null
   const distanceKm = calcDistanceKm(checkpoints, completedIds)
   const elapsedStr = formatElapsed(startedAt)
+
+  // Bearing + afstand naar huidig checkpoint
+  const bearing = useMemo(() => {
+    if (!teamPosition || !currentCheckpoint) return null
+    return calculateBearing(
+      teamPosition.latitude, teamPosition.longitude,
+      currentCheckpoint.latitude, currentCheckpoint.longitude
+    )
+  }, [teamPosition, currentCheckpoint])
+
+  const distanceToCheckpoint = useMemo(() => {
+    if (!teamPosition || !currentCheckpoint) return null
+    return haversineDistance(
+      teamPosition.latitude, teamPosition.longitude,
+      currentCheckpoint.latitude, currentCheckpoint.longitude
+    )
+  }, [teamPosition, currentCheckpoint])
+
+  const cardinal = bearing !== null ? bearingToCardinal(bearing) : null
+  const isApproaching = distanceToCheckpoint !== null && distanceToCheckpoint < 150
+
+  // Haptic bij naderen checkpoint (< 150m)
+  const lastDistRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (distanceToCheckpoint === null) return
+    const prev = lastDistRef.current
+    if (prev !== null && prev > 150 && distanceToCheckpoint <= 150) {
+      navigator.vibrate?.([50, 30, 50])
+    }
+    lastDistRef.current = distanceToCheckpoint
+  }, [distanceToCheckpoint])
 
   /* ── LOADING ── */
   if (isLoading) {
@@ -156,7 +192,7 @@ export default function KaartPage() {
             style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.12)' }}>
             <GameMap
               checkpoints={checkpoints}
-              teamPosition={null}
+              teamPosition={teamPosition}
               nearbyCheckpoint={null}
               variant={variant}
             />
@@ -167,55 +203,80 @@ export default function KaartPage() {
             className="px-4 pt-3 shrink-0 space-y-3"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)' }}
           >
-            {/* Locatie card */}
-            <div
-              className="bg-white rounded-2xl overflow-hidden"
-              style={{ boxShadow: '0 4px 28px rgba(0,0,0,0.10), 0 1px 6px rgba(0,0,0,0.06)' }}
-            >
-              <div className="px-5 py-4 flex items-center justify-between gap-3">
+            {/* NavigationCard */}
+            {isApproaching ? (
+              /* Bijna er! — groene card */
+              <div
+                className="bg-[#DCFCE7] rounded-2xl px-5 py-4 flex items-center gap-4"
+                style={{ boxShadow: '0 4px 20px rgba(0,230,118,0.20)' }}
+              >
+                <div className="w-12 h-12 rounded-full bg-[#00E676] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-6 h-6 text-[#0F172A]" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  {/* Live indicator */}
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E676] opacity-60" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]" />
-                    </span>
-                    <span className="text-[10px] font-bold text-[#00C853] uppercase tracking-widest">
-                      Huidige locatie
-                    </span>
-                  </div>
-
-                  {/* Checkpoint naam */}
-                  <h2
-                    className="text-[22px] font-black text-[#0F172A] leading-tight truncate"
+                  <p
+                    className="text-[17px] font-black text-[#0F172A] leading-tight"
                     style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                   >
-                    {currentCheckpoint?.name ?? 'Tocht voltooid!'}
-                  </h2>
+                    Je bent er bijna!
+                  </p>
+                  <p className="text-sm text-[#16A34A] mt-0.5">
+                    {Math.round(distanceToCheckpoint!)}m · {currentCheckpoint?.name}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Bearing card — dark navy */
+              <div
+                className="bg-[#0F172A] rounded-2xl px-5 py-5"
+                style={{ boxShadow: '0 4px 28px rgba(0,0,0,0.25)' }}
+              >
+                <p className="text-[10px] font-bold text-[#475569] uppercase tracking-widest mb-3">
+                  Richting volgende stop
+                </p>
+                <div className="flex items-center gap-5">
+                  {/* Roterende pijl */}
+                  <div
+                    className="w-16 h-16 rounded-full bg-[#00E676]/10 border border-[#00E676]/20 flex items-center justify-center shrink-0 transition-transform duration-500 ease-out"
+                    style={{ transform: `rotate(${bearing ?? 0}deg)` }}
+                  >
+                    <ArrowUp className="w-8 h-8 text-[#00E676]" />
+                  </div>
 
-                  {/* Subtitel */}
-                  <div className="flex items-center gap-1 mt-1">
-                    <MapPin className="w-3 h-3 text-[#94A3B8] shrink-0" />
-                    <span className="text-xs text-[#94A3B8]">
-                      {completedCount} van {totalCount} checkpoints
-                    </span>
+                  {/* Richting + afstand + naam */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span
+                        className="text-[32px] font-black text-white leading-none"
+                        style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                      >
+                        {teamPosition ? (cardinal ?? '—') : '—'}
+                      </span>
+                      {distanceToCheckpoint !== null && (
+                        <span className="text-[#00E676] font-bold text-xl leading-none">
+                          {distanceToCheckpoint < 1000
+                            ? `${Math.round(distanceToCheckpoint)}m`
+                            : `${(distanceToCheckpoint / 1000).toFixed(1)}km`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[#64748B] text-sm mt-1 truncate">
+                      {currentCheckpoint?.name ?? 'Tocht voltooid'}
+                    </p>
+                    {!teamPosition && (
+                      <p className="text-[#475569] text-xs mt-1.5">
+                        GPS laden… sta locatietoegang toe
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                {/* Details — groene pill knop */}
-                <button
-                  className="shrink-0 flex items-center gap-1.5 bg-[#00E676] text-[#0F172A] text-sm font-black px-4 py-2.5 rounded-full active:scale-95 transition-transform"
-                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                >
-                  Details <ChevronRight className="w-4 h-4" />
-                </button>
               </div>
-            </div>
+            )}
 
             {/* Aparte stat cards */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { Icon: Navigation, value: distanceKm, label: 'KM GELOPEN' },
+                { Icon: MapPin, value: distanceKm, label: 'KM GELOPEN' },
                 { Icon: Clock, value: elapsedStr, label: 'MINUTEN' },
                 { Icon: Flag, value: `${completedCount}/${totalCount}`, label: 'PUNTEN' },
               ].map(({ Icon, value, label }, i) => (

@@ -21,6 +21,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
   const accuracyCircleRef = useRef<ReturnType<typeof import('leaflet').circle> | null>(null)
   const checkpointMarkersRef = useRef<Map<string, unknown>>(new Map())
   const geofenceLayerRef = useRef<unknown>(null)
+  const checkpointsRef = useRef<CheckpointInfo[]>(checkpoints)
   const isVoetbal = variant === 'voetbalmissie' || variant === 'jeugdtocht'
 
   // Initialiseer kaart
@@ -51,6 +52,9 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
       mapRef.current = null
     }
   }, [])
+
+  // Houd checkpointsRef synchroon zodat de teamPosition effect er bij kan
+  useEffect(() => { checkpointsRef.current = checkpoints }, [checkpoints])
 
   // Update checkpoint markers + route polyline
   useEffect(() => {
@@ -176,7 +180,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     }
   }, [checkpoints, nearbyCheckpoint, isVoetbal, teamPosition])
 
-  // Update team positie (blauwe stip)
+  // Update team positie (blauwe stip) — volgt gebruiker soepel
   useEffect(() => {
     const map = mapRef.current
     if (!map || !teamPosition) return
@@ -185,10 +189,13 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     const { latitude, longitude, accuracy } = teamPosition
 
     if (teamMarkerRef.current) {
+      // Bestaande markers updaten + soepel meerijden
       teamMarkerRef.current.setLatLng([latitude, longitude])
       accuracyCircleRef.current?.setLatLng([latitude, longitude])
       accuracyCircleRef.current?.setRadius(accuracy)
+      map.panTo([latitude, longitude], { animate: true, duration: 0.5 })
     } else {
+      // Eerste GPS fix: markers aanmaken
       const marker = L.circleMarker([latitude, longitude], {
         radius: 8,
         color: '#1d4ed8',
@@ -206,9 +213,19 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
         weight: 1,
       }).addTo(map)
       accuracyCircleRef.current = circle
-    }
 
-    map.setView([latitude, longitude], map.getZoom())
+      // Toon gebruiker én huidig checkpoint tegelijk in beeld
+      const current = checkpointsRef.current.find((c) => c.isCurrent)
+      if (current) {
+        const bounds = L.latLngBounds(
+          [latitude, longitude],
+          [current.latitude, current.longitude]
+        ).pad(0.3)
+        map.fitBounds(bounds, { maxZoom: 17, animate: true })
+      } else {
+        map.setView([latitude, longitude], 16)
+      }
+    }
   }, [teamPosition])
 
   // Teken geofence grens (alleen voor kids-varianten met polygoon)
