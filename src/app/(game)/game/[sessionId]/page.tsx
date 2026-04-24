@@ -494,9 +494,11 @@ export default function GamePage() {
   const isKids = variant === 'jeugdtocht' || variant === 'voetbalmissie'
   const teamInitial = team?.name?.[0]?.toUpperCase() ?? 'T'
 
+  // Missie tab is ook bereikbaar als er een celebration checkpoint is (wacht op "Open Missie")
+  const missionAvailable = !!activeCheckpoint || (isUnlockCelebrating && !!celebratingCheckpoint)
   const tabs = [
     { id: 'map' as GameView, label: 'Kaart', Icon: Map },
-    { id: 'mission' as GameView, label: 'Missie', Icon: FileText, disabled: !activeCheckpoint },
+    { id: 'mission' as GameView, label: 'Missie', Icon: FileText, disabled: !missionAvailable },
     { id: 'score' as GameView, label: 'Score', Icon: BarChart2 },
     { id: 'impact' as GameView, label: 'Impact', Icon: Sparkles },
   ]
@@ -745,7 +747,14 @@ export default function GamePage() {
             <button
               key={tab.id}
               onClick={() => {
-                if (tab.disabled) {
+                // Celebration overlay sluit altijd bij tab-navigatie
+                if (isUnlockCelebrating) setIsUnlockCelebrating(false)
+
+                if (tab.id === 'mission' && isUnlockCelebrating && celebratingCheckpoint) {
+                  // Missie tab tijdens celebration = open die missie direct
+                  setActiveCheckpoint(celebratingCheckpoint)
+                  setActiveView('mission')
+                } else if (tab.disabled) {
                   toast('Loop naar een checkpoint om de missie te starten')
                 } else {
                   setChatOpen(false)
