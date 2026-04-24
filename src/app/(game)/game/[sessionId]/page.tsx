@@ -11,6 +11,7 @@ import {
 import { useGPS, type GPSPosition } from '@/hooks/use-gps'
 import { usePusherChannel } from '@/hooks/use-pusher-channel'
 import { useOnlineStatus } from '@/hooks/use-online-status'
+import { useCheckpointAlert } from '@/hooks/use-checkpoint-alert'
 import { haversineDistance } from '@/lib/geo'
 import { MissionPanel } from './mission-panel'
 import { Scoreboard } from './scoreboard'
@@ -143,6 +144,8 @@ export default function GamePage() {
   const [celebratingCheckpoint, setCelebratingCheckpoint] = useState<CheckpointInfo | null>(null)
   const [celebrationScore, setCelebrationScore] = useState(0)
 
+  const { onNearbyCheckpoint } = useCheckpointAlert()
+
   const { position, error: gpsError, isWatching, startWatching } = useGPS({
     onPosition: useCallback(
       async (pos: GPSPosition) => {
@@ -257,6 +260,11 @@ export default function GamePage() {
     const current = checkpoints.find((c) => c.isCurrent)
     setNearbyCheckpoint(current ?? null)
   }, [isTestMode, checkpoints])
+
+  // Vibratie + geluid bij aankomst checkpoint
+  useEffect(() => {
+    onNearbyCheckpoint(nearbyCheckpoint !== null)
+  }, [nearbyCheckpoint, onNearbyCheckpoint])
 
   const handleCheckpointUnlock = async () => {
     if (!nearbyCheckpoint || !teamToken) return

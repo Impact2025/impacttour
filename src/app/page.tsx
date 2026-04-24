@@ -359,14 +359,14 @@ export default async function HomePage() {
               )
             })}
 
-            {/* Maatwerk kaart */}
+            {/* Offerte op maat kaart */}
             <Link
-              href="/tocht-op-maat"
+              href="/contact"
               className="group flex flex-col bg-[#0F172A] rounded-2xl border border-white/10 hover:border-[#00E676]/50 hover:shadow-xl transition-all duration-200 overflow-hidden"
             >
               <div className="relative h-44 flex flex-col items-center justify-center bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
                 <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-[#00E676] text-[#0F172A]">
-                  AI-powered
+                  Op maat
                 </span>
                 <Sliders className="w-10 h-10 text-[#00E676] opacity-30" />
               </div>
@@ -375,17 +375,17 @@ export default async function HomePage() {
                   className="font-black text-white text-lg leading-tight mb-1.5"
                   style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 >
-                  Maatwerk tocht
+                  Offerte op maat
                 </h3>
                 <p className="text-[#94A3B8] text-xs leading-relaxed mb-4 flex-1">
-                  Eigen locatie, eigen thema, eigen branding. De AI genereert een volledig concept in 60 seconden.
+                  Eigen locatie, eigen thema, eigen branding. We denken graag met je mee.
                 </p>
                 <div className="flex items-center justify-between pt-3 border-t border-white/10">
                   <span className="text-sm font-black text-[#00E676]" style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                    Gratis concept
+                    Gratis advies
                   </span>
                   <span className="flex items-center gap-1 text-xs font-bold text-[#475569] group-hover:text-[#00E676] transition-colors">
-                    Probeer nu <ArrowRight className="w-3 h-3" />
+                    Neem contact op <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
               </div>

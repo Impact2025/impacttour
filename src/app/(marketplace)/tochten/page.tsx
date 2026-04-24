@@ -85,11 +85,11 @@ export default async function TochtenMarketplace() {
                 </span>
               ))}
               <Link
-                href="/tocht-op-maat"
+                href="/contact"
                 className="flex items-center gap-1.5 bg-[#00E676]/10 text-[#00E676] text-xs font-bold px-3 py-1.5 rounded-full border border-[#00E676]/20 hover:bg-[#00E676]/20 transition-colors"
               >
                 <Sparkles className="w-3 h-3" />
-                Tocht op maat
+                Offerte op maat
               </Link>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default async function TochtenMarketplace() {
         <TochtenFilter tours={tourList} />
       </Suspense>
 
-      {/* ── Maatwerk CTA ── */}
+      {/* ── Offerte CTA ── */}
       <section className="bg-[#0F172A] px-4 md:px-8 py-14">
         <div className="max-w-4xl mx-auto text-center">
           <h2
@@ -141,26 +141,17 @@ export default async function TochtenMarketplace() {
             style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
           >
             Geen tocht die past?<br />
-            <span style={{ color: '#00E676' }}>We bouwen er één voor jou.</span>
+            <span style={{ color: '#00E676' }}>Vraag een offerte op maat.</span>
           </h2>
           <p className="text-[#64748B] text-sm max-w-md mx-auto mb-7">
-            Eigen locatie, eigen thema, eigen branding. De AI genereert een volledig tocht-concept in 60 seconden.
+            Eigen locatie, eigen thema, eigen branding. We denken graag met je mee.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/tocht-op-maat"
-              className="inline-flex items-center gap-2 bg-[#00E676] text-[#0F172A] font-bold px-7 py-3.5 rounded-xl hover:bg-[#00C853] transition-colors text-sm"
-            >
-              <Sparkles className="w-4 h-4" />
-              Genereer mijn tocht
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center gap-2 border border-white/20 text-white font-bold px-7 py-3.5 rounded-xl hover:bg-white/5 transition-colors text-sm"
-            >
-              Plan een gesprek <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <Link
+            href="/contact"
+            className="inline-flex items-center gap-2 bg-[#00E676] text-[#0F172A] font-bold px-7 py-3.5 rounded-xl hover:bg-[#00C853] transition-colors text-sm"
+          >
+            Vraag een offerte aan <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </section>
 
