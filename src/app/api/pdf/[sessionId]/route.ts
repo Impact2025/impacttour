@@ -143,9 +143,16 @@ export async function GET(
   }
 
   // Lazy load PDF renderer om OOM-fouten tijdens build te voorkomen
-  const { renderToBuffer } = await import('@react-pdf/renderer')
-  const { createElement } = await import('react')
-  const { ImpactRapport } = await import('@/lib/pdf/impact-rapport')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let renderToBuffer: any, createElement: any, ImpactRapport: any
+  try {
+    renderToBuffer = (await import('@react-pdf/renderer')).renderToBuffer
+    createElement = (await import('react')).createElement
+    ImpactRapport = (await import('@/lib/pdf/impact-rapport')).ImpactRapport
+  } catch (importErr) {
+    console.error('[pdf] lazy import mislukt:', importErr)
+    return NextResponse.json({ error: 'PDF module kon niet geladen worden', detail: String(importErr) }, { status: 500 })
+  }
 
   const rapportProps = {
     tourName:         gameSession.tour?.name ?? 'IctusGo',
@@ -166,8 +173,15 @@ export async function GET(
     recommendations,
   }
 
-  const pdfElement = createElement(ImpactRapport, rapportProps) as unknown as React.ReactElement
-  const pdfBuffer = await renderToBuffer(pdfElement as unknown as Parameters<typeof renderToBuffer>[0])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let pdfBuffer: any
+  try {
+    const pdfElement = createElement(ImpactRapport, rapportProps)
+    pdfBuffer = await renderToBuffer(pdfElement)
+  } catch (renderErr) {
+    console.error('[pdf] renderToBuffer mislukt:', renderErr)
+    return NextResponse.json({ error: 'PDF generatie mislukt', detail: String(renderErr) }, { status: 500 })
+  }
 
   const filename = `impactrapport-${gameSession.tour?.name?.replace(/\s+/g, '-').toLowerCase() ?? sessionId}.pdf`
 
