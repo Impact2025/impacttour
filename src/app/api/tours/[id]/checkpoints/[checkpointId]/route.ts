@@ -19,6 +19,7 @@ const updateCheckpointSchema = z.object({
   gmsMeaning: z.number().int().min(0).max(25).optional(),
   gmsJoy: z.number().int().min(0).max(25).optional(),
   gmsGrowth: z.number().int().min(0).max(25).optional(),
+  navigationHint: z.string().max(500).nullable().optional(),
   hint1: z.string().max(300).nullable().optional(),
   hint2: z.string().max(300).nullable().optional(),
   hint3: z.string().max(300).nullable().optional(),

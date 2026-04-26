@@ -207,23 +207,33 @@ export default function KaartPage() {
             {isApproaching ? (
               /* Bijna er! — groene card */
               <div
-                className="bg-[#DCFCE7] rounded-2xl px-5 py-4 flex items-center gap-4"
+                className="bg-[#DCFCE7] rounded-2xl px-5 py-4"
                 style={{ boxShadow: '0 4px 20px rgba(0,230,118,0.20)' }}
               >
-                <div className="w-12 h-12 rounded-full bg-[#00E676] flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6 text-[#0F172A]" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#00E676] flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-[#0F172A]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-[17px] font-black text-[#0F172A] leading-tight"
+                      style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                    >
+                      Je bent er bijna!
+                    </p>
+                    <p className="text-sm text-[#16A34A] mt-0.5">
+                      {Math.round(distanceToCheckpoint!)}m · {currentCheckpoint?.name}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-[17px] font-black text-[#0F172A] leading-tight"
-                    style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
-                  >
-                    Je bent er bijna!
-                  </p>
-                  <p className="text-sm text-[#16A34A] mt-0.5">
-                    {Math.round(distanceToCheckpoint!)}m · {currentCheckpoint?.name}
-                  </p>
-                </div>
+                {currentCheckpoint?.navigationHint && (
+                  <div className="mt-3 flex items-start gap-2 bg-white/60 rounded-xl px-3 py-2.5">
+                    <MapPin className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                    <p className="text-sm text-[#15803D] font-medium leading-snug">
+                      {currentCheckpoint.navigationHint}
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               /* Bearing card — dark navy */
@@ -263,6 +273,11 @@ export default function KaartPage() {
                     <p className="text-[#64748B] text-sm mt-1 truncate">
                       {currentCheckpoint?.name ?? 'Tocht voltooid'}
                     </p>
+                    {currentCheckpoint?.navigationHint && (
+                      <p className="text-[#94A3B8] text-xs mt-1.5 leading-snug line-clamp-2">
+                        📍 {currentCheckpoint.navigationHint}
+                      </p>
+                    )}
                     {!teamPosition && (
                       <p className="text-[#475569] text-xs mt-1.5">
                         GPS laden… sta locatietoegang toe
@@ -357,6 +372,11 @@ export default function KaartPage() {
                     </p>
                     {cp.missionTitle && (
                       <p className="text-xs text-[#94A3B8] truncate mt-0.5">{cp.missionTitle}</p>
+                    )}
+                    {isCurrent && cp.navigationHint && (
+                      <p className="text-xs text-[#16A34A] mt-1 leading-snug line-clamp-2">
+                        📍 {cp.navigationHint}
+                      </p>
                     )}
                   </div>
 

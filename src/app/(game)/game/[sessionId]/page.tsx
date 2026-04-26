@@ -43,6 +43,7 @@ export interface CheckpointInfo {
   missionTitle: string | null
   missionDescription: string | null
   missionType: string
+  navigationHint: string | null
   hint1: string | null
   hint2: string | null
   hint3: string | null
@@ -324,7 +325,7 @@ export default function GamePage() {
     }
   }
 
-  const handleMissionSubmit = async (answer: string, photoUrl?: string) => {
+  const handleMissionSubmit = async (answer: string, photoUrls?: string[]) => {
     if (!activeCheckpoint || !teamToken) return null
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 25000)
@@ -332,7 +333,13 @@ export default function GamePage() {
       const res = await fetch('/api/game/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, teamToken, checkpointId: activeCheckpoint.id, answer: answer || undefined, photoUrl: photoUrl || undefined }),
+        body: JSON.stringify({
+          sessionId,
+          teamToken,
+          checkpointId: activeCheckpoint.id,
+          answer: answer || undefined,
+          photoUrls: photoUrls && photoUrls.length > 0 ? photoUrls : undefined,
+        }),
         signal: controller.signal,
       })
       const data = await res.json()

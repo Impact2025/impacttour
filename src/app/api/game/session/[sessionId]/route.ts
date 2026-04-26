@@ -70,6 +70,7 @@ export async function GET(
       missionTitle: isAccessible ? cp.missionTitle : null,
       missionDescription: isAccessible ? cp.missionDescription : null,
       missionType: cp.missionType,
+      navigationHint: cp.navigationHint ?? null,
       gmsConnection: cp.gmsConnection,
       gmsMeaning: cp.gmsMeaning,
       gmsJoy: cp.gmsJoy,

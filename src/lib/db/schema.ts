@@ -151,6 +151,8 @@ export const checkpoints = pgTable(
     gmsMeaning: integer('gms_meaning').notNull().default(0),
     gmsJoy: integer('gms_joy').notNull().default(0),
     gmsGrowth: integer('gms_growth').notNull().default(0),
+    // Navigatiehint voor spelers (exacte aanwijzing hoe de locatie te vinden)
+    navigationHint: text('navigation_hint'),
     // Hints
     hint1: text('hint1'),
     hint2: text('hint2'),
@@ -294,7 +296,8 @@ export const submissions = pgTable(
       .references(() => checkpoints.id),
     // Inzending
     answer: text('answer'),
-    photoUrl: text('photo_url'), // Vercel Blob URL
+    photoUrl: text('photo_url'), // Eerste/primaire foto (Vercel Blob URL)
+    photoUrls: jsonb('photo_urls').$type<string[]>(), // Alle foto URLs (multi-upload)
     videoUrl: text('video_url'),
     // AI evaluatie
     status: submissionStatusEnum('status').notNull().default('pending'),

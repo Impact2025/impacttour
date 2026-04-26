@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { toast } from 'sonner'
 
@@ -28,6 +28,7 @@ export interface CheckpointData {
   missionTitle: string
   missionDescription: string
   missionType: string
+  navigationHint: string | null
   gmsConnection: number
   gmsMeaning: number
   gmsJoy: number
@@ -69,8 +70,45 @@ export function CheckpointEditor({
   const [isSaving, setIsSaving] = useState(false)
   const [isGeneratingHints, setIsGeneratingHints] = useState(false)
   const [isLocating, setIsLocating] = useState(false)
+  const [geoAddress, setGeoAddress] = useState<string | null>(null)
+  const [isGeocoding, setIsGeocoding] = useState(false)
+  const geocodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const selected = checkpoints.find((c) => c.id === selectedId)
+
+  const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+    setIsGeocoding(true)
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=nl`,
+        { headers: { 'User-Agent': 'ImpactTour/1.0 (chat@weareimpact.nl)' } }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        const { road, house_number, city, town, village, suburb } = data.address ?? {}
+        const street = [road, house_number].filter(Boolean).join(' ')
+        const place = city ?? town ?? village ?? suburb ?? ''
+        setGeoAddress([street, place].filter(Boolean).join(', ') || data.display_name)
+      }
+    } catch {
+      // silently ignore — geen internet of rate limit
+    } finally {
+      setIsGeocoding(false)
+    }
+  }, [])
+
+  // Trigger reverse geocoding wanneer het geselecteerde checkpoint wisselt of positie verandert
+  useEffect(() => {
+    if (!selected) { setGeoAddress(null); return }
+    if (geocodeTimerRef.current) clearTimeout(geocodeTimerRef.current)
+    geocodeTimerRef.current = setTimeout(() => {
+      reverseGeocode(selected.latitude, selected.longitude)
+    }, 400)
+    return () => {
+      if (geocodeTimerRef.current) clearTimeout(geocodeTimerRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, selected?.latitude, selected?.longitude, reverseGeocode])
 
   /** Nieuw checkpoint aanmaken via API en lokaal toevoegen */
   const handleMapClick = useCallback(
@@ -92,6 +130,7 @@ export function CheckpointEditor({
           missionTitle: 'Nieuwe opdracht',
           missionDescription: 'Beschrijf hier de opdracht voor dit team.',
           missionType: 'opdracht',
+          navigationHint: null,
           gmsConnection: 6,
           gmsMeaning: 6,
           gmsJoy: 7,
@@ -145,6 +184,7 @@ export function CheckpointEditor({
         missionTitle: selected.missionTitle,
         missionDescription: selected.missionDescription,
         missionType: selected.missionType,
+        navigationHint: selected.navigationHint,
         gmsConnection: selected.gmsConnection,
         gmsMeaning: selected.gmsMeaning,
         gmsJoy: selected.gmsJoy,
@@ -278,7 +318,10 @@ export function CheckpointEditor({
               <span className="w-5 h-5 rounded-full bg-green-600 text-white text-xs flex items-center justify-center shrink-0 font-bold">
                 {idx + 1}
               </span>
-              <span className="truncate">{cp.name}</span>
+              <span className="flex-1 truncate">{cp.name}</span>
+              {!cp.navigationHint && (
+                <span className="shrink-0 text-amber-500 text-xs" title="Navigatiehint ontbreekt">⚠️</span>
+              )}
             </button>
           ))}
         </div>
@@ -298,33 +341,70 @@ export function CheckpointEditor({
           </div>
 
           <div className="p-4 space-y-4 flex-1">
-            {/* Huidige locatie */}
-            <div className="bg-gray-50 rounded-lg p-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-gray-500 leading-tight">
-                <span className="font-medium text-gray-700">Locatie</span>
-                <br />
-                {selected.latitude.toFixed(5)}, {selected.longitude.toFixed(5)}
+            {/* Locatie met geocoded adres */}
+            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-xs text-gray-500 leading-tight min-w-0">
+                  <span className="font-medium text-gray-700">Locatie</span>
+                  <br />
+                  {selected.latitude.toFixed(5)}, {selected.longitude.toFixed(5)}
+                </div>
+                <button
+                  onClick={handleUseCurrentLocation}
+                  disabled={isLocating}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                >
+                  {isLocating ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Zoeken...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Ik ben hier
+                    </>
+                  )}
+                </button>
               </div>
-              <button
-                onClick={handleUseCurrentLocation}
-                disabled={isLocating}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {isLocating ? (
-                  <>
-                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Zoeken...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Ik ben hier
-                  </>
+              {/* Geocoded adres — bevestiging voor de admin */}
+              <div className="text-xs leading-tight">
+                {isGeocoding ? (
+                  <span className="text-gray-400 italic">adres ophalen...</span>
+                ) : geoAddress ? (
+                  <span className="text-gray-600">📍 {geoAddress}</span>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Navigatiehint — verplicht veld */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Navigatiehint voor spelers
+                {!selected.navigationHint && (
+                  <span className="ml-1 text-amber-500 font-normal">(verplicht invullen)</span>
                 )}
-              </button>
+              </label>
+              <textarea
+                value={selected.navigationHint ?? ''}
+                onChange={(e) => updateSelected({ navigationHint: e.target.value || null })}
+                rows={2}
+                placeholder='bijv. "Loop door de poort op nr. 14, de binnenplaats in" of "Ingang via de zijstraat links van het café"'
+                className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 resize-none transition-colors ${
+                  selected.navigationHint
+                    ? 'border-gray-300 focus:ring-green-500'
+                    : 'border-amber-400 bg-amber-50 focus:ring-amber-500'
+                }`}
+              />
+              {!selected.navigationHint && (
+                <p className="text-xs text-amber-600 mt-1 flex items-start gap-1">
+                  <span>⚠️</span>
+                  <span>Zonder hint weten spelers niet precies waar ze moeten staan. Beschrijf de exacte toegang of herkenningspunt.</span>
+                </p>
+              )}
             </div>
 
             {/* Naam */}

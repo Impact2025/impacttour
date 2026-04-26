@@ -20,6 +20,7 @@ const createCheckpointSchema = z.object({
   gmsMeaning: z.number().int().min(0).max(25).default(0),
   gmsJoy: z.number().int().min(0).max(25).default(0),
   gmsGrowth: z.number().int().min(0).max(25).default(0),
+  navigationHint: z.string().max(500).nullable().optional(),
   hint1: z.string().max(300).optional(),
   hint2: z.string().max(300).optional(),
   hint3: z.string().max(300).optional(),
