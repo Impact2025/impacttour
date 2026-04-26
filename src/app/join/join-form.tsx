@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Navigation, Target, CheckCircle2, XCircle } from 'lucide-react'
+import { Navigation, Target, CheckCircle2, XCircle, ArrowRight, Loader2 } from 'lucide-react'
 
 const VOETBALCLUB_NAMEN = [
   'Ajax', 'Feyenoord', 'PSV', 'AZ', 'Vitesse',
@@ -32,7 +32,7 @@ export default function JoinForm() {
   const [previewStatus, setPreviewStatus] = useState<'idle' | 'loading' | 'found' | 'not-found'>('idle')
   const [recoveredTeam, setRecoveredTeam] = useState<RecoveredTeam | null>(null)
 
-  // Token recovery: check sessionStorage on mount
+  // Token recovery
   useEffect(() => {
     const token = sessionStorage.getItem('teamToken')
     const storedSessionId = sessionStorage.getItem('sessionId')
@@ -77,25 +77,17 @@ export default function JoinForm() {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-
     try {
       const res = await fetch('/api/game/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ joinCode: code.toUpperCase(), teamName }),
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || 'Kan niet deelnemen. Controleer de code.')
-        return
-      }
-
+      if (!res.ok) { setError(data.error || 'Kan niet deelnemen. Controleer de code.'); return }
       sessionStorage.setItem('teamToken', data.teamToken)
       sessionStorage.setItem('teamId', data.teamId)
       sessionStorage.setItem('sessionId', data.sessionId)
-
       router.push(`/game/${data.sessionId}`)
     } catch {
       setError('Verbindingsfout. Probeer het opnieuw.')
@@ -105,34 +97,45 @@ export default function JoinForm() {
   }
 
   const Icon = isFootball ? Target : Navigation
-  const iconBg = isFootball ? 'bg-green-500/15' : 'bg-[#00E676]/15'
-  const iconColor = isFootball ? 'text-green-400' : 'text-[#00E676]'
+  const bg = isFootball ? 'bg-[#0A1A0A]' : 'bg-[#F8FAFC]'
+  const cardBg = isFootball ? 'bg-[#0F1F0F] border-green-800/50' : 'bg-white border-[#E2E8F0]'
+  const accentColor = isFootball ? '#00C853' : '#00E676'
+  const textPrimary = isFootball ? 'text-white' : 'text-[#0F172A]'
+  const inputBase = isFootball
+    ? 'bg-[#0A1A0A] border-green-800 text-white placeholder-green-900 focus:border-green-500'
+    : 'border-[#E2E8F0] text-[#0F172A] focus:border-[#00E676]'
 
   // Token recovery card
   if (recoveredTeam) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4 bg-[#F8FAFC]">
-        <div className="max-w-md w-full animate-scale-in">
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-6">
+      <main className={`min-h-screen flex items-center justify-center p-4 ${bg}`}>
+        <div className="max-w-md w-full">
+          <div className={`rounded-2xl border p-6 ${cardBg}`}>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-12 h-12 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-6 h-6 text-[#00C853]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[#0F172A]">Welkom terug!</h2>
-                <p className="text-sm text-[#64748B]">Team: <strong className="text-[#0F172A]">{recoveredTeam.teamName}</strong></p>
+                <h2 className={`text-lg font-bold ${textPrimary}`}>Welkom terug!</h2>
+                <p className={`text-sm ${isFootball ? 'text-green-400' : 'text-[#64748B]'}`}>
+                  Team: <strong className={textPrimary}>{recoveredTeam.teamName}</strong>
+                </p>
               </div>
             </div>
             <button
               onClick={() => router.push(`/game/${recoveredTeam.sessionId}`)}
-              className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-xl font-bold text-sm uppercase tracking-wide mb-3 active:scale-95 transition-transform"
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-wide mb-3 active:scale-95 transition-all flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: accentColor,
+                color: '#0F172A',
+                fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+              }}
             >
-              Verdergaan met tocht
+              Verdergaan met tocht <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => setRecoveredTeam(null)}
-              className="w-full py-3 text-center text-[#94A3B8] text-sm hover:text-[#64748B] transition-colors"
+              className={`w-full py-3 text-center text-sm transition-colors ${isFootball ? 'text-green-600 hover:text-green-400' : 'text-[#94A3B8] hover:text-[#64748B]'}`}
             >
               Ander team / andere tocht
             </button>
@@ -143,43 +146,53 @@ export default function JoinForm() {
   }
 
   return (
-    <main className={`min-h-screen flex items-center justify-center p-4 transition-colors ${
-      isFootball ? 'bg-[#0A1A0A]' : 'bg-[#F8FAFC]'
-    }`}>
+    <main className={`min-h-screen flex items-center justify-center p-4 transition-colors ${bg}`}>
       <div className="max-w-md w-full">
+
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-7">
           <div className="flex justify-center mb-4">
-            <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center`}>
-              <Icon className={`w-6 h-6 ${iconColor}`} strokeWidth={2} />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{ backgroundColor: `${accentColor}20` }}
+            >
+              <Icon className="w-7 h-7" style={{ color: accentColor }} strokeWidth={2} />
             </div>
           </div>
-          <h2 className={`text-2xl font-bold mb-1 ${isFootball ? 'text-white' : 'text-[#0F172A]'}`}>
+          <h1
+            className={`text-2xl font-bold mb-1 ${textPrimary}`}
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
             {isFootball ? 'De VoetbalMissie' : 'Doe mee aan de tocht'}
-          </h2>
-          {sessionPreview?.tourName && (
-            <p className={`text-sm font-medium mt-1 ${isFootball ? 'text-green-400' : 'text-[#00C853]'}`}>
+          </h1>
+
+          {/* Session preview */}
+          {previewStatus === 'found' && sessionPreview?.tourName && (
+            <div
+              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
+              style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
               {sessionPreview.tourName}
-            </p>
+            </div>
           )}
-          <p className={`mt-1 text-sm ${isFootball ? 'text-green-600' : 'text-[#94A3B8]'}`}>
+
+          <p className={`mt-2 text-sm ${isFootball ? 'text-green-600' : 'text-[#94A3B8]'}`}>
             {hasPreCreatedTeams
-              ? 'Kies jouw team'
+              ? 'Kies jouw team hieronder'
               : isFootball
               ? 'Kies een clubnaam voor jullie team'
-              : 'Voer de code in die je spelleider heeft gegeven'}
+              : 'Voer de teamcode in die je spelleider heeft gegeven'}
           </p>
         </div>
 
         {/* Form card */}
-        <div className={`rounded-2xl p-6 shadow-sm ${
-          isFootball ? 'bg-[#0F1F0F] border border-green-800/50' : 'bg-white border border-[#E2E8F0]'
-        }`}>
+        <div className={`rounded-2xl border p-6 shadow-sm ${cardBg}`}>
           <form onSubmit={handleJoin} className="space-y-4">
+
+            {/* Teamcode */}
             <div>
-              <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
-                isFootball ? 'text-green-500' : 'text-[#64748B]'
-              }`}>
+              <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isFootball ? 'text-green-500' : 'text-[#64748B]'}`}>
                 Teamcode
               </label>
               <div className="relative">
@@ -190,40 +203,38 @@ export default function JoinForm() {
                   placeholder="ABC123"
                   maxLength={10}
                   required
-                  className={`w-full px-4 py-4 pr-12 text-center text-3xl font-bold tracking-widest border-2 rounded-xl focus:outline-none uppercase transition-colors ${
-                    isFootball
-                      ? 'bg-[#0A1A0A] border-green-800 text-white focus:border-green-500 placeholder-green-900'
-                      : previewStatus === 'found'
-                      ? 'border-[#00E676] text-[#0F172A]'
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  className={`w-full px-4 py-4 pr-12 text-center text-3xl font-black tracking-[0.25em] border-2 rounded-xl focus:outline-none uppercase transition-colors ${
+                    previewStatus === 'found'
+                      ? `${isFootball ? 'border-green-500 bg-green-900/20' : 'border-[#00E676] bg-[#F0FDF4]'}`
                       : previewStatus === 'not-found'
-                      ? 'border-red-300 text-[#0F172A]'
-                      : 'border-[#E2E8F0] focus:border-[#00E676] text-[#0F172A]'
+                      ? 'border-red-400'
+                      : inputBase
                   }`}
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 />
-                {previewStatus === 'loading' && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <div className={`w-5 h-5 border-2 rounded-full animate-spin ${isFootball ? 'border-green-700 border-t-green-400' : 'border-[#E2E8F0] border-t-[#00E676]'}`} />
-                  </div>
-                )}
-                {previewStatus === 'found' && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none animate-fade-in">
-                    <CheckCircle2 className={`w-5 h-5 ${isFootball ? 'text-green-400' : 'text-[#00C853]'}`} />
-                  </div>
-                )}
-                {previewStatus === 'not-found' && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none animate-fade-in">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                  {previewStatus === 'loading' && (
+                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: accentColor }} />
+                  )}
+                  {previewStatus === 'found' && (
+                    <CheckCircle2 className="w-5 h-5" style={{ color: accentColor }} />
+                  )}
+                  {previewStatus === 'not-found' && (
                     <XCircle className="w-5 h-5 text-red-400" />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+              {previewStatus === 'not-found' && (
+                <p className="text-xs text-red-500 mt-1.5">Code niet gevonden. Controleer de code bij je spelleider.</p>
+              )}
             </div>
 
-            {/* Teamkeuze: lijst van vooraf aangemaakte teams */}
+            {/* Teamkeuze */}
             {hasPreCreatedTeams ? (
               <div>
-                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
-                  isFootball ? 'text-green-500' : 'text-[#64748B]'
-                }`}>
+                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isFootball ? 'text-green-500' : 'text-[#64748B]'}`}>
                   Jouw team
                 </label>
                 <div className="space-y-2">
@@ -248,11 +259,8 @@ export default function JoinForm() {
                 </div>
               </div>
             ) : (
-              /* Vrije teamnaam invoer (geen vooraf aangemaakte teams) */
               <div>
-                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${
-                  isFootball ? 'text-green-500' : 'text-[#64748B]'
-                }`}>
+                <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isFootball ? 'text-green-500' : 'text-[#64748B]'}`}>
                   {isFootball ? 'Clubnaam van jullie team' : 'Teamnaam'}
                 </label>
                 <input
@@ -262,10 +270,8 @@ export default function JoinForm() {
                   placeholder={isFootball ? 'Ajax, PSV, Feyenoord...' : 'Team Avontuur'}
                   maxLength={30}
                   required
-                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
-                    isFootball
-                      ? 'bg-[#0A1A0A] border-green-800 text-white focus:ring-green-600 placeholder-green-900'
-                      : 'border-[#E2E8F0] focus:ring-[#00E676]/30 text-[#0F172A]'
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-colors text-sm ${inputBase} ${
+                    isFootball ? 'focus:ring-green-600' : 'focus:ring-[#00E676]/30'
                   }`}
                 />
                 {isFootball && (
@@ -275,10 +281,10 @@ export default function JoinForm() {
                         key={club}
                         type="button"
                         onClick={() => setTeamName(club)}
-                        className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                        className={`px-2.5 py-1 text-xs rounded-full border transition-all ${
                           teamName === club
                             ? 'bg-green-500 border-green-500 text-black font-bold'
-                            : 'border-green-800 text-green-500 hover:bg-green-900'
+                            : 'border-green-800 text-green-500 hover:bg-green-900/50'
                         }`}
                       >
                         {club}
@@ -290,7 +296,8 @@ export default function JoinForm() {
             )}
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm">
+              <div className="p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm flex items-start gap-2">
+                <XCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 {error}
               </div>
             )}
@@ -298,18 +305,20 @@ export default function JoinForm() {
             <button
               type="submit"
               disabled={isLoading || code.length < 4 || !teamName}
-              className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${
-                isFootball
-                  ? 'bg-green-500 text-black hover:bg-green-400'
-                  : 'bg-[#00E676] text-[#0F172A] hover:bg-[#00C853]'
-              }`}
-              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-wide disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: isLoading || code.length < 4 || !teamName ? undefined : accentColor,
+                color: '#0F172A',
+                fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)',
+              }}
             >
-              {isLoading
-                ? 'Deelnemen...'
-                : isFootball
-                ? 'De missie starten'
-                : 'Deelnemen aan tocht'}
+              {isLoading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Deelnemen...</>
+              ) : isFootball ? (
+                <>De missie starten <ArrowRight className="w-4 h-4" /></>
+              ) : (
+                <>Deelnemen aan tocht <ArrowRight className="w-4 h-4" /></>
+              )}
             </button>
           </form>
         </div>

@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
   Play, Pause, Square, Copy, CheckCircle2, Users,
   Trophy, MapPin, Loader2, Navigation, RefreshCw,
-  BarChart2, Clock, FlaskConical, X,
+  BarChart2, Clock, FlaskConical, X, Zap,
 } from 'lucide-react'
 
 type TeamStatus = {
@@ -39,16 +38,23 @@ const VARIANT_LABELS: Record<string, string> = {
   familietocht: 'FamilieTocht', jeugdtocht: 'JeugdTocht', voetbalmissie: 'VoetbalMissie',
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-[#F1F5F9] text-[#64748B]',
-  lobby: 'bg-blue-50 text-blue-600',
-  active: 'bg-[#DCFCE7] text-[#166534]',
-  paused: 'bg-amber-50 text-amber-600',
-  completed: 'bg-[#F1F5F9] text-[#94A3B8]',
-}
-
 const STATUS_NL: Record<string, string> = {
   draft: 'Concept', lobby: 'Lobby open', active: 'Actief', paused: 'Gepauzeerd', completed: 'Afgerond',
+}
+
+const TEAM_COLORS = [
+  '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#00C853',
+  '#EF4444', '#06B6D4', '#84CC16', '#F97316', '#6366F1',
+]
+
+function teamColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return TEAM_COLORS[Math.abs(hash) % TEAM_COLORS.length]
+}
+
+function teamInitials(name: string) {
+  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
 export default function BeheerPage() {
@@ -66,7 +72,6 @@ export default function BeheerPage() {
 
   const load = useCallback(async () => {
     try {
-      // Gebruik de bestaande spelleider sessions API
       const res = await fetch(`/api/sessions/${sessionId}`)
       if (!res.ok) {
         if (res.status === 401) { router.push(`/login?callbackUrl=/klant/${sessionId}/beheer`); return }
@@ -75,7 +80,6 @@ export default function BeheerPage() {
       }
       const d = await res.json()
 
-      // Haal teams op via de spelleider API
       const teamsRes = await fetch(`/api/sessions/${sessionId}/teams`, { cache: 'no-store' }).catch(() => null)
       const teamsData = teamsRes?.ok ? await teamsRes.json().catch(() => []) : []
 
@@ -96,7 +100,6 @@ export default function BeheerPage() {
 
   useEffect(() => { load() }, [load])
 
-  // Onboarding strip: toon eenmalig per sessie
   useEffect(() => {
     if (!sessionId) return
     if (!localStorage.getItem(`beheer_onboarded_${sessionId}`)) setShowOnboarding(true)
@@ -107,7 +110,6 @@ export default function BeheerPage() {
     setShowOnboarding(false)
   }
 
-  // Elapsed timer
   useEffect(() => {
     if (!data?.startedAt) return
     const tick = () => setElapsed(Math.floor((Date.now() - new Date(data.startedAt!).getTime()) / 1000))
@@ -116,7 +118,6 @@ export default function BeheerPage() {
     return () => clearInterval(interval)
   }, [data?.startedAt])
 
-  // Auto-refresh elke 15 seconden
   useEffect(() => {
     const interval = setInterval(load, 15000)
     return () => clearInterval(interval)
@@ -132,9 +133,7 @@ export default function BeheerPage() {
         body: JSON.stringify({ isTestMode: !data.isTestMode }),
       })
       await load()
-    } finally {
-      setIsActioning(null)
-    }
+    } finally { setIsActioning(null) }
   }
 
   const handleAction = async (action: 'start' | 'pause' | 'resume' | 'complete') => {
@@ -147,9 +146,7 @@ export default function BeheerPage() {
         body: JSON.stringify({ status: newStatus }),
       })
       await load()
-    } finally {
-      setIsActioning(null)
-    }
+    } finally { setIsActioning(null) }
   }
 
   const copyToClipboard = (text: string, key: string) => {
@@ -182,8 +179,10 @@ export default function BeheerPage() {
       <main className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
         <div className="text-center">
           <p className="text-[#64748B] mb-4">{error || 'Sessie niet gevonden.'}</p>
-          <button onClick={() => { setError(''); setIsLoading(true); load() }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#00E676] text-[#0F172A] rounded-lg font-semibold text-sm mx-auto">
+          <button
+            onClick={() => { setError(''); setIsLoading(true); load() }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#00E676] text-[#0F172A] rounded-lg font-semibold text-sm mx-auto"
+          >
             <RefreshCw className="w-4 h-4" /> Opnieuw
           </button>
         </div>
@@ -195,56 +194,74 @@ export default function BeheerPage() {
   const isPaused = data.status === 'paused'
   const isLobby = data.status === 'lobby' || data.status === 'draft'
   const isCompleted = data.status === 'completed'
-
   const sortedTeams = [...(data.teams ?? [])].sort((a, b) => b.totalGmsScore - a.totalGmsScore)
+  const teamsReady = sortedTeams.length > 0
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      {/* Header */}
+
+      {/* ── Header ─────────────────────────────────────────────────────────────── */}
       <div className="bg-[#0F172A]">
-        <div className="max-w-2xl mx-auto px-6 pt-6 pb-8">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="bg-white rounded-lg px-2 py-1 inline-flex">
+        <div className="max-w-2xl mx-auto px-5 pt-5 pb-6">
+
+          {/* Top row */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-white rounded-lg px-2 py-1 inline-flex shrink-0">
               <Image src="/images/IctusGo.png" alt="IctusGo" width={100} height={30} className="h-6 w-auto" />
             </div>
             <div className="flex-1">
-              <span className="text-[#00E676] text-xs font-bold uppercase tracking-widest">Game Day Dashboard</span>
+              <span className="text-[#00E676] text-xs font-bold uppercase tracking-widest">Game Day</span>
             </div>
-            <button onClick={load} className="p-2 text-[#475569] hover:text-[#94A3B8] transition-colors">
+            <button onClick={load} className="p-2 text-[#475569] hover:text-[#94A3B8] transition-colors rounded-lg hover:bg-white/10">
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
 
-          <h1 className="text-3xl font-black text-white leading-tight mb-1"
-            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
+          {/* Titel + status */}
+          <h1
+            className="text-3xl font-black text-white leading-tight mb-2"
+            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+          >
             {data.customSessionName || data.tour?.name || 'Tocht'}
           </h1>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[#64748B] text-sm">
               {VARIANT_LABELS[data.tour?.variant ?? ''] ?? data.tour?.variant}
             </span>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_COLORS[data.status] ?? 'bg-[#F1F5F9] text-[#64748B]'}`}>
-              {STATUS_NL[data.status] ?? data.status}
-            </span>
-            {isActive && data.startedAt && (
-              <div className="flex items-center gap-1.5">
+            {/* Live status badge */}
+            {isActive ? (
+              <div className="flex items-center gap-1.5 bg-[#00E676]/10 border border-[#00E676]/30 px-2.5 py-1 rounded-full">
                 <div className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse" />
-                <span className="text-[#00E676] text-sm font-mono font-bold">{formatElapsed(elapsed)}</span>
+                <span className="text-[#00E676] text-xs font-bold uppercase tracking-wider">Live</span>
+                {data.startedAt && (
+                  <span className="text-[#00E676] text-xs font-mono">{formatElapsed(elapsed)}</span>
+                )}
               </div>
+            ) : (
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                isLobby ? 'bg-blue-500/15 text-blue-400' :
+                isPaused ? 'bg-amber-500/15 text-amber-400' :
+                isCompleted ? 'bg-[#1E293B] text-[#64748B]' :
+                'bg-[#1E293B] text-[#64748B]'
+              }`}>
+                {STATUS_NL[data.status] ?? data.status}
+              </span>
             )}
           </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 mt-5">
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-2 mt-4">
             {[
-              { Icon: Users, value: data.teams?.length ?? 0, label: 'teams' },
-              { Icon: MapPin, value: data.checkpointCount, label: 'checkpoints' },
-              { Icon: Clock, value: `${data.tour?.estimatedDurationMin ?? 120}m`, label: 'duur' },
+              { Icon: Users,  value: data.teams?.length ?? 0,              label: 'teams' },
+              { Icon: MapPin, value: data.checkpointCount,                  label: 'checkpoints' },
+              { Icon: Clock,  value: `${data.tour?.estimatedDurationMin ?? 120}m`, label: 'duur' },
             ].map(({ Icon, value, label }) => (
               <div key={label} className="bg-[#1E293B] rounded-xl p-3 text-center">
                 <Icon className="w-4 h-4 text-[#00E676] mx-auto mb-1" />
-                <div className="text-white font-black text-lg"
-                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
+                <div
+                  className="text-white font-black text-lg"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
                   {value}
                 </div>
                 <div className="text-[#475569] text-xs">{label}</div>
@@ -254,56 +271,67 @@ export default function BeheerPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-6 space-y-5">
+      <div className="max-w-2xl mx-auto px-5 py-5 space-y-4">
 
-        {/* JOIN CODE kaart */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
-          <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider mb-3">Teamcode voor deelnemers</p>
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex-1 bg-[#F8FAFC] rounded-xl p-4 text-center border border-[#E2E8F0]">
-              <p className="text-4xl font-black tracking-[0.3em] text-[#0F172A]"
-                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                {data.joinCode}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => copyToClipboard(data.joinCode, 'code')}
-                className="p-3 bg-[#F1F5F9] rounded-xl hover:bg-[#E2E8F0] transition-colors"
-              >
-                {copied === 'code' ? <CheckCircle2 className="w-5 h-5 text-[#00E676]" /> : <Copy className="w-5 h-5 text-[#64748B]" />}
-              </button>
-              <button
-                onClick={() => copyToClipboard(data.joinLink, 'link')}
-                className="p-3 bg-[#F1F5F9] rounded-xl hover:bg-[#E2E8F0] transition-colors"
-                title="Kopieer directe link"
-              >
-                {copied === 'link' ? <CheckCircle2 className="w-5 h-5 text-[#00E676]" /> : <Navigation className="w-5 h-5 text-[#64748B]" />}
-              </button>
-            </div>
+        {/* ── Teamcode ───────────────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+          <div className="px-5 pt-4 pb-3 border-b border-[#F1F5F9]">
+            <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">Teamcode voor deelnemers</p>
           </div>
-          <p className="text-xs text-[#94A3B8] text-center">
-            Teams gaan naar <strong className="text-[#0F172A]">ictusgo.nl/join</strong> en voeren deze code in
-          </p>
+          <div className="p-5">
+            <div className="flex items-stretch gap-3 mb-3">
+              <div className="flex-1 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] flex items-center justify-center py-4">
+                <span
+                  className="text-4xl font-black tracking-[0.35em] text-[#0F172A]"
+                  style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                >
+                  {data.joinCode}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => copyToClipboard(data.joinCode, 'code')}
+                  className="p-3 bg-[#F1F5F9] rounded-xl hover:bg-[#00E676]/10 hover:text-[#00C853] transition-colors flex items-center justify-center"
+                  title="Kopieer code"
+                >
+                  {copied === 'code' ? <CheckCircle2 className="w-5 h-5 text-[#00C853]" /> : <Copy className="w-5 h-5 text-[#64748B]" />}
+                </button>
+                <button
+                  onClick={() => copyToClipboard(data.joinLink, 'link')}
+                  className="p-3 bg-[#F1F5F9] rounded-xl hover:bg-[#00E676]/10 hover:text-[#00C853] transition-colors flex items-center justify-center"
+                  title="Kopieer deep-link"
+                >
+                  {copied === 'link' ? <CheckCircle2 className="w-5 h-5 text-[#00C853]" /> : <Navigation className="w-5 h-5 text-[#64748B]" />}
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-center text-[#94A3B8]">
+              Teams gaan naar <strong className="text-[#0F172A]">ictusgo.nl/join</strong> en voeren deze code in
+            </p>
+          </div>
         </div>
 
-        {/* ONBOARDING STRIP — eerste keer */}
+        {/* ── Onboarding strip ────────────────────────────────────────────────────── */}
         {showOnboarding && isLobby && (
-          <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 animate-fade-in">
+          <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4">
             <div className="flex items-start justify-between mb-2.5">
-              <p className="text-sm font-bold text-[#1E40AF]">Zo werkt het</p>
-              <button onClick={dismissOnboarding} className="text-[#93C5FD] hover:text-[#1E40AF] transition-colors -mt-0.5">
+              <p className="text-sm font-bold text-[#1E40AF] flex items-center gap-1.5">
+                <Zap className="w-4 h-4" /> Zo werkt het
+              </p>
+              <button onClick={dismissOnboarding} className="text-[#93C5FD] hover:text-[#1E40AF] transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <ol className="space-y-2">
               {[
-                'Deel de teamcode met deelnemers',
-                'Wacht tot alle teams zijn ingelogd',
-                'Druk op START DE TOCHT',
+                'Deel de teamcode of link met je deelnemers',
+                'Wacht tot alle teams zijn ingelogd (zie hieronder)',
+                'Druk op START — teams ontvangen direct hun eerste GPS-punt',
               ].map((step, i) => (
-                <li key={i} className="flex items-center gap-2.5 text-sm text-[#3B82F6]">
-                  <span className="w-5 h-5 bg-[#BFDBFE] text-[#1D4ED8] rounded-full text-xs flex items-center justify-center font-bold shrink-0">{i + 1}</span>
+                <li key={i} className="flex items-start gap-2.5 text-sm text-[#3B82F6]">
+                  <span className="w-5 h-5 bg-[#BFDBFE] text-[#1D4ED8] rounded-full text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">
+                    {i + 1}
+                  </span>
                   {step}
                 </li>
               ))}
@@ -311,20 +339,27 @@ export default function BeheerPage() {
           </div>
         )}
 
-        {/* HOOFD ACTIEKNOP */}
+        {/* ── Actieknop ───────────────────────────────────────────────────────────── */}
         {!isCompleted && (
           <div>
             {isLobby && (
               <button
                 onClick={() => handleAction('start')}
                 disabled={isActioning !== null}
-                className="w-full py-6 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-xl uppercase tracking-wide hover:bg-[#00C853] transition-all disabled:opacity-50 shadow-lg shadow-[#00E676]/20 flex items-center justify-center gap-3"
+                className={`w-full py-6 rounded-2xl font-black text-xl uppercase tracking-wide transition-all disabled:opacity-50 flex items-center justify-center gap-3 ${
+                  teamsReady
+                    ? 'bg-[#00E676] text-[#0F172A] hover:bg-[#00C853] shadow-xl shadow-[#00E676]/25'
+                    : 'bg-[#1E293B] text-[#64748B] cursor-not-allowed'
+                }`}
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
                 {isActioning === 'start' ? (
                   <><Loader2 className="w-6 h-6 animate-spin" /> Starten...</>
                 ) : (
-                  <><Play className="w-6 h-6 fill-current" /> START DE TOCHT</>
+                  <>
+                    <Play className="w-6 h-6 fill-current" />
+                    {teamsReady ? `Start de tocht (${sortedTeams.length} team${sortedTeams.length !== 1 ? 's' : ''})` : 'Wachten op teams...'}
+                  </>
                 )}
               </button>
             )}
@@ -347,7 +382,7 @@ export default function BeheerPage() {
                   style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
                 >
                   {isActioning === 'complete' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4 fill-current" />}
-                  Stoppen
+                  Afronden
                 </button>
               </div>
             )}
@@ -356,7 +391,7 @@ export default function BeheerPage() {
               <button
                 onClick={() => handleAction('resume')}
                 disabled={isActioning !== null}
-                className="w-full py-5 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-lg uppercase tracking-wide hover:bg-[#00C853] transition-colors flex items-center justify-center gap-2"
+                className="w-full py-5 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-lg uppercase tracking-wide hover:bg-[#00C853] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#00E676]/25"
                 style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
               >
                 {isActioning === 'resume' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5 fill-current" />}
@@ -366,30 +401,12 @@ export default function BeheerPage() {
           </div>
         )}
 
-        {/* Test mode toggle — handig voor demo/testen zonder GPS */}
-        {!isCompleted && (
-          <button
-            onClick={handleToggleTestMode}
-            disabled={isActioning !== null}
-            className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 border-2 transition-colors ${
-              data.isTestMode
-                ? 'bg-[#FEF3C7] border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]'
-                : 'bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#94A3B8]'
-            }`}
-          >
-            {isActioning === 'testmode'
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <FlaskConical className="w-4 h-4" />}
-            {data.isTestMode ? '🧪 Test mode AAN — klik om uit te zetten' : 'Test mode (spelen zonder GPS)'}
-          </button>
-        )}
-
-        {/* Teams live overzicht */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5">
-          <div className="flex items-center justify-between mb-4">
+        {/* ── Teams live ──────────────────────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between">
             <h3 className="font-bold text-[#0F172A] flex items-center gap-2">
               <Users className="w-4 h-4 text-[#00E676]" />
-              Teams live
+              Teams {sortedTeams.length > 0 && <span className="text-[#94A3B8] font-normal">({sortedTeams.length})</span>}
             </h3>
             <div className="flex items-center gap-2">
               {isActive && (
@@ -401,7 +418,6 @@ export default function BeheerPage() {
               <button
                 onClick={load}
                 className="p-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors text-[#94A3B8] hover:text-[#64748B]"
-                title="Vernieuwen"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -409,13 +425,17 @@ export default function BeheerPage() {
           </div>
 
           {sortedTeams.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="w-8 h-8 text-[#E2E8F0] mx-auto mb-2" />
-              <p className="text-[#94A3B8] text-sm">Nog geen teams deelgenomen</p>
-              <p className="text-[#CBD5E1] text-xs mt-1">Teams melden zich aan met de code hierboven</p>
+            <div className="py-12 px-5 text-center">
+              <div className="w-16 h-16 bg-[#F1F5F9] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-7 h-7 text-[#CBD5E1]" />
+              </div>
+              <p className="text-[#64748B] font-semibold text-sm">Nog geen teams aangemeld</p>
+              <p className="text-[#CBD5E1] text-xs mt-1 max-w-[200px] mx-auto">
+                Deel de code <strong className="text-[#94A3B8]">{data.joinCode}</strong> met je deelnemers
+              </p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="divide-y divide-[#F8FAFC]">
               {sortedTeams.map((team, i) => {
                 const progress = data.checkpointCount > 0
                   ? Math.round((team.currentCheckpointIndex / data.checkpointCount) * 100)
@@ -424,52 +444,68 @@ export default function BeheerPage() {
                 const isOnline = team.lastPositionAt
                   ? Date.now() - new Date(team.lastPositionAt).getTime() < 120_000
                   : false
+                const color = teamColor(team.name)
+
                 return (
-                  <div key={team.id} className={`rounded-xl p-3 border ${team.isOutsideGeofence ? 'border-red-200 bg-red-50' : 'border-[#F1F5F9] bg-[#F8FAFC]'}`}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
-                        i === 0 ? 'bg-[#F59E0B] text-white' :
-                        i === 1 ? 'bg-[#94A3B8] text-white' :
-                        i === 2 ? 'bg-[#CD7C2F] text-white' :
-                        'bg-[#E2E8F0] text-[#64748B]'
-                      }`}>
-                        {i + 1}
+                  <div
+                    key={team.id}
+                    className={`px-5 py-3.5 ${team.isOutsideGeofence ? 'bg-red-50' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Avatar */}
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black shrink-0 relative"
+                        style={{ backgroundColor: color }}
+                      >
+                        {teamInitials(team.name)}
+                        {isOnline && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#00E676] rounded-full border-2 border-white" />
+                        )}
                       </div>
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            {isOnline && <span className="w-2 h-2 rounded-full bg-[#00E676] animate-pulse shrink-0" title="Online" />}
+                            {/* Rank badge */}
+                            <span className={`text-[10px] font-black shrink-0 ${
+                              i === 0 ? 'text-[#F59E0B]' : i === 1 ? 'text-[#94A3B8]' : i === 2 ? 'text-[#CD7C2F]' : 'text-[#CBD5E1]'
+                            }`}>
+                              #{i + 1}
+                            </span>
                             <span className="font-semibold text-[#0F172A] text-sm truncate">{team.name}</span>
+                            {team.isOutsideGeofence && (
+                              <span className="text-[10px] text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded-full shrink-0">
+                                buiten grens
+                              </span>
+                            )}
                           </div>
-                          <span className="text-[#00E676] font-black text-sm shrink-0"
-                            style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
+                          <span
+                            className="text-sm font-black shrink-0"
+                            style={{ color, fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+                          >
                             {team.totalGmsScore} pt
                           </span>
                         </div>
-                        <div className="flex items-center justify-between gap-2 mt-0.5">
+
+                        <div className="flex items-center gap-2 mt-1.5">
                           <span className="text-[#94A3B8] text-xs">
                             CP {team.currentCheckpointIndex}/{data.checkpointCount}
                           </span>
-                          {team.isOutsideGeofence && (
-                            <span className="text-xs text-red-600 font-medium">⚠ buiten grens</span>
+                          {isDone ? (
+                            <div className="flex items-center gap-1 text-xs text-[#00C853] font-bold">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Klaar!
+                            </div>
+                          ) : (
+                            <div className="flex-1 h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-700"
+                                style={{ width: `${progress}%`, backgroundColor: color }}
+                              />
+                            </div>
                           )}
                         </div>
                       </div>
                     </div>
-                    {/* Progress bar of Klaar-badge */}
-                    {isDone ? (
-                      <div className="flex items-center gap-1.5 text-xs text-[#00C853] font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Klaar!
-                      </div>
-                    ) : (
-                      <div className="h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[#00E676] rounded-full transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    )}
                   </div>
                 )
               })}
@@ -477,16 +513,51 @@ export default function BeheerPage() {
           )}
         </div>
 
-        {/* Na afloop: resultaten */}
+        {/* ── Test mode toggle ──────────────────────────────────────────────────── */}
+        {!isCompleted && (
+          <button
+            onClick={handleToggleTestMode}
+            disabled={isActioning !== null}
+            className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 border-2 transition-colors ${
+              data.isTestMode
+                ? 'bg-[#FEF3C7] border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]'
+                : 'bg-white border-[#E2E8F0] text-[#64748B] hover:border-[#94A3B8]'
+            }`}
+          >
+            {isActioning === 'testmode' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FlaskConical className="w-4 h-4" />}
+            {data.isTestMode ? 'Test mode AAN — klik om uit te zetten' : 'Test mode (spelen zonder GPS)'}
+          </button>
+        )}
+
+        {/* ── Live monitor link ─────────────────────────────────────────────────── */}
+        {(isActive || isPaused) && (
+          <button
+            onClick={() => router.push(`/spelleider/sessies/${sessionId}`)}
+            className="w-full py-3 flex items-center justify-center gap-2 border border-[#E2E8F0] rounded-xl text-[#64748B] text-sm hover:border-[#00E676]/40 hover:text-[#0F172A] transition-colors bg-white"
+          >
+            <BarChart2 className="w-4 h-4" />
+            Live GPS monitor openen
+          </button>
+        )}
+
+        {/* ── Na afloop ────────────────────────────────────────────────────────────── */}
         {isCompleted && (
-          <div className="space-y-3">
-            <div className="bg-[#0F172A] rounded-2xl p-5 text-center">
-              <Trophy className="w-8 h-8 text-[#F59E0B] mx-auto mb-3" />
-              <h3 className="text-white font-black text-xl mb-1"
-                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}>
-                TOCHT AFGEROND!
+          <div className="bg-[#0F172A] rounded-2xl overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#F59E0B] to-[#00E676]" />
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 bg-[#F59E0B]/15 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Trophy className="w-7 h-7 text-[#F59E0B]" />
+              </div>
+              <h3
+                className="text-white font-black text-2xl mb-1"
+                style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+              >
+                Tocht afgerond!
               </h3>
-              <p className="text-[#64748B] text-sm mb-4">Bekijk de resultaten en download het rapport.</p>
+              <p className="text-[#64748B] text-sm mb-5">
+                {sortedTeams.length} team{sortedTeams.length !== 1 ? 's' : ''} hebben deelgenomen.
+                Bekijk de resultaten en download het rapport.
+              </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push(`/klant/${sessionId}/resultaten`)}
@@ -503,17 +574,6 @@ export default function BeheerPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Live monitor link */}
-        {(isActive || isPaused) && (
-          <button
-            onClick={() => router.push(`/spelleider/sessies/${sessionId}`)}
-            className="w-full py-3 flex items-center justify-center gap-2 border border-[#E2E8F0] rounded-xl text-[#64748B] text-sm hover:border-[#00E676]/40 hover:text-[#0F172A] transition-colors bg-white"
-          >
-            <BarChart2 className="w-4 h-4" />
-            Live GPS monitor openen
-          </button>
         )}
       </div>
     </main>
