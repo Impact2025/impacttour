@@ -4,7 +4,7 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
-const FROM = 'ImpactTour <noreply@ictusgo.nl>'
+const FROM = 'ImpactTour <hello@ictusgo.nl>'
 
 async function withEmailRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
   let lastError: unknown

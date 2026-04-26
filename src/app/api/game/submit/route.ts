@@ -12,7 +12,8 @@ const schema = z.object({
   teamToken: z.string().min(1),
   checkpointId: z.string().uuid(),
   answer: z.string().min(1).max(2000).optional(),
-  photoUrl: z.string().url().optional(),
+  photoUrl: z.string().url().optional(), // legacy: enkelvoudig (offline sync compat)
+  photoUrls: z.array(z.string().url()).max(4).optional(), // nieuw: meerdere foto's
 })
 
 /**
@@ -34,17 +35,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Ongeldige gegevens' }, { status: 400 })
   }
 
-  const { sessionId, teamToken, checkpointId, answer, photoUrl } = parsed.data
+  const { sessionId, teamToken, checkpointId, answer, photoUrl, photoUrls: photoUrlsRaw } = parsed.data
 
-  if (!answer && !photoUrl) {
+  // Normaliseer naar array: nieuw veld heeft voorrang, legacy veld als fallback
+  const allPhotoUrls: string[] = photoUrlsRaw ?? (photoUrl ? [photoUrl] : [])
+  const primaryPhotoUrl = allPhotoUrls[0] ?? null
+
+  if (!answer && allPhotoUrls.length === 0) {
     return NextResponse.json({ error: 'Geen antwoord of foto opgegeven' }, { status: 400 })
   }
 
-  // Valideer dat photoUrl afkomstig is van Vercel Blob én bij deze sessie hoort
-  if (photoUrl) {
+  // Valideer alle foto URLs: moeten van Vercel Blob zijn én bij deze sessie horen
+  const BLOB_HOSTS = ['public.blob.vercel-storage.com', 'blob.vercel-storage.com']
+  for (const url of allPhotoUrls) {
     try {
-      const parsedPhoto = new URL(photoUrl)
-      const BLOB_HOSTS = ['public.blob.vercel-storage.com', 'blob.vercel-storage.com']
+      const parsedPhoto = new URL(url)
       if (!BLOB_HOSTS.some((h) => parsedPhoto.hostname.endsWith(h))) {
         return NextResponse.json({ error: 'Ongeldige foto URL' }, { status: 400 })
       }
@@ -121,10 +126,10 @@ export async function POST(req: Request) {
   // Kids-varianten: foto's worden na 30 dagen verwijderd
   const isKidsVariant = session.variant === 'jeugdtocht' || session.variant === 'voetbalmissie'
   const scheduledDeleteAt =
-    isKidsVariant && photoUrl ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
+    isKidsVariant && allPhotoUrls.length > 0 ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null
 
   // Bonus punten bij foto-inzending (bijv. checkpoint 2 van VoetbalMissie)
-  const bonusFromPhoto = photoUrl && checkpoint.bonusPhotoPoints > 0 ? checkpoint.bonusPhotoPoints : 0
+  const bonusFromPhoto = allPhotoUrls.length > 0 && checkpoint.bonusPhotoPoints > 0 ? checkpoint.bonusPhotoPoints : 0
 
   const FALLBACK_FACTOR = 0.6
 
@@ -142,7 +147,8 @@ export async function POST(req: Request) {
         teamId: team.id,
         checkpointId,
         answer,
-        photoUrl,
+        photoUrl: primaryPhotoUrl,
+        photoUrls: allPhotoUrls.length > 0 ? allPhotoUrls : null,
         status: 'approved',
         aiScore: 60,
         aiFeedback: 'Goede inzending! (AI limiet bereikt, basisbeoordeling gegeven)',
@@ -218,7 +224,7 @@ export async function POST(req: Request) {
     evaluation = await evaluateSubmission({
       missionTitle: checkpoint.missionTitle,
       missionDescription: checkpoint.missionDescription,
-      teamAnswer: answer ?? `[Foto ingediend: ${photoUrl}]`,
+      teamAnswer: answer ?? (allPhotoUrls.length > 1 ? `[${allPhotoUrls.length} foto's ingediend]` : `[Foto ingediend]`),
       variant: session.variant,
       missionType: checkpoint.missionType,
       checkpointType: checkpoint.type,
@@ -244,7 +250,8 @@ export async function POST(req: Request) {
         teamId: team.id,
         checkpointId,
         answer,
-        photoUrl,
+        photoUrl: primaryPhotoUrl,
+        photoUrls: allPhotoUrls.length > 0 ? allPhotoUrls : null,
         status: 'approved',
         aiScore: 60,
         aiFeedback: 'Goede inzending! (AI tijdelijk niet beschikbaar, automatische beoordeling)',
@@ -326,7 +333,8 @@ export async function POST(req: Request) {
       teamId: team.id,
       checkpointId,
       answer,
-      photoUrl,
+      photoUrl: primaryPhotoUrl,
+      photoUrls: allPhotoUrls.length > 0 ? allPhotoUrls : null,
       status: 'approved',
       aiScore: evaluation.score,
       aiFeedback: evaluation.feedback,

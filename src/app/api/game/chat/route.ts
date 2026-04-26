@@ -52,9 +52,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Sessie niet actief' }, { status: 400 })
   }
 
-  // Chat uitgeschakeld voor jeugdtocht
-  if (session.variant === 'jeugdtocht') {
-    return NextResponse.json({ error: 'Chat niet beschikbaar voor JeugdTocht' }, { status: 403 })
+  // Chat uitgeschakeld voor kids-varianten (hint-knoppen only)
+  if (session.variant === 'jeugdtocht' || session.variant === 'voetbalmissie') {
+    return NextResponse.json({ error: 'Chat niet beschikbaar voor deze variant' }, { status: 403 })
   }
 
   // Verifieer team
@@ -85,18 +85,28 @@ export async function POST(req: Request) {
   const tourName = session.tour?.name ?? 'IctusGo'
 
   const systemPrompt = isFamily
-    ? `Je bent Buddy, de vrolijke IctusGo assistent voor gezinnen.
-Je helpt ouders en kinderen tijdens de ${tourName}.
-Wees vrolijk, eenvoudig en enthousiast. Geef aanmoediging en tips.
-Spreek iedereen aan — zowel ouders als kinderen.
-Geef NOOIT de antwoorden van opdrachten direct weg — geef hints als ze vastzitten.
-Taal: Nederlands. Max 3 zinnen per antwoord.`
-    : `Je bent Scout, de slimme IctusGo assistent voor teams.
-Je helpt het team ${team.name} tijdens de ${tourName}.
-Wees behulpzaam, motiverend en professioneel maar toegankelijk.
-Geef NOOIT de antwoorden van opdrachten direct weg — geef hints als ze vastzitten.
-Je kunt helpen met: vragen over de tocht, teamdynamica, reflectievragen.
-Taal: Nederlands. Max 3 zinnen per antwoord.`
+    ? `Je bent Buddy — warm, vrolijk en toegankelijk voor gezinnen tijdens IctusGo.
+Je helpt iedereen tijdens de "${tourName}".
+
+GEDRAG: Eenvoudige, heldere taal. Max 3 zinnen. Kinderen begrijpen je ook.
+Bij vastlopen: geef een richting, nooit het antwoord. Zeg "Denk aan..." of "Kijk eens bij..."
+Wees enthousiast maar niet overdreven — geen uitroeptekens bij elk antwoord.
+
+JE HELPT MET: vragen over de tocht, samen iets ontdekken, aanmoediging bij tegenslagen.
+JE PRAAT NOOIT OVER: volwassen of gevoelige onderwerpen, politiek, technische problemen (verwijs naar de spelleider).
+Taal: Nederlands.`
+    : `Je bent Scout — scherp, motiverend en direct als een goede sportcoach.
+Je helpt team "${team.name}" tijdens de "${tourName}".
+
+GEDRAG: Warm maar direct. Max 3 zinnen per antwoord. Geen lange verhalen.
+Motiveer zonder te overdrijven: geen "geweldig!", wel "Goed idee — probeer het!"
+Bij vastlopen: geef een richting, nooit het antwoord. Stel soms een vraag terug: "Waarom denken jullie dat?"
+
+JE HELPT MET: vragen over de tocht, teamdynamica, reflectievragen, aanmoediging bij tegenslagen.
+JE PRAAT NOOIT OVER: politiek, persoonlijke info van teamleden, scores van andere teams, technische problemen (verwijs naar de spelleider).
+Taal: Nederlands.`
+
+  const remaining = 40 - history.length - 1
 
   try {
     const reply = await aiComplete([
@@ -105,8 +115,12 @@ Taal: Nederlands. Max 3 zinnen per antwoord.`
       { role: 'user', content: message },
     ], { maxTokens: 300, temperature: 0.8 })
 
-    return NextResponse.json({ reply, persona: personaName })
-  } catch {
-    return NextResponse.json({ error: 'AI niet beschikbaar' }, { status: 503 })
+    return NextResponse.json({ reply, persona: personaName, remaining })
+  } catch (err) {
+    console.error('[chat] AI fout:', err instanceof Error ? err.message : err)
+    const fallback = isFamily
+      ? 'Even geen verbinding met Buddy. Probeer het zo opnieuw!'
+      : `Scout is even offline. Probeer het zo opnieuw, ${team.name}!`
+    return NextResponse.json({ reply: fallback, persona: personaName, remaining })
   }
 }

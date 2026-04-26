@@ -29,6 +29,7 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
   const [hasError, setHasError] = useState(false)
   const [lastMessage, setLastMessage] = useState<string | null>(null)
   const [persona, setPersona] = useState<string>('Scout')
+  const [remaining, setRemaining] = useState<number>(39)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -66,6 +67,7 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
       })
 
       const data = await res.json()
+      if (data.remaining !== undefined) setRemaining(data.remaining)
       if (res.ok && data.reply) {
         setPersona(data.persona ?? personaName)
         setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
@@ -128,14 +130,28 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
             {messages.length === 0 && (
-              <div className="text-center py-8">
+              <div className="text-center py-6">
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-green-700">
                   {personaName.charAt(0)}
                 </div>
                 <p className="font-semibold text-gray-700">Hoi {teamName}!</p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1 mb-4">
                   Ik ben {personaName}. Vraag me alles over de tocht!
                 </p>
+                <div className="space-y-2 text-left mx-2">
+                  {(variant === 'familietocht'
+                    ? ['Geef ons een hint voor de opdracht!', 'Wat is de leukste manier om samen te werken?', 'We zitten vast, help ons!']
+                    : ['Geef ons een hint voor de huidige opdracht', 'Hoe kunnen we beter samenwerken?', 'Wat is onze sterkste kant als team?']
+                  ).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => { setInput(q); inputRef.current?.focus() }}
+                      className="w-full text-left px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:border-green-400 hover:text-green-700 transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -191,6 +207,15 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
 
             <div ref={bottomRef} />
           </div>
+
+          {/* Remaining warning */}
+          {remaining <= 5 && (
+            <div className="px-4 py-1.5 bg-amber-50 border-t border-amber-100 text-center">
+              <span className="text-xs text-amber-600">
+                Nog {remaining} bericht{remaining !== 1 ? 'en' : ''} beschikbaar
+              </span>
+            </div>
+          )}
 
           {/* Input */}
           <div className="p-3 border-t bg-white flex gap-2 shrink-0">

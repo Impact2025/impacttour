@@ -19,7 +19,7 @@ interface Props {
   teamToken: string
   isKids: boolean
   variant: string
-  onSubmit: (answer: string, photoUrl?: string) => Promise<SubmissionResult | null>
+  onSubmit: (answer: string, photoUrls?: string[]) => Promise<SubmissionResult | null>
   onClose: () => void
 }
 
@@ -53,7 +53,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
   const [currentHint, setCurrentHint] = useState<string | null>(null)
   const [isLoadingHint, setIsLoadingHint] = useState(false)
   const [fetchedHints, setFetchedHints] = useState<Partial<Record<1 | 2 | 3, string>>>({})
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoUrls, setPhotoUrls] = useState<string[]>([])
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number | null>(checkpoint.timeLimitSeconds ?? null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -107,29 +107,46 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
     }
   }
 
+  const MAX_PHOTOS = 4
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    if (photoUrls.length >= MAX_PHOTOS) { toast.error(`Maximaal ${MAX_PHOTOS} foto's toegestaan`); return }
+    // Reset input zodat dezelfde foto opnieuw gekozen kan worden
+    e.target.value = ''
     setIsUploadingPhoto(true)
     try {
+      const file = files[0]
       const formData = new FormData()
       formData.append('file', file)
       formData.append('sessionId', sessionId)
       formData.append('teamToken', teamToken)
       const res = await fetch('/api/game/photo', { method: 'POST', body: formData })
       const data = await res.json()
-      if (res.ok) { setPhotoUrl(data.url); toast.success('Foto geüpload!') }
-      else toast.error('Foto upload mislukt')
+      if (res.ok) {
+        setPhotoUrls((prev) => [...prev, data.url])
+        toast.success('Foto geüpload!')
+      } else {
+        toast.error('Foto upload mislukt')
+      }
     } finally {
       setIsUploadingPhoto(false)
     }
   }
 
+  const removePhoto = (index: number) => {
+    setPhotoUrls((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const isFotoMission = checkpoint.missionType === 'foto'
+
   const handleSubmit = async () => {
-    if (!answer && !photoUrl) { toast.error('Vul een antwoord in of upload een foto'); return }
+    if (isFotoMission && photoUrls.length === 0) { toast.error('Upload minimaal één foto'); return }
+    if (!answer && photoUrls.length === 0) { toast.error('Vul een antwoord in of upload een foto'); return }
     setIsSubmitting(true)
     try {
-      const submission = await onSubmit(answer, photoUrl ?? undefined)
+      const submission = await onSubmit(answer, photoUrls.length > 0 ? photoUrls : undefined)
       if (submission) setResult(submission)
     } finally {
       setIsSubmitting(false)
@@ -331,71 +348,104 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
           </div>
         )}
 
-        {/* Antwoord textarea */}
-        {checkpoint.missionType !== 'foto' && (
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest px-0.5">
-              Jullie antwoord
+        {/* Antwoord textarea — altijd tonen, ook bij foto-missies */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between px-0.5">
+            <label className="block text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest">
+              {isFotoMission ? 'Beschrijf je foto (optioneel)' : 'Jullie antwoord'}
             </label>
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Beschrijf wat jullie hebben gedaan, geleerd of ontdekt..."
-              rows={4}
-              className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00E676] focus:border-transparent resize-none text-sm text-[#0F172A] placeholder:text-[#CBD5E1]"
-            />
+            <span className={`text-[10px] tabular-nums ${answer.length > 1800 ? 'text-red-400' : 'text-[#CBD5E1]'}`}>
+              {answer.length}/2000
+            </span>
           </div>
-        )}
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            placeholder={isFotoMission
+              ? 'Vertel erbij wat je ziet, voelde of ontdekte...'
+              : 'Beschrijf wat jullie hebben gedaan, geleerd of ontdekt...'}
+            rows={isFotoMission ? 3 : 4}
+            maxLength={2000}
+            className="w-full px-4 py-3 bg-white border border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00E676] focus:border-transparent resize-none text-sm text-[#0F172A] placeholder:text-[#CBD5E1]"
+          />
+        </div>
 
-        {/* Foto upload */}
-        {(checkpoint.missionType === 'foto' || checkpoint.missionType === 'opdracht' || hasBonusPhoto) && (
-          <div className="space-y-1.5">
-            {checkpoint.missionType === 'foto' && (
-              <label className="block text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest px-0.5">
-                Foto inzending
+        {/* Foto upload — multi (max 4) */}
+        {(isFotoMission || checkpoint.missionType === 'opdracht' || hasBonusPhoto) && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-0.5">
+              <label className="block text-[10px] font-bold text-[#94A3B8] uppercase tracking-widest">
+                {isFotoMission ? `Foto's (${photoUrls.length}/${MAX_PHOTOS})` : hasBonusPhoto ? 'Bonusfoto' : "Foto's"}
               </label>
-            )}
+              {photoUrls.length > 0 && photoUrls.length < MAX_PHOTOS && (
+                <span className="text-[10px] text-[#94A3B8]">Je kunt nog {MAX_PHOTOS - photoUrls.length} foto{MAX_PHOTOS - photoUrls.length !== 1 ? "'s" : ''} toevoegen</span>
+              )}
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={handlePhotoUpload}
               className="hidden"
             />
-            {photoUrl ? (
-              <div className="relative rounded-xl overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/game/photo/serve?url=${encodeURIComponent(photoUrl)}&sessionId=${sessionId}&teamToken=${teamToken}`}
-                  alt="Inzending"
-                  className="w-full object-cover max-h-48 rounded-xl"
-                />
-                <button
-                  onClick={() => setPhotoUrl(null)}
-                  className="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center"
-                >
-                  <X className="w-3.5 h-3.5 text-white" />
-                </button>
+
+            {/* Foto grid */}
+            {photoUrls.length > 0 && (
+              <div className={`grid gap-2 ${photoUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                {photoUrls.map((url, i) => (
+                  <div key={url} className="relative rounded-xl overflow-hidden aspect-square">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/game/photo/serve?url=${encodeURIComponent(url)}&sessionId=${sessionId}&teamToken=${teamToken}`}
+                      alt={`Foto ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => removePhoto(i)}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/60 backdrop-blur-sm rounded-full flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                    {i === 0 && photoUrls.length > 1 && (
+                      <div className="absolute bottom-1.5 left-1.5 bg-black/50 rounded-md px-1.5 py-0.5">
+                        <span className="text-white text-[9px] font-bold">HOOFD</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ) : (
+            )}
+
+            {/* Toevoegen knop */}
+            {photoUrls.length < MAX_PHOTOS && (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingPhoto}
-                className={`w-full py-5 border-2 border-dashed rounded-xl flex flex-col items-center gap-1.5 transition-all active:scale-98 ${
+                className={`w-full py-4 border-2 border-dashed rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                  isUploadingPhoto ? 'opacity-60 cursor-wait' :
                   hasBonusPhoto
                     ? 'border-[#FDE68A] bg-[#FFFBEB] text-[#D97706]'
                     : 'border-[#DCFCE7] bg-white text-[#00C853]'
                 }`}
               >
-                <Camera className="w-6 h-6" />
-                <span className="text-sm font-semibold">
-                  {isUploadingPhoto
-                    ? 'Uploaden...'
-                    : hasBonusPhoto
-                    ? `Teamfoto maken (+${checkpoint.bonusPhotoPoints} bonus)`
-                    : 'Foto toevoegen'}
-                </span>
+                {isUploadingPhoto ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                    <span className="text-sm font-semibold">Uploaden...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-5 h-5" />
+                    <span className="text-sm font-semibold">
+                      {photoUrls.length === 0
+                        ? hasBonusPhoto
+                          ? `Teamfoto maken (+${checkpoint.bonusPhotoPoints} bonus)`
+                          : 'Foto toevoegen'
+                        : 'Nog een foto toevoegen'}
+                    </span>
+                  </>
+                )}
               </button>
             )}
           </div>
@@ -406,7 +456,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
       <div className="px-4 pb-4 pt-3 shrink-0 bg-[#F0FDF4] border-t border-[#E2E8F0]">
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting || (!answer && !photoUrl)}
+          disabled={isSubmitting || (isFotoMission ? photoUrls.length === 0 : !answer && photoUrls.length === 0)}
           className="w-full py-4 bg-[#00E676] text-[#0F172A] rounded-2xl font-black text-base shadow-lg shadow-[#00E676]/20 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (

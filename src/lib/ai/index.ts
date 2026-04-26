@@ -45,12 +45,15 @@ export async function aiComplete(
     timeoutMs?: number
   }
 ): Promise<string> {
+  const model = options?.model ?? DEFAULT_MODEL
+  const t0 = Date.now()
   const response = await getOpenRouter().chat.completions.create({
-    model: options?.model ?? DEFAULT_MODEL,
+    model,
     messages,
     max_tokens: options?.maxTokens ?? 1024,
     temperature: options?.temperature ?? 0.7,
   })
+  console.log(`[AI] ${model.split('/').pop()} | ${response.usage?.total_tokens ?? '?'}tok | ${Date.now() - t0}ms`)
   return response.choices[0]?.message?.content ?? ''
 }
 
@@ -66,12 +69,14 @@ export async function aiCompleteJSON<T = unknown>(
   const model = options?.model ?? DEFAULT_MODEL
 
   async function attempt(m: string): Promise<T> {
+    const t0 = Date.now()
     const response = await getOpenRouter().chat.completions.create({
       model: m,
       messages,
       max_tokens: options?.maxTokens ?? 2048,
       temperature: 0.7,
     })
+    console.log(`[AI] ${m.split('/').pop()} | ${response.usage?.total_tokens ?? '?'}tok | ${Date.now() - t0}ms`)
     const content = response.choices[0]?.message?.content ?? '{}'
     // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
     const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
@@ -145,9 +150,20 @@ export async function generateHints(
     [
       {
         role: 'system',
-        content: `Genereer 3 hints voor een teambuilding opdracht, van vaag naar specifiek.
-Antwoord ALLEEN in JSON: {"hint1": "vaagste hint", "hint2": "middelste hint", "hint3": "meest specifieke hint"}
-Taal: Nederlands. Elke hint max 1 zin.`,
+        content: `Genereer 3 progressieve hints voor een teambuilding opdracht. Elke hint bouwt op de vorige.
+
+Niveaus (strikt volgen):
+- hint1 (VAAG): Noem het onderwerp NIET direct. Geef een gevoel, thema of filosofische richting. Bijv: "Denk aan wat mensen verbindt op drukke plekken." of "Kijk naar wat anderen over het hoofd zien."
+- hint2 (MIDDEL): Vernauw naar de omgeving of handeling zonder het exacte antwoord te geven. Bijv: "Zoek iets wat normaal onzichtbaar is, maar iedereen dagelijks passeert." of "De sleutel zit in een alledaagse actie die niemand opvalt."
+- hint3 (SPECIFIEK): Geef een directe aanwijzing die naar de oplossing leidt zonder hem weg te geven. Bijv: "Loop naar de ingang van het gebouw en kijk omhoog." of "Spreek de persoon aan die het meest bezig lijkt."
+
+Regels:
+- Elke hint is max 1-2 zinnen
+- De drie hints vormen een logisch opbouwende keten
+- hint3 mag nooit het antwoord prijsgeven — alleen de weg ernaar toe
+- Taal: Nederlands
+
+Antwoord ALLEEN in JSON: {"hint1": "...", "hint2": "...", "hint3": "..."}`,
       },
       {
         role: 'user',
@@ -210,7 +226,13 @@ Checkpoint type: ${params.checkpointType}
 ${weightsContext}
 
 Beoordeel op 4 GMS dimensies (elk 0-25 punten). Scoor hoger op dimensies met meer nadruk in dit checkpoint.
-${isKids ? 'Wees extra mild — kinderen verdienen aanmoediging.' : ''}
+
+Scoringsanchors (gebruik als richtlijn per dimensie):
+- 0-6 punten: Minimale inspanning, oppervlakkig of nauwelijks relevant voor de opdracht
+- 7-12 punten: Basisinspanning, enige reflectie maar weinig diepgang
+- 13-19 punten: Goede inzet, authentiek antwoord met merkbare betrokkenheid
+- 20-25 punten: Uitzonderlijk — origineel, diep en raakt de essentie van de dimensie
+${isKids ? '\nWees extra mild — kinderen verdienen aanmoediging. Scoor minimaal 10/25 per dimensie bij een serieuze poging.' : ''}
 
 Antwoord ALLEEN in JSON:
 {
@@ -331,27 +353,46 @@ export interface DebriefingParams {
 export async function generateDebriefing(
   params: DebriefingParams
 ): Promise<string> {
+  const dimMap = [
+    { name: 'verbinding', val: params.gmsBreakdown.connection },
+    { name: 'betekenis', val: params.gmsBreakdown.meaning },
+    { name: 'plezier', val: params.gmsBreakdown.joy },
+    { name: 'groei', val: params.gmsBreakdown.growth },
+  ].sort((a, b) => b.val - a.val)
+  const strongest = dimMap[0]
+  const weakest = dimMap[dimMap.length - 1]
+
   return aiComplete(
     [
       {
         role: 'system',
-        content: `Je bent een inspirerende debriefing-schrijver voor IctusGo teambuilding sessies.
-Schrijf een debriefing van 400-600 woorden in het Nederlands.
-Gebruik de naam van het team en hun prestaties. Wees positief, concreet en inspirerend.
-Noem de 4 GMS dimensies (verbinding, betekenis, plezier, groei) specifiek.
-Eindig met een aanmoediging.`,
+        content: `Je bent een inspirerende debriefing-schrijver voor IctusGo teambuilding.
+Schrijf een persoonlijke debriefing van 400-600 woorden in het Nederlands voor team ${params.teamName}.
+
+Structuur (4 alinea's, geen kopteksten, geen bulletpoints, geen markdown):
+1. OPENING — Noem het team bij naam. 2-3 warme zinnen die de kern van de ervaring vatten. Verbind hun totaalscore (${params.totalScore}/100) met de sfeer die ze meebrachten. Wees specifiek, niet generiek.
+2. STERKSTE MOMENT — Bespreek ${strongest.name} (${strongest.val}/25 punten — hoogste dimensie). Leg concreet uit wat dit zegt over dit team: hoe gedroegen ze zich, welke keuzes maakten ze, wat maakt hen bijzonder op dit vlak?
+3. GROEIPUNT — Bespreek ${weakest.name} (${weakest.val}/25 — laagste dimensie) eerlijk maar constructief. Wat hield hen terug? Geef één concreet, uitvoerbaar advies voor de volgende keer.
+4. AFSLUITING — Eindig met energie. Stel één uitdagende vraag voor de komende weken (begin met "Hoe neem je...?" of "Wat als jullie...?"). Sluit af met een warme aanmoediging — geen clichés als "geweldig gedaan" of "super prestatie".
+
+Schrijfstijl:
+- Tweede persoon (jullie / je team)
+- Professioneel maar warm — als een goede coach, niet een PR-tekst
+- Geen platitudes — wees concreet en eerlijk waar verdiend`,
       },
       {
         role: 'user',
         content: `Team: ${params.teamName}
 Tocht: ${params.tourName}
-Score: ${params.totalScore}/100
-Checkpoints: ${params.checkpointsCompleted}/${params.totalCheckpoints}
+Totaalscore: ${params.totalScore}/100
+Checkpoints voltooid: ${params.checkpointsCompleted}/${params.totalCheckpoints}
 GMS scores:
 - Verbinding: ${params.gmsBreakdown.connection}/25
 - Betekenis: ${params.gmsBreakdown.meaning}/25
 - Plezier: ${params.gmsBreakdown.joy}/25
 - Groei: ${params.gmsBreakdown.growth}/25
+Sterkste dimensie: ${strongest.name} (${strongest.val}/25)
+Zwakste dimensie: ${weakest.name} (${weakest.val}/25)
 ${params.highlights?.length ? `\nHighlights: ${params.highlights.join(', ')}` : ''}`,
       },
     ],
@@ -490,13 +531,28 @@ export async function generateReportNarrative(params: {
   topTeam: string
   gmsBreakdown: { connection: number; meaning: number; joy: number; growth: number }
 }): Promise<string> {
+  const dimMap = [
+    { name: 'verbinding', val: params.gmsBreakdown.connection },
+    { name: 'betekenis', val: params.gmsBreakdown.meaning },
+    { name: 'plezier', val: params.gmsBreakdown.joy },
+    { name: 'groei', val: params.gmsBreakdown.growth },
+  ].sort((a, b) => b.val - a.val)
+  const strongest = dimMap[0]
+  const weakest = dimMap[dimMap.length - 1]
+
   return aiComplete(
     [
       {
         role: 'system',
-        content: `Schrijf een impact narratief voor een IctusGo sessie rapport.
-200-300 woorden in het Nederlands. Professioneel maar warm van toon.
-Beschrijf de collectieve impact van alle teams samen.`,
+        content: `Je schrijft de openingsparagraaf van een professioneel IctusGo-sessie rapport voor een opdrachtgever.
+
+Structuur (3 alinea's, 200-300 woorden totaal, geen kopteksten, geen bulletpoints):
+1. IMPACT SNAPSHOT — Vertaal de sessiecijfers naar menselijk gedrag. Wat zag je écht gebeuren bij ${params.totalTeams} teams? Maak de data concreet: welk collectief gedrag verbergt zich achter een gemiddelde GMS van ${params.avgGmsScore}/100?
+2. DIMENSIE-NARRATIEF — Bespreek "${strongest.name}" als de sterkste collectieve kracht (${strongest.val}/25 gemiddeld) én "${weakest.name}" als het aandachtspunt (${weakest.val}/25). Wat zeggen deze scores over de cultuur van de organisatie — verder dan de activiteit zelf?
+3. AANBEVELING — Geef één concrete, uitvoerbare aanbeveling voor de opdrachtgever gericht op de zwakste dimensie. Begin met een werkwoord ("Investeer in...", "Daag teams uit om...", "Organiseer...").
+
+Toon: Professioneel en data-gedreven, maar menselijk. Schrijf als een ervaren OD-consultant met gevoel voor mensen. Geen jargon. Geen lege lof.
+Taal: Nederlands.`,
       },
       {
         role: 'user',
@@ -508,9 +564,11 @@ Gemiddelde GMS verdeling:
 - Verbinding: ${params.gmsBreakdown.connection}/25
 - Betekenis: ${params.gmsBreakdown.meaning}/25
 - Plezier: ${params.gmsBreakdown.joy}/25
-- Groei: ${params.gmsBreakdown.growth}/25`,
+- Groei: ${params.gmsBreakdown.growth}/25
+Sterkste dimensie: ${strongest.name} (${strongest.val}/25)
+Aandachtspunt: ${weakest.name} (${weakest.val}/25)`,
       },
     ],
-    { maxTokens: 400, temperature: 0.8 }
+    { maxTokens: 450, temperature: 0.75 }
   )
 }
