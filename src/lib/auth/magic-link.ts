@@ -46,7 +46,8 @@ export async function generateMagicLink({
   })
 
   // 5. Magic link URL met RAW token (NextAuth hasht dit bij ontvangst en vergelijkt met DB)
-  const callbackUrl = encodeURIComponent(`${appUrl}${callbackPath}`)
+  // callbackUrl als relatief pad — NextAuth verwerpt absolute URLs als het domein niet exact matcht
+  const callbackUrl = encodeURIComponent(callbackPath)
   const magicLink = `${appUrl}/api/auth/callback/resend?token=${rawToken}&email=${encodeURIComponent(email)}&callbackUrl=${callbackUrl}`
 
   return magicLink
