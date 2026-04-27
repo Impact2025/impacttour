@@ -22,7 +22,12 @@ function LoginForm() {
     e.preventDefault()
     setIsSending(true)
     setError('')
-    await signIn('nodemailer', { email, callbackUrl, redirect: false })
+    const result = await signIn('resend', { email, callbackUrl, redirect: false })
+    if (result?.error) {
+      setError('Er is iets misgegaan. Probeer het opnieuw.')
+      setIsSending(false)
+      return
+    }
     setSent(true)
     setIsSending(false)
   }
@@ -39,6 +44,7 @@ function LoginForm() {
     const result = await signIn(providerId, {
       email,
       password,
+      callbackUrl,
       redirect: false,
     })
 
@@ -181,6 +187,13 @@ function LoginForm() {
               <p className="text-center text-xs text-[#94A3B8] leading-relaxed">
                 Je wachtwoord staat in de bevestigingsmail van je boeking.
               </p>
+              <button
+                type="button"
+                onClick={() => { setTab('magic'); setError('') }}
+                className="w-full text-center text-xs text-[#64748B] hover:text-[#0F172A] transition-colors py-1"
+              >
+                Wachtwoord vergeten? Gebruik een inloglink →
+              </button>
             </form>
           ) : (
             <form onSubmit={handleMagicLink} className="space-y-4">

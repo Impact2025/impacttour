@@ -158,8 +158,9 @@ self.addEventListener('fetch', (event) => {
           event.request.mode === 'navigate' &&
           STATIC_ASSETS.includes(url.pathname)
         ) {
+          const responseToCache = response.clone()
           caches.open(STATIC_CACHE_NAME).then((cache) => {
-            cache.put(event.request, response.clone())
+            cache.put(event.request, responseToCache)
           })
         }
         return response

@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-/**
- * Middleware: geen NextAuth import (vermijdt nodemailer edge-runtime crash).
- * Auth-verificatie gebeurt in de server components zelf via auth() van @/lib/auth.
- * Hier alleen een basis cookie-check voor snelle redirect.
- */
+// Geen NextAuth import — vermijdt nodemailer edge-runtime crash.
+// Rol-verificatie gebeurt server-side in layouts/pages via auth().
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Check of er een sessie-cookie aanwezig is (naam gebruikt door NextAuth v5)
   const hasSession =
     req.cookies.has('authjs.session-token') ||
     req.cookies.has('__Secure-authjs.session-token')
 
-  if (pathname.startsWith('/spelleider') || (pathname.startsWith('/admin') && pathname !== '/admin/login')) {
+  // Spelleider & klant routes → /login met callbackUrl (relatief pad, voorkomt open redirect)
+  if (pathname.startsWith('/spelleider') || pathname.startsWith('/klant')) {
     if (!hasSession) {
-      const loginUrl = new URL('/admin/login', req.url)
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(loginUrl)
+    }
+  }
+
+  // Admin routes → /admin/login
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    if (!hasSession) {
+      return NextResponse.redirect(new URL('/admin/login', req.url))
     }
   }
 
@@ -24,5 +29,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/spelleider/:path*', '/admin/:path*'],
+  matcher: ['/spelleider/:path*', '/admin/:path*', '/klant/:path*'],
 }
