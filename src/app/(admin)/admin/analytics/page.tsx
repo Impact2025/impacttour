@@ -5,24 +5,9 @@ import { AdminSparkChart } from '@/components/admin/admin-spark-chart'
 import { AdminLineChart } from '@/components/admin/admin-line-chart'
 import { AdminDonutChart } from '@/components/admin/admin-donut-chart'
 import { AnalyticsDateRangeSelector } from './analytics-client'
+import { VARIANT_LABELS, VARIANT_COLORS } from '@/lib/admin-constants'
 
 export const dynamic = 'force-dynamic'
-
-const VARIANT_LABELS: Record<string, string> = {
-  wijktocht: 'WijkTocht',
-  impactsprint: 'ImpactSprint',
-  familietocht: 'FamilieTocht',
-  jeugdtocht: 'JeugdTocht',
-  voetbalmissie: 'VoetbalMissie',
-}
-
-const VARIANT_COLORS: Record<string, string> = {
-  wijktocht: '#00E676',
-  impactsprint: '#3B82F6',
-  familietocht: '#F59E0B',
-  jeugdtocht: '#8B5CF6',
-  voetbalmissie: '#EF4444',
-}
 
 export default async function AnalyticsPage({
   searchParams,

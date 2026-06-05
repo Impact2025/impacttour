@@ -6,28 +6,9 @@ import Link from 'next/link'
 import { AdminKpiCard } from '@/components/admin/admin-kpi-card'
 import { AdminStatusBadge } from '@/components/admin/admin-status-badge'
 import { AdminSparkChart } from '@/components/admin/admin-spark-chart'
+import { VARIANT_LABELS, VARIANT_COLORS, formatEuro } from '@/lib/admin-constants'
 
 export const dynamic = 'force-dynamic'
-
-const VARIANT_LABELS: Record<string, string> = {
-  wijktocht: 'WijkTocht',
-  impactsprint: 'ImpactSprint',
-  familietocht: 'FamilieTocht',
-  jeugdtocht: 'JeugdTocht',
-  voetbalmissie: 'VoetbalMissie',
-}
-
-const VARIANT_COLORS: Record<string, string> = {
-  wijktocht: '#00E676',
-  impactsprint: '#3B82F6',
-  familietocht: '#F59E0B',
-  jeugdtocht: '#8B5CF6',
-  voetbalmissie: '#EF4444',
-}
-
-function formatEuro(cents: number) {
-  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(cents / 100)
-}
 
 function formatRelativeTime(date: Date | string | null) {
   if (!date) return ''
@@ -144,7 +125,7 @@ export default async function AdminDashboard() {
   }))
 
   const conversionRate = totalOrders > 0 ? Math.round((paidCount / totalOrders) * 100) : 0
-  const revenueEuro = `€${Math.round((Number(totalRevenue) ?? 0) / 100).toLocaleString('nl-NL')}`
+  const revenueEuro = formatEuro(Number(totalRevenue) ?? 0)
 
   const dateLabel = now.toLocaleDateString('nl-NL', {
     weekday: 'long',

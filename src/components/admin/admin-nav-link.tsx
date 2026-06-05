@@ -2,13 +2,15 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
+
 interface AdminNavLinkProps {
   href: string
   label: string
   icon: React.ReactNode
+  badge?: number
 }
 
-export default function AdminNavLink({ href, label, icon }: AdminNavLinkProps) {
+export default function AdminNavLink({ href, label, icon, badge }: AdminNavLinkProps) {
   const pathname = usePathname()
   const isActive = pathname === href || pathname.startsWith(href + '/')
 
@@ -22,7 +24,16 @@ export default function AdminNavLink({ href, label, icon }: AdminNavLinkProps) {
       }`}
     >
       {icon}
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge != null && badge > 0 && (
+        <span
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${
+            isActive ? 'bg-[#0F172A]/20 text-[#0F172A]' : 'bg-red-500 text-white'
+          }`}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </Link>
   )
 }

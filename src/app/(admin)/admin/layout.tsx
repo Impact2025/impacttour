@@ -1,6 +1,9 @@
 import { auth, signOut } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { db } from '@/lib/db'
+import { webhookEvents, gameSessions } from '@/lib/db/schema'
+import { count, eq, inArray } from 'drizzle-orm'
 import {
   LayoutDashboard,
   Users,
@@ -20,26 +23,41 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await auth()
   if (!session || session.user.role !== 'admin') redirect('/admin/login')
 
+  const [{ failedWebhooks }] = await db
+    .select({ failedWebhooks: count() })
+    .from(webhookEvents)
+    .where(eq(webhookEvents.status, 'failed'))
+
+  const [{ activeSessions }] = await db
+    .select({ activeSessions: count() })
+    .from(gameSessions)
+    .where(inArray(gameSessions.status, ['lobby', 'active']))
+
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
     { href: '/admin/gebruikers', label: 'Gebruikers', Icon: Users },
     { href: '/admin/tochten', label: 'Tochten', Icon: Map },
-    { href: '/admin/sessies', label: 'Sessies', Icon: Activity },
+    { href: '/admin/sessies', label: 'Sessies', Icon: Activity, badge: activeSessions },
     { href: '/admin/bestellingen', label: 'Bestellingen', Icon: ShoppingCart },
     { href: '/admin/coupons', label: 'Coupons', Icon: Tag },
-    { href: '/admin/webhooks', label: 'Webhooks', Icon: Zap },
+    { href: '/admin/webhooks', label: 'Webhooks', Icon: Zap, badge: failedWebhooks },
     { href: '/admin/analytics', label: 'Analytics', Icon: BarChart3 },
   ]
 
+  const initials = (session.user.name ?? session.user.email ?? 'A')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
     <div className="flex h-screen bg-[#F8FAFC]">
-      {/* Sidebar overlay for mobile */}
       <div
         id="sidebar-overlay"
         className="fixed inset-0 bg-black/50 z-30 hidden md:hidden"
       />
 
-      {/* Sidebar */}
       <aside
         id="admin-sidebar"
         className="fixed left-0 top-0 h-screen w-60 bg-[#0F172A] flex flex-col z-40 -translate-x-full md:translate-x-0 transition-transform duration-200"
@@ -48,23 +66,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-[#00E676] rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-[#0F172A] font-black text-xs">IG</span>
+              <span className="text-[#0F172A] font-black text-xs">IT</span>
             </div>
             <div>
-              <div className="text-white font-bold text-sm leading-none">IctusGo</div>
+              <div className="text-white font-bold text-sm leading-none">ImpactTour</div>
               <div className="text-[#475569] text-xs mt-0.5">Admin</div>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(({ href, label, Icon }) => (
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {navItems.map(({ href, label, Icon, badge }) => (
             <AdminNavLink
               key={href}
               href={href}
               label={label}
               icon={<Icon className="w-4 h-4 flex-shrink-0" />}
+              badge={badge}
             />
           ))}
 
@@ -82,10 +101,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {/* Footer */}
         <div className="px-4 py-4 border-t border-white/10">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-[#1E293B] flex items-center justify-center flex-shrink-0">
-              <span className="text-[#94A3B8] text-xs font-bold">
-                {(session.user.email ?? 'A')[0].toUpperCase()}
-              </span>
+            <div className="w-8 h-8 rounded-full bg-[#00E676]/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-[#00E676] text-xs font-bold">{initials}</span>
             </div>
             <div className="min-w-0">
               <div className="text-white text-xs font-semibold truncate">
@@ -111,20 +128,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-60">
         {/* Mobile topbar */}
         <header className="md:hidden bg-[#0F172A] px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-[#00E676] rounded-lg flex items-center justify-center">
-              <span className="text-[#0F172A] font-black text-xs">IG</span>
+              <span className="text-[#0F172A] font-black text-xs">IT</span>
             </div>
-            <span className="text-white font-bold text-sm">Admin</span>
+            <span className="text-white font-bold text-sm">ImpactTour Admin</span>
           </div>
           <AdminSidebarToggle />
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">{children}</div>
         </main>

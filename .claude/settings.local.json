@@ -118,7 +118,16 @@
       "Bash(find /d/apps/Impacttour -type f \\\\\\(-name .env.example -o -name vercel.json -o -name next.config.* -o -name sw.js -o -name service-worker.js \\\\\\))",
       "Bash(wait)",
       "Bash(ls \"D:/apps/impacttour/src/app/\\(marketplace\\)/\")",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(echo \"Can't query directly, checking seeds...\" ls scripts/seed*.ts)",
+      "Bash(stripe *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(ls -la .env*)",
+      "Bash(dir .env*)",
+      "Bash(xargs basename *)",
+      "PowerShell(admin *)",
+      "PowerShell(git add *)"
     ]
   }
 }
