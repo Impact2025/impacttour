@@ -6,6 +6,58 @@ import type { CheckpointInfo } from './page'
 import type { GPSPosition } from '@/hooks/use-gps'
 import 'leaflet/dist/leaflet.css'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildGpsIcon(L: any, heading: number | null) {
+  const hdg = heading !== null && !isNaN(heading) ? heading : null
+
+  if (hdg !== null) {
+    return L.divIcon({
+      html: `
+        <div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+          <div style="
+            position:absolute;top:50%;left:50%;
+            width:52px;height:52px;
+            margin:-26px 0 0 -26px;
+            border-radius:50%;
+            background:#3b82f6;
+            animation:gpsRing 2s ease-out infinite;
+          "></div>
+          <svg width="32" height="32" viewBox="0 0 32 32"
+            style="transform:rotate(${hdg}deg);transition:transform 0.4s ease-out;filter:drop-shadow(0 2px 6px rgba(37,99,235,0.55));">
+            <polygon points="16,3 25,27 16,22 7,27" fill="#2563EB" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+          </svg>
+        </div>`,
+      className: '',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    })
+  }
+
+  return L.divIcon({
+    html: `
+      <div style="position:relative;width:22px;height:22px;">
+        <div style="
+          position:absolute;top:50%;left:50%;
+          width:44px;height:44px;
+          margin:-22px 0 0 -22px;
+          border-radius:50%;
+          background:#3b82f6;
+          animation:gpsRing 2s ease-out infinite;
+        "></div>
+        <div style="
+          width:22px;height:22px;
+          border-radius:50%;
+          background:#2563EB;
+          border:3px solid white;
+          box-shadow:0 2px 10px rgba(37,99,235,0.6);
+        "></div>
+      </div>`,
+    className: '',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  })
+}
+
 interface Props {
   checkpoints: CheckpointInfo[]
   teamPosition: GPSPosition | null
@@ -22,6 +74,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
   const checkpointMarkersRef = useRef<Map<string, unknown>>(new Map())
   const geofenceLayerRef = useRef<unknown>(null)
   const checkpointsRef = useRef<CheckpointInfo[]>(checkpoints)
+  const lastHeadingRef = useRef<number | null | undefined>(undefined)
   const isVoetbal = variant === 'voetbalmissie' || variant === 'jeugdtocht'
 
   // Initialiseer kaart
@@ -69,35 +122,22 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     })
     checkpointMarkersRef.current.clear()
 
-    // Route polyline — verbindt alle checkpoints op volgorde
-    const routeCoords = [...checkpoints]
-      .sort((a, b) => a.orderIndex - b.orderIndex)
-      .map((cp) => [cp.latitude, cp.longitude])
-
-    if (routeCoords.length > 1) {
-      const polyline = L.polyline(routeCoords, {
-        color: '#00E676',
-        weight: 3,
-        opacity: 0.85,
-      }).addTo(map)
-      checkpointMarkersRef.current.set('__polyline', polyline)
-    }
-
     checkpoints.forEach((cp, idx) => {
       const isNearby = nearbyCheckpoint?.id === cp.id
       const isCompleted = cp.isCompleted
       const isCurrent = cp.isCurrent
       const isActive = isCurrent || isNearby
 
-      // Label bubble boven actief checkpoint
+      // Label bubble boven huidig doelcheckpoint (isCurrent of isNearby)
       if (isActive) {
-        const icon = isVoetbal ? '⚽' : '📍'
+        const cpIcon = isVoetbal ? '⚽' : '📍'
         const bgColor = isNearby ? '#F59E0B' : '#00E676'
         const arrowColor = isNearby ? '#F59E0B' : '#00E676'
+        const textOpacity = isCurrent && !isNearby ? '0.92' : '1'
 
         const labelIcon = L.divIcon({
           html: `
-            <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="display:flex;flex-direction:column;align-items:center;opacity:${textOpacity};">
               <div style="
                 background:${bgColor};
                 color:#0F172A;
@@ -111,7 +151,7 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
                 letter-spacing:0.04em;
                 text-transform:uppercase;
                 font-family:'Barlow Condensed',sans-serif;
-              ">${icon} ${cp.name}</div>
+              ">${cpIcon} ${cp.name}</div>
               <div style="
                 width:0;height:0;
                 border-left:5px solid transparent;
@@ -128,28 +168,46 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
         checkpointMarkersRef.current.set(`label-${cp.id}`, labelMarker)
       }
 
-      // Dot marker
-      const dotSize = isActive ? 18 : 13
+      // Dot marker — completed = klein + gedimd, active = groot + levendig, future = medium
+      const dotSize = isActive ? 18 : isCompleted ? 8 : 12
       const bgColor = isCompleted
-        ? '#00E676'
+        ? 'rgba(148,163,184,0.25)'
         : isNearby
         ? '#F59E0B'
         : isCurrent
         ? '#0F172A'
-        : '#CBD5E1'
-      const textColor = isCurrent && !isCompleted ? '#FFFFFF' : '#0F172A'
-      const borderColor = isCompleted ? '#00C853' : isNearby ? '#D97706' : isCurrent ? '#00E676' : '#94A3B8'
+        : '#E2E8F0'
+      const textColor = isCompleted
+        ? '#94A3B8'
+        : isCurrent && !isCompleted
+        ? '#FFFFFF'
+        : '#475569'
+      const borderColor = isCompleted
+        ? '#CBD5E1'
+        : isNearby
+        ? '#D97706'
+        : isCurrent
+        ? '#00E676'
+        : '#94A3B8'
       const label = isCompleted ? '✓' : String(idx + 1)
+      const fontSize = isActive ? '13px' : isCompleted ? '9px' : '10px'
+      const borderWidth = isCompleted ? '1.5px' : '2.5px'
+      const shadow = isCompleted
+        ? 'none'
+        : isActive
+        ? '0 2px 8px rgba(0,0,0,0.25)'
+        : '0 1px 4px rgba(0,0,0,0.15)'
 
       const markerIcon = L.divIcon({
         html: `<div style="
           width:${dotSize * 2}px;height:${dotSize * 2}px;
           background:${bgColor};
-          border:2.5px solid ${borderColor};
+          border:${borderWidth} solid ${borderColor};
           border-radius:50%;
           display:flex;align-items:center;justify-content:center;
-          color:${textColor};font-weight:800;font-size:${isActive ? '13px' : '11px'};
-          box-shadow:0 2px 8px rgba(0,0,0,0.25);
+          color:${textColor};font-weight:800;font-size:${fontSize};
+          box-shadow:${shadow};
+          opacity:${isCompleted ? '0.55' : '1'};
           ${isNearby ? 'animation:mapPulse 1s infinite;' : ''}
         ">${label}</div>`,
         className: '',
@@ -186,39 +244,35 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
     if (!map || !teamPosition) return
 
     const L = require('leaflet')
-    const { latitude, longitude, accuracy } = teamPosition
+    const { latitude, longitude, accuracy, heading } = teamPosition
+
+    // Accuracy-ring alleen tonen bij slechte GPS (> 20m) — anders visuele ruis
+    const showAccuracy = accuracy > 20
 
     if (teamMarkerRef.current) {
       // Bestaande markers updaten + soepel meerijden
       teamMarkerRef.current.setLatLng([latitude, longitude])
-      accuracyCircleRef.current?.setLatLng([latitude, longitude])
-      accuracyCircleRef.current?.setRadius(accuracy)
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.setLatLng([latitude, longitude])
+        accuracyCircleRef.current.setRadius(accuracy)
+        accuracyCircleRef.current.setStyle({
+          opacity: showAccuracy ? 1 : 0,
+          fillOpacity: showAccuracy ? 0.25 : 0,
+        })
+      }
+
+      // Update pijl-icon alleen als heading veranderd is
+      if (heading !== lastHeadingRef.current) {
+        lastHeadingRef.current = heading
+        const updatedIcon = buildGpsIcon(L, heading)
+        teamMarkerRef.current.setIcon(updatedIcon)
+      }
+
       map.panTo([latitude, longitude], { animate: true, duration: 0.5 })
     } else {
       // Eerste GPS fix: markers aanmaken
-      const gpsIcon = L.divIcon({
-        html: `
-          <div style="position:relative;width:22px;height:22px;">
-            <div style="
-              position:absolute;top:50%;left:50%;
-              width:44px;height:44px;
-              margin:-22px 0 0 -22px;
-              border-radius:50%;
-              background:#3b82f6;
-              animation:gpsRing 2s ease-out infinite;
-            "></div>
-            <div style="
-              width:22px;height:22px;
-              border-radius:50%;
-              background:#2563EB;
-              border:3px solid white;
-              box-shadow:0 2px 10px rgba(37,99,235,0.6);
-            "></div>
-          </div>`,
-        className: '',
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
-      })
+      lastHeadingRef.current = heading
+      const gpsIcon = buildGpsIcon(L, heading)
 
       const marker = L.marker([latitude, longitude], { icon: gpsIcon, interactive: false, zIndexOffset: 1000 }).addTo(map)
       teamMarkerRef.current = marker
@@ -227,7 +281,8 @@ export default function GameMap({ checkpoints, teamPosition, nearbyCheckpoint, v
         radius: accuracy,
         color: '#93c5fd',
         fillColor: '#bfdbfe',
-        fillOpacity: 0.25,
+        fillOpacity: showAccuracy ? 0.25 : 0,
+        opacity: showAccuracy ? 1 : 0,
         weight: 1,
       }).addTo(map)
       accuracyCircleRef.current = circle

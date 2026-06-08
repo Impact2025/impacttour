@@ -6,6 +6,7 @@ export interface GPSPosition {
   latitude: number
   longitude: number
   accuracy: number
+  heading: number | null
   timestamp: number
 }
 
@@ -57,7 +58,7 @@ export function useGPS(options: UseGPSOptions = {}) {
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords
+        const { latitude, longitude, accuracy, heading } = pos.coords
 
         // Filter slechte accuracy
         if (accuracy > maxAccuracy) return
@@ -66,6 +67,7 @@ export function useGPS(options: UseGPSOptions = {}) {
           latitude,
           longitude,
           accuracy,
+          heading,
           timestamp: pos.timestamp,
         }
 
