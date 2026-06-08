@@ -12,35 +12,61 @@ interface Props {
   teamToken: string
   teamName: string
   variant: string
+  currentCheckpointName?: string
+  currentMissionTitle?: string
+  teamScore?: number
   isOpen?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
-export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: controlledOpen, onOpenChange }: Props) {
+const CACHE_KEY = (sessionId: string, teamToken: string) =>
+  `chat-${sessionId}-${teamToken.slice(0, 8)}`
+
+export function ChatPanel({
+  sessionId, teamToken, teamName, variant,
+  currentCheckpointName, currentMissionTitle, teamScore,
+  isOpen: controlledOpen, onOpenChange,
+}: Props) {
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
-  const setIsOpen = (v: boolean) => {
-    setInternalOpen(v)
-    onOpenChange?.(v)
-  }
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
+  const setIsOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v) }
+
+  const [messages, setMessages]   = useState<Message[]>([])
+  const [input, setInput]         = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [hasError, setHasError]   = useState(false)
   const [lastMessage, setLastMessage] = useState<string | null>(null)
-  const [persona, setPersona] = useState<string>('Scout')
+  const [persona, setPersona]     = useState<string>('Scout')
   const [remaining, setRemaining] = useState<number>(39)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef  = useRef<HTMLInputElement>(null)
 
   const personaName = variant === 'familietocht' ? 'Buddy' : 'Scout'
 
+  // Herstel chatgeschiedenis uit localStorage na navigatie of refresh
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY(sessionId, teamToken))
+      if (cached) {
+        const { messages: msgs, remaining: rem } = JSON.parse(cached)
+        if (Array.isArray(msgs)) setMessages(msgs)
+        if (typeof rem === 'number') setRemaining(rem)
+      }
+    } catch {}
+  }, [sessionId, teamToken])
+
   useEffect(() => {
     if (isOpen) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
       inputRef.current?.focus()
     }
   }, [isOpen, messages])
+
+  const persist = (msgs: Message[], rem: number) => {
+    try {
+      localStorage.setItem(CACHE_KEY(sessionId, teamToken), JSON.stringify({ messages: msgs, remaining: rem }))
+    } catch {}
+  }
 
   const sendMessage = async (messageText?: string) => {
     const text = messageText ?? input.trim()
@@ -63,26 +89,25 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
           teamToken,
           message: userMessage.content,
           history: messages,
+          currentCheckpointName,
+          currentMissionTitle,
+          teamScore,
         }),
       })
 
       const data = await res.json()
-      if (data.remaining !== undefined) setRemaining(data.remaining)
-      if (res.ok && data.reply) {
-        setPersona(data.persona ?? personaName)
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: data.reply ?? 'Even geduld, ik ben er zo!' },
-        ])
-      }
+      const newRem = data.remaining ?? remaining - 1
+      setRemaining(newRem)
+      if (data.persona) setPersona(data.persona)
+
+      const reply = data.reply ?? 'Even geduld, ik ben er zo!'
+      const updated = [...newMessages, { role: 'assistant' as const, content: reply }]
+      setMessages(updated)
+      persist(updated, newRem)
     } catch {
       setHasError(true)
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Oeps, verbindingsprobleem.' },
-      ])
+      const updated = [...newMessages, { role: 'assistant' as const, content: 'Oeps, verbindingsprobleem.' }]
+      setMessages(updated)
     } finally {
       setIsLoading(false)
     }
@@ -90,22 +115,30 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
 
   const handleRetry = () => {
     if (!lastMessage) return
-    // Verwijder het laatste fout-bericht van de assistent
     setMessages((prev) => prev.slice(0, -1))
     setHasError(false)
     sendMessage(lastMessage)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
   }
+
+  // Contextuele suggesties op basis van huidige checkpoint
+  const suggestions = variant === 'familietocht'
+    ? [
+        currentMissionTitle ? `Geef een hint voor "${currentMissionTitle}"` : 'Geef ons een hint voor de opdracht!',
+        'Wat is de leukste manier om samen te werken?',
+        'We zitten vast, help ons!',
+      ]
+    : [
+        currentMissionTitle ? `Hint voor de opdracht: "${currentMissionTitle}"` : 'Geef een hint voor de huidige opdracht',
+        'Hoe kunnen we beter samenwerken?',
+        currentCheckpointName ? `Wat verwacht je van checkpoint "${currentCheckpointName}"?` : 'Wat is onze sterkste kant als team?',
+      ]
 
   return (
     <>
-      {/* Chat panel */}
       {isOpen && (
         <div className="absolute inset-0 z-[2000] flex flex-col bg-white">
           {/* Header */}
@@ -116,7 +149,11 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
               </div>
               <div>
                 <p className="font-bold text-sm leading-none">{persona}</p>
-                <p className="text-green-200 text-xs">Jullie assistent</p>
+                {currentCheckpointName ? (
+                  <p className="text-green-200 text-xs truncate max-w-[180px]">{currentCheckpointName}</p>
+                ) : (
+                  <p className="text-green-200 text-xs">Jullie assistent</p>
+                )}
               </div>
             </div>
             <button
@@ -139,10 +176,7 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
                   Ik ben {personaName}. Vraag me alles over de tocht!
                 </p>
                 <div className="space-y-2 text-left mx-2">
-                  {(variant === 'familietocht'
-                    ? ['Geef ons een hint voor de opdracht!', 'Wat is de leukste manier om samen te werken?', 'We zitten vast, help ons!']
-                    : ['Geef ons een hint voor de huidige opdracht', 'Hoe kunnen we beter samenwerken?', 'Wat is onze sterkste kant als team?']
-                  ).map((q) => (
+                  {suggestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => { setInput(q); inputRef.current?.focus() }}
@@ -156,34 +190,25 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
             )}
 
             {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.role === 'assistant' && (
                   <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold mr-2 self-end mb-0.5 shrink-0">
                     {personaName.charAt(0)}
                   </div>
                 )}
-                <div
-                  className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === 'user'
-                      ? 'bg-green-600 text-white rounded-br-sm'
-                      : 'bg-white text-gray-800 shadow-sm rounded-bl-sm border border-gray-100'
-                  }`}
-                >
+                <div className={`max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-green-600 text-white rounded-br-sm'
+                    : 'bg-white text-gray-800 shadow-sm rounded-bl-sm border border-gray-100'
+                }`}>
                   {msg.content}
                 </div>
               </div>
             ))}
 
-            {/* Retry knop als er een fout was */}
             {hasError && lastMessage && (
               <div className="flex justify-start pl-9">
-                <button
-                  onClick={handleRetry}
-                  className="text-xs text-green-600 underline"
-                >
+                <button onClick={handleRetry} className="text-xs text-green-600 underline">
                   Opnieuw proberen
                 </button>
               </div>
@@ -192,15 +217,15 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
             {isLoading && (
               <div className="flex justify-start items-center">
                 <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center text-white text-xs font-bold mr-2 shrink-0">
-                {personaName.charAt(0)}
-              </div>
+                  {personaName.charAt(0)}
+                </div>
                 <div className="bg-white px-4 py-2.5 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 flex items-center gap-2">
                   <div className="flex gap-1 items-center h-4">
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
                   </div>
-                  <span className="text-xs text-gray-400 ml-1">{personaName} denkt na...</span>
+                  <span className="text-xs text-gray-400 ml-1">{personaName} denkt na…</span>
                 </div>
               </div>
             )}
@@ -224,7 +249,7 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Vraag ${personaName} iets...`}
+              placeholder={`Vraag ${personaName} iets…`}
               disabled={isLoading}
               className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
             />
@@ -239,12 +264,11 @@ export function ChatPanel({ sessionId, teamToken, teamName, variant, isOpen: con
         </div>
       )}
 
-      {/* Floating chat button (alleen zichtbaar als panel dicht is) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="absolute bottom-20 right-4 z-[1000] w-12 h-12 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center text-xl hover:bg-green-700 active:scale-95 transition-transform"
-          aria-label="Chat met assistent"
+          className="absolute bottom-20 right-4 z-[1000] w-12 h-12 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-green-700 active:scale-95 transition-transform"
+          aria-label={`Chat met ${personaName}`}
         >
           <span className="text-sm font-bold">{personaName.charAt(0)}</span>
         </button>

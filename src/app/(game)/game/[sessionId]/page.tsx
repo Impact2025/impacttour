@@ -737,6 +737,9 @@ export default function GamePage() {
             teamToken={teamToken}
             teamName={team?.name ?? ''}
             variant={variant}
+            currentCheckpointName={activeCheckpoint?.name ?? currentCheckpoint?.name}
+            currentMissionTitle={(activeCheckpoint?.missionTitle ?? currentCheckpoint?.missionTitle) ?? undefined}
+            teamScore={team?.totalGmsScore}
             isOpen={chatOpen}
             onOpenChange={setChatOpen}
           />

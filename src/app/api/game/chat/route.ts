@@ -16,6 +16,9 @@ const schema = z.object({
   teamToken: z.string().min(1),
   message: z.string().min(1).max(1000),
   history: z.array(messageSchema).max(40).default([]),
+  currentCheckpointName: z.string().max(100).optional(),
+  currentMissionTitle: z.string().max(200).optional(),
+  teamScore: z.number().int().min(0).optional(),
 })
 
 /**
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Ongeldige gegevens' }, { status: 400 })
   }
 
-  const { sessionId, teamToken, message, history } = parsed.data
+  const { sessionId, teamToken, message, history, currentCheckpointName, currentMissionTitle, teamScore } = parsed.data
 
   if (!checkOrigin(req)) {
     return NextResponse.json({ error: 'Verboden' }, { status: 403 })
@@ -84,6 +87,17 @@ export async function POST(req: Request) {
   const personaName = isFamily ? 'Buddy' : 'Scout'
   const tourName = session.tour?.name ?? 'IctusGo'
 
+  // Live context — maakt de AI-coach specifiek in plaats van generiek
+  const contextBlock = [
+    currentCheckpointName && `Huidige checkpoint: "${currentCheckpointName}"`,
+    currentMissionTitle   && `Huidige opdracht: "${currentMissionTitle}"`,
+    teamScore !== undefined && `Teamscore tot nu toe: ${teamScore} GMS`,
+  ].filter(Boolean).join('\n')
+
+  const contextSection = contextBlock
+    ? `\n\nHUIDIGE CONTEXT (gebruik dit als je helpt — wees specifiek):\n${contextBlock}`
+    : ''
+
   const systemPrompt = isFamily
     ? `Je bent Buddy — warm, vrolijk en toegankelijk voor gezinnen tijdens IctusGo.
 Je helpt iedereen tijdens de "${tourName}".
@@ -94,7 +108,7 @@ Wees enthousiast maar niet overdreven — geen uitroeptekens bij elk antwoord.
 
 JE HELPT MET: vragen over de tocht, samen iets ontdekken, aanmoediging bij tegenslagen.
 JE PRAAT NOOIT OVER: volwassen of gevoelige onderwerpen, politiek, technische problemen (verwijs naar de spelleider).
-Taal: Nederlands.`
+Taal: Nederlands.${contextSection}`
     : `Je bent Scout — scherp, motiverend en direct als een goede sportcoach.
 Je helpt team "${team.name}" tijdens de "${tourName}".
 
@@ -104,7 +118,7 @@ Bij vastlopen: geef een richting, nooit het antwoord. Stel soms een vraag terug:
 
 JE HELPT MET: vragen over de tocht, teamdynamica, reflectievragen, aanmoediging bij tegenslagen.
 JE PRAAT NOOIT OVER: politiek, persoonlijke info van teamleden, scores van andere teams, technische problemen (verwijs naar de spelleider).
-Taal: Nederlands.`
+Taal: Nederlands.${contextSection}`
 
   const remaining = 40 - history.length - 1
 

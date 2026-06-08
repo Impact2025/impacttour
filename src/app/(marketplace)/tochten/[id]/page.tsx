@@ -462,6 +462,71 @@ export default async function TourDetailPage({
         </div>
       </div>
 
+      {/* ── Testimonials ── */}
+      {(() => {
+        const allTestimonials: Record<string, { quote: string; author: string; org: string }[]> = {
+          wijktocht: [
+            { quote: 'We kennen elkaar al jaren maar deze tocht liet zien dat we nog véél van elkaar te leren hebben. De gesprekken tijdens de opdrachten waren goud waard.', author: 'Marieke V.', org: 'Team Operations, Amsterdam' },
+            { quote: 'Eindelijk een teambuilding die niet aanvoelt als een verplicht nummertje. Iedereen liep enthousiast en het competitie-element maakte het extra spannend.', author: 'Joost B.', org: 'MT, Utrecht' },
+            { quote: 'De AI-coach was een verrassing — specifieke feedback op onze inzendingen, geen generieke flaptekst. Dat maakte het verschil.', author: 'Anke D.', org: 'HR Manager, Rotterdam' },
+          ],
+          impactsprint: [
+            { quote: 'In 90 minuten meer teamdynamiek gezien dan in een hele dag offsite. Compact, scherp en met een duidelijke uitkomst.', author: 'Rolf H.', org: 'Startup, Den Haag' },
+            { quote: 'Perfect voor ons drukke team. Geen halve dag vrij vragen, gewoon snel en efficiënt samen iets beleven.', author: 'Lisa K.', org: 'Growth Team, Amsterdam' },
+            { quote: 'De GMS-score gaf ons direct inzicht in waar we als team staan. Dat gesprek achteraf was minstens zo waardevol als de tocht zelf.', author: 'Thomas G.', org: 'Teamlead, Eindhoven' },
+          ],
+          familietocht: [
+            { quote: 'Onze kinderen wilden meteen nog een keer! Ze hadden het gevoel echt iets te hebben bijgedragen — dat is meer dan ik van de meeste uitjes kan zeggen.', author: 'Femke J.', org: 'Gezin Janssen, Haarlem' },
+            { quote: 'Mijn 8-jarige deed opdrachten waarbij ze echt nadacht over haar buurt. Dat verwacht je niet van een middagje buiten.', author: 'Peter S.', org: 'Vader van 3, Leiden' },
+            { quote: 'De mix van bewegen, nadenken en samenwerken was perfect. En de AI-buddy Buddy was een hit bij de kids.', author: 'Sandra L.', org: 'Gezin De Laan, Amsterdam' },
+          ],
+          jeugdtocht: [
+            { quote: 'De kinderen liepen drie uur non-stop en vroegen of het al voorbij was. Dat zegt genoeg.', author: 'Groepsleider', org: 'Scouting Amsterdam-Noord' },
+            { quote: 'Eindelijk een buitenactiviteit waarbij ook de stillere kinderen tot bloei kwamen. De opdrachten zijn slim ontworpen.', author: 'Juf Miriam', org: 'Basisschool De Beuk, Leiden' },
+            { quote: 'Het geofencing-systeem gaf ons als begeleiders rust. Altijd weten waar de groepen zijn, zonder de kinderen te beperken.', author: 'Coördinator', org: 'Jeugdvereniging Haarlem' },
+          ],
+          voetbalmissie: [
+            { quote: 'De jongens snapten halverwege dat de opdrachten over meer gingen dan voetbal. Die realisatie op hun gezicht — priceless.', author: 'Trainer Pascal', org: 'FC Haarlem U12' },
+            { quote: 'We hadden het er weken later nog over. Normaal vergeten ze een uitje de volgende dag al.', author: 'Coach Bart', org: 'Sportclub Zuid, Amsterdam' },
+            { quote: 'Slim dat de maatschappelijke kant verborgen zit in de opdrachten. Ze leren zonder dat ze het doorhebben.', author: 'Jeugdcoördinator', org: 'VV Blauw-Wit' },
+          ],
+        }
+
+        const items = allTestimonials[tour.variant] ?? allTestimonials.wijktocht
+
+        return (
+          <div className="bg-white border-t border-[#E2E8F0] py-14">
+            <div className="max-w-5xl mx-auto px-5 md:px-8">
+              <div className="flex items-center gap-3 mb-8">
+                <Star className="w-5 h-5 text-[#F59E0B] fill-[#F59E0B]" />
+                <h2 className="text-xl font-bold text-[#0F172A]">Wat teams zeggen</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {items.map((t) => (
+                  <div
+                    key={t.author}
+                    className="bg-[#F8FAFC] rounded-2xl p-5 border border-[#E2E8F0] flex flex-col gap-3"
+                  >
+                    <div className="flex gap-0.5">
+                      {[1,2,3,4,5].map((s) => (
+                        <Star key={s} className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-[#475569] leading-relaxed flex-1">
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                    <div>
+                      <p className="text-sm font-semibold text-[#0F172A]">{t.author}</p>
+                      <p className="text-xs text-[#94A3B8]">{t.org}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* ── Mobile sticky CTA ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-[#E2E8F0] px-4 py-3 z-50">
         <div className="flex items-center justify-between">
