@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect, notFound } from 'next/navigation'
 import { db } from '@/lib/db'
-import { gameSessions, checkpoints } from '@/lib/db/schema'
+import { gameSessions, checkpoints, sessionScores } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import Link from 'next/link'
 import { Download, Clock, AlertTriangle } from 'lucide-react'
@@ -31,6 +31,21 @@ export default async function SessieDetailPage({
   })
 
   if (!gameSession) notFound()
+
+  // GMS dimensie breakdown per team (voor scorebord)
+  const teamScores = await db
+    .select({
+      teamId: sessionScores.teamId,
+      connection: sessionScores.connection,
+      meaning: sessionScores.meaning,
+      joy: sessionScores.joy,
+      growth: sessionScores.growth,
+      totalGms: sessionScores.totalGms,
+    })
+    .from(sessionScores)
+    .where(eq(sessionScores.sessionId, id))
+
+  const scoresByTeamId = Object.fromEntries(teamScores.map((s) => [s.teamId, s]))
 
   // Haal eerste checkpoint op voor kaartcentrering
   const firstCheckpoint = await db
@@ -137,9 +152,21 @@ export default async function SessieDetailPage({
 
         {/* Teams scorebord */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">
-            Teams ({gameSession.teams.length})
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">
+              Teams ({gameSession.teams.length})
+            </h2>
+            {teamScores.length > 0 && (
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                {([['V','#3B82F6','Verbinding'],['B','#8B5CF6','Betekenis'],['P','#F59E0B','Plezier'],['G','#00E676','Groei']] as [string,string,string][]).map(([l,c,title]) => (
+                  <span key={l} className="flex items-center gap-0.5" title={title}>
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ background: c }} />
+                    {l}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
           {gameSession.teams.length === 0 ? (
             <div className="text-center py-8 text-[#94A3B8]">
@@ -152,36 +179,66 @@ export default async function SessieDetailPage({
             </div>
           ) : (
             <div className="space-y-2">
-              {gameSession.teams.map((team, idx) => (
-                <div
-                  key={team.id}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-100"
-                >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                    idx === 0 ? 'bg-yellow-100 text-yellow-700' :
-                    idx === 1 ? 'bg-gray-100 text-gray-600' :
-                    idx === 2 ? 'bg-orange-100 text-orange-700' :
-                    'bg-gray-50 text-gray-500'
-                  }`}>
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm">{team.name}</div>
-                    <div className="text-xs text-gray-400">
-                      Checkpoint {team.currentCheckpointIndex + 1}
-                      {team.isOutsideGeofence && (
-                        <span className="ml-2 text-red-500 inline-flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> Buiten zone!</span>
-                      )}
+              {gameSession.teams.map((team, idx) => {
+                const dims = scoresByTeamId[team.id]
+                const maxDim = dims ? Math.max(dims.connection, dims.meaning, dims.joy, dims.growth, 1) : 1
+                return (
+                  <div
+                    key={team.id}
+                    className="p-3 rounded-lg border border-gray-100"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-sm font-bold ${
+                        idx === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        idx === 1 ? 'bg-gray-100 text-gray-600' :
+                        idx === 2 ? 'bg-orange-100 text-orange-700' :
+                        'bg-gray-50 text-gray-500'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 text-sm">{team.name}</div>
+                        <div className="text-xs text-gray-400">
+                          Checkpoint {team.currentCheckpointIndex + 1}
+                          {team.isOutsideGeofence && (
+                            <span className="ml-2 text-red-500 inline-flex items-center gap-0.5">
+                              <AlertTriangle className="w-3 h-3" /> Buiten zone!
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-bold text-green-700">{team.totalGmsScore}</div>
+                        <div className="text-xs text-gray-400">
+                          {team.bonusPoints > 0 ? `+${team.bonusPoints} bonus` : 'GMS'}
+                        </div>
+                      </div>
                     </div>
+
+                    {/* GMS dimensie micro-bars — alleen tonen als er scores zijn */}
+                    {dims && dims.totalGms > 0 && (
+                      <div className="grid grid-cols-4 gap-1 mt-1">
+                        {([
+                          ['V', dims.connection, '#3B82F6'],
+                          ['B', dims.meaning,    '#8B5CF6'],
+                          ['P', dims.joy,        '#F59E0B'],
+                          ['G', dims.growth,     '#00E676'],
+                        ] as [string, number, string][]).map(([letter, val, color]) => (
+                          <div key={letter} className="flex flex-col items-center gap-0.5">
+                            <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full"
+                                style={{ width: `${Math.round((val / maxDim) * 100)}%`, background: color }}
+                              />
+                            </div>
+                            <span className="text-[9px] text-gray-400 font-medium">{letter} {val}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-green-700">{team.totalGmsScore}</div>
-                    <div className="text-xs text-gray-400">
-                      {team.bonusPoints > 0 ? `+${team.bonusPoints} bonus` : 'GMS'}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
