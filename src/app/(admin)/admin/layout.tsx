@@ -66,10 +66,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="px-5 py-5 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-[#00E676] rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-[#0F172A] font-black text-xs">IT</span>
+              <span className="text-[#0F172A] font-black text-xs">IG</span>
             </div>
             <div>
-              <div className="text-white font-bold text-sm leading-none">ImpactTour</div>
+              <div className="text-white font-bold text-sm leading-none">IctusGo</div>
               <div className="text-[#475569] text-xs mt-0.5">Admin</div>
             </div>
           </div>
@@ -133,9 +133,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <header className="md:hidden bg-[#0F172A] px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-[#00E676] rounded-lg flex items-center justify-center">
-              <span className="text-[#0F172A] font-black text-xs">IT</span>
+              <span className="text-[#0F172A] font-black text-xs">IG</span>
             </div>
-            <span className="text-white font-bold text-sm">ImpactTour Admin</span>
+            <span className="text-white font-bold text-sm">IctusGo Admin</span>
           </div>
           <AdminSidebarToggle />
         </header>

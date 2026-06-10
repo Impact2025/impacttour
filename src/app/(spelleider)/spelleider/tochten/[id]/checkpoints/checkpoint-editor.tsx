@@ -81,7 +81,7 @@ export function CheckpointEditor({
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=nl`,
-        { headers: { 'User-Agent': 'ImpactTour/1.0 (chat@weareimpact.nl)' } }
+        { headers: { 'User-Agent': 'IctusGo/1.0 (info@weareimpact.nl)' } }
       )
       if (res.ok) {
         const data = await res.json()

@@ -2,9 +2,10 @@
 
 import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { passwordLoginAction } from './actions'
 
 function LoginForm() {
   const [tab, setTab] = useState<'magic' | 'password'>('password')
@@ -15,7 +16,6 @@ function LoginForm() {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const searchParams = useSearchParams()
-  const router = useRouter()
   const callbackUrl = searchParams.get('callbackUrl') || '/spelleider/dashboard'
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -37,27 +37,12 @@ function LoginForm() {
     setIsSending(true)
     setError('')
 
-    // Probeer admin-credentials als callbackUrl naar /admin gaat, anders customer-credentials
-    const isAdminLogin = callbackUrl.startsWith('/admin')
-    const providerId = isAdminLogin ? 'admin-credentials' : 'customer-credentials'
-
-    const result = await signIn(providerId, {
-      email,
-      password,
-      callbackUrl,
-      redirect: false,
-    })
-
+    // Server action verifieert het wachtwoord en maakt een DB-sessie aan.
+    // Bij succes redirect de action server-side; alleen fouten komen hier terug.
+    const result = await passwordLoginAction(email, password, callbackUrl)
     if (result?.error) {
-      // Als admin mislukt, probeer ook customer-credentials (fallback)
-      if (isAdminLogin) {
-        const fallback = await signIn('customer-credentials', { email, password, redirect: false })
-        if (!fallback?.error) { router.push(callbackUrl); return }
-      }
-      setError('Onbekend e-mailadres of onjuist wachtwoord.')
+      setError(result.error)
       setIsSending(false)
-    } else {
-      router.push(callbackUrl)
     }
   }
 

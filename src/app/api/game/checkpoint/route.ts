@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { haversineDistance } from '@/lib/geo'
 import { broadcastCheckpointUnlocked } from '@/lib/pusher'
+import { checkOrigin, checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const schema = z.object({
   sessionId: z.string().uuid(),
@@ -20,6 +21,16 @@ const schema = z.object({
  * Vereiste: team is binnen unlockRadiusMeters van het checkpoint.
  */
 export async function POST(req: Request) {
+  // CSRF origin-check (consistent met /submit, /gps, /chat)
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
+  // Rate limit: max 30 unlock-pogingen per IP per minuut
+  if (!(await checkRateLimit(`checkpoint:${getClientIp(req)}`, 30, 60_000))) {
+    return NextResponse.json({ error: 'Te veel verzoeken. Wacht even.' }, { status: 429 })
+  }
+
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {

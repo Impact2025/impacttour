@@ -31,6 +31,10 @@ const schema = z.object({
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+  if (!checkOrigin(req)) {
+    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
+  }
+
   const body = await req.json()
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
@@ -38,10 +42,6 @@ export async function POST(req: Request) {
   }
 
   const { sessionId, teamToken, message, history, currentCheckpointName, currentMissionTitle, teamScore } = parsed.data
-
-  if (!checkOrigin(req)) {
-    return NextResponse.json({ error: 'Verboden' }, { status: 403 })
-  }
 
   // Haal sessie op
   const session = await db.query.gameSessions.findFirst({

@@ -98,7 +98,7 @@ export async function POST(req: Request) {
         await sendBookingConfirmationEmail({
           to: user.email,
           customerName: (user.name || 'klant').split(' ')[0],
-          tourName: tour?.name || 'ImpactTour',
+          tourName: tour?.name || 'IctusGo',
           setupUrl: magicLink,
           loginUrl: `${appUrl}/login`,
           isPaid: true,

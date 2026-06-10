@@ -35,6 +35,36 @@ export interface AIMessage {
   content: string
 }
 
+/**
+ * Extraheer een JSON-object uit een AI-antwoord. Robuust tegen:
+ * - markdown code fences (```json ... ```)
+ * - omringende proza ("Hier is de JSON: { ... }")
+ * Werpt een duidelijke fout als er geen geldig object in zit.
+ */
+function extractJson<T>(content: string): T {
+  // 1. Code fence heeft voorrang
+  const fence = content.match(/```(?:json)?\s*([\s\S]*?)```/)
+  let candidate = fence ? fence[1].trim() : content.trim()
+
+  // 2. Anders: pak van eerste '{' t/m laatste '}' (negeer omringende tekst)
+  if (!fence && !candidate.startsWith('{')) {
+    const first = candidate.indexOf('{')
+    const last = candidate.lastIndexOf('}')
+    if (first !== -1 && last > first) candidate = candidate.slice(first, last + 1)
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(candidate)
+  } catch {
+    throw new Error(`AI gaf geen geldige JSON terug (eerste 120 tekens: ${content.slice(0, 120)})`)
+  }
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('AI JSON was geen object')
+  }
+  return parsed as T
+}
+
 /** Basis AI completion via OpenRouter */
 export async function aiComplete(
   messages: AIMessage[],
@@ -78,10 +108,7 @@ export async function aiCompleteJSON<T = unknown>(
     })
     console.log(`[AI] ${m.split('/').pop()} | ${response.usage?.total_tokens ?? '?'}tok | ${Date.now() - t0}ms`)
     const content = response.choices[0]?.message?.content ?? '{}'
-    // Extract JSON from response (Claude soms wikkelt het in markdown code blocks)
-    const match = content.match(/```(?:json)?\s*([\s\S]*?)```/)
-    const jsonStr = match ? match[1].trim() : content.trim()
-    return JSON.parse(jsonStr) as T
+    return extractJson<T>(content)
   }
 
   try {
