@@ -127,7 +127,19 @@
       "Bash(dir .env*)",
       "Bash(xargs basename *)",
       "PowerShell(admin *)",
-      "PowerShell(git add *)"
+      "PowerShell(git add *)",
+      "PowerShell(git push *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\apps\\\\ictusgo\" -Directory)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(.\\\\node_modules\\\\.bin\\\\tsc --noEmit)",
+      "PowerShell(.\\\\node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Select-Object -First 40)",
+      "PowerShell(.\\\\node_modules\\\\.bin\\\\tsc --noEmit 2>&1 | Select-Object -First 30)",
+      "PowerShell(.\\\\node_modules\\\\.bin\\\\tsc --noEmit 2>&1)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Skill(claude-api)",
+      "Bash(./node_modules/.bin/tsc --noEmit -p tsconfig.json)",
+      "Bash(bun add *)"
     ]
   }
 }

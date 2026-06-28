@@ -4,12 +4,30 @@ import { NextRequest, NextResponse } from 'next/server'
 // Rol-verificatie gebeurt server-side in layouts/pages via auth().
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  const host = req.headers.get('host') ?? ''
+  const baseHost = host.split(':')[0]
+
+  // ── WWW → non-www redirect ─────────────────────────────────
+  if (baseHost.startsWith('www.') && baseHost.endsWith('ictusgo.nl')) {
+    const url = req.nextUrl.clone()
+    url.host = 'ictusgo.nl'
+    return NextResponse.redirect(url, 301)
+  }
+
+  // Rest alleen checken voor beschermde routes
+  if (
+    !pathname.startsWith('/spelleider') &&
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/klant')
+  ) {
+    return NextResponse.next()
+  }
 
   const hasSession =
     req.cookies.has('authjs.session-token') ||
     req.cookies.has('__Secure-authjs.session-token')
 
-  // Spelleider & klant routes → /login met callbackUrl (relatief pad, voorkomt open redirect)
+  // Spelleider & klant routes → /login met callbackUrl
   if (pathname.startsWith('/spelleider') || pathname.startsWith('/klant')) {
     if (!hasSession) {
       const loginUrl = new URL('/login', req.url)
@@ -29,5 +47,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/spelleider/:path*', '/admin/:path*', '/klant/:path*'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|json)).*)',
+    '/spelleider/:path*',
+    '/admin/:path*',
+    '/klant/:path*',
+  ],
 }
