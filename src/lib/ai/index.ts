@@ -7,6 +7,7 @@
  */
 
 import OpenAI from 'openai'
+import { getSiteUrl } from '@/lib/seo/site-url'
 
 // Lazy init — voorkomt build-time crash als OPENROUTER_API_KEY ontbreekt
 function getOpenRouter() {
@@ -14,7 +15,7 @@ function getOpenRouter() {
     baseURL: 'https://openrouter.ai/api/v1',
     apiKey: process.env.OPENROUTER_API_KEY || 'missing',
     defaultHeaders: {
-      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://ictusgo.nl',
+      'HTTP-Referer': getSiteUrl(),
       'X-Title': 'IctusGo',
     },
   })

@@ -3,6 +3,7 @@ import { Barlow_Condensed, Inter } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { Toaster } from 'sonner'
 import { PWARegister } from '@/components/layout/pwa-register'
+import { getSiteUrl } from '@/lib/seo/site-url'
 import './globals.css'
 
 const barlowCondensed = Barlow_Condensed({
@@ -19,7 +20,7 @@ const inter = Inter({
   display: 'swap',
 })
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl'
+const SITE_URL = getSiteUrl()
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -63,9 +64,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  other: {
-    'google-site-verification': '...', // TODO: vul GSC verification code in
-  },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { other: { 'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 }
 
 export const viewport: Viewport = {
@@ -137,7 +138,7 @@ export default function RootLayout({
         {children}
         <Toaster position="top-center" richColors />
         <PWARegister />
-        <GoogleAnalytics gaId="G-W035B2QCXK" />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID ?? 'G-W035B2QCXK'} />
       </body>
     </html>
   )

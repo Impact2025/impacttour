@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { trackEvent } from '@/lib/analytics/events'
 import {
   Calendar, Users, User, Mail, Building2,
   Tag, ArrowRight, ArrowLeft, CheckCircle2,
@@ -105,6 +106,7 @@ export default function BookingWizard({ tour }: { tour: Tour }) {
   const handleSubmit = async () => {
     setSubmitError('')
     setIsSubmitting(true)
+    trackEvent('begin_checkout', { tour_id: tour.id, tour_variant: tour.variant })
     try {
       const scheduledAt = scheduledDate
         ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
@@ -122,7 +124,10 @@ export default function BookingWizard({ tour }: { tour: Tour }) {
       })
       const data = await res.json()
       if (!res.ok) { setSubmitError(data.error || 'Er ging iets mis.'); return }
-      if (data.free) { setDone(true) }
+      if (data.free) {
+        trackEvent('purchase', { tour_id: tour.id, tour_variant: tour.variant, value: 0, currency: 'EUR' })
+        setDone(true)
+      }
       else if (data.paymentUrl) { window.location.href = data.paymentUrl }
     } catch {
       setSubmitError('Verbindingsfout. Controleer je internet en probeer opnieuw.')

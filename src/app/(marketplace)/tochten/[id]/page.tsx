@@ -4,6 +4,7 @@ import { eq, and, asc } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import {
   Clock, Users, MapPin, ArrowLeft, ArrowRight,
   Target, Star, Shield, CheckCircle2, Camera,
@@ -12,6 +13,47 @@ import {
 import { formatDuration } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
+
+const VARIANT_LABEL_META: Record<string, string> = {
+  wijktocht: 'WijkTocht',
+  impactsprint: 'ImpactSprint',
+  familietocht: 'FamilieTocht',
+  jeugdtocht: 'JeugdTocht',
+  voetbalmissie: 'VoetbalMissie',
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const tour = await db.query.tours.findFirst({
+    where: and(eq(tours.id, id), eq(tours.isPublished, true)),
+  })
+  if (!tour) return {}
+
+  const cfg = (tour.aiConfig ?? {}) as Record<string, unknown>
+  const location = (cfg.location as string) || ''
+  const imageUrl = (cfg.imageUrl as string) || undefined
+  const variantLabel = VARIANT_LABEL_META[tour.variant] ?? 'GPS-teambuilding'
+  const title = location ? `${tour.name} — ${variantLabel} in ${location}` : `${tour.name} — ${variantLabel}`
+  const description =
+    tour.description ||
+    `${variantLabel} "${tour.name}"${location ? ` in ${location}` : ''}: GPS-teambuilding met AI-begeleiding en Geluksmomenten Score. Boek direct.`
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/tochten/${tour.id}` },
+    openGraph: {
+      title,
+      description,
+      url: `/tochten/${tour.id}`,
+      ...(imageUrl ? { images: [{ url: imageUrl, width: 1200, height: 630, alt: tour.name }] } : {}),
+    },
+  }
+}
 
 // ─── Metadata maps ────────────────────────────────────────────────────────────
 

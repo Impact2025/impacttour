@@ -3,10 +3,18 @@ import { tours, checkpoints } from '@/lib/db/schema'
 import { eq, count } from 'drizzle-orm'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import { MapPin, Sparkles, ArrowRight } from 'lucide-react'
 import { TochtenFilter, type TourRow } from './tochten-filter'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'Alle tochten — GPS-teambuilding marketplace',
+  description:
+    'Bekijk alle beschikbare GPS-teambuildingtochten: WijkTocht, ImpactSprint, FamilieTocht, JeugdTocht en VoetbalMissie. Boek direct, setup klaar in 5 minuten.',
+  alternates: { canonical: '/tochten' },
+}
 
 const STATS = [
   { value: '10+', label: 'Tochten beschikbaar' },

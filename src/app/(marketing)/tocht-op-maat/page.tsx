@@ -4,9 +4,10 @@ import { Sparkles, Zap, Users } from 'lucide-react'
 import TochtWizardClient from './tocht-wizard-client'
 
 export const metadata: Metadata = {
-  title: 'Tocht op Maat — TeambuildingMetImpact.nl',
+  title: 'Tocht op Maat',
   description:
     'Laat AI een gepersonaliseerde GPS-tocht genereren voor jouw groep. Kies je groepstype, sfeer en stad — en ontvang in seconden een complete tocht met missies, locaties en impact-momenten.',
+  alternates: { canonical: '/tocht-op-maat' },
 }
 
 export default function TochtOpMaatPage() {

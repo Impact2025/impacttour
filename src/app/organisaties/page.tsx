@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   ChevronDown,
 } from 'lucide-react'
+import { trackEvent } from '@/lib/analytics/events'
 
 const STEPS = [
   {
@@ -138,6 +139,7 @@ export default function OrganisatiesPage() {
       })
       if (!res.ok) throw new Error()
       setFormState('success')
+      trackEvent('generate_lead', { form: 'organisaties', org_type: form.type })
     } catch {
       setFormState('error')
     }

@@ -5,6 +5,7 @@ import { ChevronRight } from 'lucide-react'
 export const metadata = {
   title: 'Veelgestelde vragen — IctusGo',
   description: 'Antwoorden op de meest gestelde vragen over boeken, spelen, technologie en kids-veiligheid.',
+  alternates: { canonical: '/faq' },
 }
 
 const CATEGORIES = [
@@ -114,9 +115,26 @@ const CATEGORIES = [
   },
 ]
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]+>/g, '')
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: CATEGORIES.flatMap(({ questions }) =>
+    questions.map(({ q, a }) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: { '@type': 'Answer', text: stripHtml(a) },
+    }))
+  ),
+}
+
 export default function FaqPage() {
   return (
     <main className="min-h-screen bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       {/* ── Navbar ─────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-[#E2E8F0]">

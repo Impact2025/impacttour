@@ -7,11 +7,13 @@ import { useState, useEffect } from 'react'
 import { ArrowRight, Menu, X } from 'lucide-react'
 
 const NAV_LINKS = [
-  { href: '/tochten',  label: 'Tochten' },
-  { href: '/impact',   label: 'Impact' },
-  { href: '/prijzen',  label: 'Prijzen' },
-  { href: '/over-ons', label: 'Over ons' },
-  { href: '/contact',  label: 'Contact' },
+  { href: '/tochten',    label: 'Tochten' },
+  { href: '/impact',     label: 'Impact' },
+  { href: '/prijzen',    label: 'Prijzen' },
+  { href: '/kennisbank', label: 'Kennisbank' },
+  { href: '/blog',       label: 'Blog' },
+  { href: '/over-ons',   label: 'Over ons' },
+  { href: '/contact',    label: 'Contact' },
 ]
 
 export function SiteNav() {

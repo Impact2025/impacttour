@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { tochtAanvragen } from '@/lib/db/schema'
+import { getSiteUrl } from '@/lib/seo/site-url'
 
 export const maxDuration = 60
 
@@ -99,7 +100,7 @@ ${extra ? `Extra wensen: ${extra}` : ''}`
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl',
+        'HTTP-Referer': getSiteUrl(),
         'X-Title': 'IctusGo',
       },
       body: JSON.stringify({

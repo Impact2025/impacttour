@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     'WeAreImpact brengt mensen in beweging. Lees ons verhaal: van GPS-pionieren in 2015 tot een nationwide platform met AI-begeleiding en GMS-meting.',
   openGraph: {
     title: 'Over Ons — 15 Jaar Sociale Impact | IctusGo',
-    description: 'Ontdek het team en de missie achter IctusGo en IctusGo.',
+    description: 'Ontdek het team en de missie achter IctusGo en WeAreImpact.',
     url: '/over-ons',
   },
 }

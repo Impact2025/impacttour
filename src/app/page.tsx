@@ -801,23 +801,35 @@ export default async function HomePage() {
             </div>
 
             {/* Links — desktop */}
-            <div className="hidden md:grid grid-cols-3 gap-12 text-xs">
+            <div className="hidden md:grid grid-cols-4 gap-10 text-xs">
               <div>
                 <p className="text-white font-bold mb-3">Varianten</p>
                 <div className="space-y-2 text-[#64748B]">
                   <p>WijkTocht</p>
                   <p>ImpactSprint</p>
                   <p>FamilieTocht</p>
-                  <p>JeugdTocht</p>
+                  <Link href="/jeugdtocht" className="block hover:text-white transition-colors">JeugdTocht</Link>
                   <Link href="/voetbalmissie" className="block hover:text-white transition-colors">VoetbalMissie</Link>
                 </div>
               </div>
               <div>
-                <p className="text-white font-bold mb-3">Platform</p>
+                <p className="text-white font-bold mb-3">Thema&apos;s &amp; regio&apos;s</p>
                 <div className="space-y-2 text-[#64748B]">
+                  <Link href="/gps-teamuitje" className="block hover:text-white transition-colors">GPS-teamuitje</Link>
+                  <Link href="/maatschappelijk-teamuitje" className="block hover:text-white transition-colors">Maatschappelijk teamuitje</Link>
+                  <Link href="/teambuilding-zonder-wkr" className="block hover:text-white transition-colors">Teambuilding zonder WKR</Link>
+                  <Link href="/teambuilding-hoofddorp" className="block hover:text-white transition-colors">Teambuilding Hoofddorp</Link>
+                  <Link href="/teambuilding-haarlemmermeer" className="block hover:text-white transition-colors">Teambuilding Haarlemmermeer</Link>
+                </div>
+              </div>
+              <div>
+                <p className="text-white font-bold mb-3">Kennis</p>
+                <div className="space-y-2 text-[#64748B]">
+                  <Link href="/blog" className="block hover:text-white transition-colors">Blog</Link>
+                  <Link href="/kennisbank" className="block hover:text-white transition-colors">Kennisbank</Link>
+                  <Link href="/faq" className="block hover:text-white transition-colors">FAQ</Link>
                   <p>GMS Score</p>
                   <p>Impact rapport</p>
-                  <p>Live scorebord</p>
                 </div>
               </div>
               <div>
@@ -828,7 +840,6 @@ export default async function HomePage() {
                   <Link href="/prijzen"      className="block hover:text-white transition-colors">Prijzen</Link>
                   <Link href="/contact"      className="block hover:text-white transition-colors">Contact</Link>
                   <Link href="/organisaties" className="block hover:text-white transition-colors">Organisaties</Link>
-                  <Link href="/faq"          className="block hover:text-white transition-colors">FAQ</Link>
                   <a href="https://weareimpact.nl" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">WeAreImpact</a>
                 </div>
               </div>

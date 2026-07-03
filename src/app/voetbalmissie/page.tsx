@@ -1,6 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import type { Metadata } from 'next'
 import { ArrowRight, CheckCircle2, Quote, Shield, Timer, Camera, Star } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'VoetbalMissie — GPS-teamdag voor voetbalclubs (9-12 jaar)',
+  description:
+    'VoetbalMissie verbindt voetbal met sociale impact: 5 GPS-checkpoints, fair play en empathie voor kinderen van 9-12 jaar. AVG-compliant, vanaf €6 per kind.',
+  alternates: { canonical: '/voetbalmissie' },
+  openGraph: {
+    title: 'VoetbalMissie — GPS-teamdag voor voetbalclubs',
+    description: 'Maak impact op en naast het veld. 5 sociale missies, geofencing en de kids-vriendelijke AI-assistent Flits.',
+    url: '/voetbalmissie',
+  },
+}
 
 const CHECKPOINTS = [
   {

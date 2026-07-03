@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
+import { getSiteUrl } from '@/lib/seo/site-url'
 
-const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? 'https://ictusgo.nl').replace(/\/$/, '')
+const BASE = getSiteUrl()
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/login/', '/admin/', '/join/'],
+        disallow: ['/api/', '/login/', '/admin/', '/join/', '/klant/', '/spelleider/', '/tochten/*/boeken'],
       },
     ],
     sitemap: `${BASE}/sitemap.xml`,

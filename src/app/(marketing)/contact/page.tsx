@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Mail, Phone, Clock, CheckCircle2, AlertTriangle, Send } from 'lucide-react'
+import { trackEvent } from '@/lib/analytics/events'
 
 const VARIANTS = ['WijkTocht', 'ImpactSprint', 'FamilieTocht', 'JeugdTocht', 'VoetbalMissie', 'Maatwerk']
 
@@ -34,6 +35,7 @@ export default function ContactPage() {
         return
       }
       setStatus('success')
+      trackEvent('generate_lead', { form: 'contact', variant: form.variant || 'onbekend' })
     } catch {
       setErrorMsg('Verbindingsfout. Controleer je internet en probeer opnieuw.')
       setStatus('error')
