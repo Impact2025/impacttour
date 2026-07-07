@@ -43,7 +43,7 @@ export function SiteFooter() {
                 <Link href="/over-ons"     className="block hover:text-white transition-colors">Over ons</Link>
                 <Link href="/contact"      className="block hover:text-white transition-colors">Contact</Link>
                 <Link href="/organisaties" className="block hover:text-white transition-colors">Organisaties</Link>
-                <a href="https://weareimpact.nl" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">WeAreImpact</a>
+                <a href="https://weareimpact.nl/ai-consultant-sociaal-domein" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">WeAreImpact — AI in zorg & welzijn</a>
               </div>
             </div>
             <div>
