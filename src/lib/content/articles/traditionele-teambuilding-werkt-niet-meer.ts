@@ -31,6 +31,8 @@ In mijn werk maak ik dagelijks het onderscheid tussen een **bedrijfsuitje** en *
 - Een bedrijfsuitje is **thema-gedreven**: focus op beleving en fun, begeleid door vakspecialisten zoals gidsen of artiesten.
 - Teambuilding is **probleem-gedreven**: focus op vaardigheden, begeleid door coaches, psychologen of gecertificeerde trainers.
 
+Die digitale transformatie van een eenmalige activiteit naar een meetbaar programma is precies waar [AI-gedreven verandermanagement in het sociaal domein](https://weareimpact.nl/programmamanager-digitale-transformatie) het verschil maakt — voor teams én voor hele organisaties in zorg en welzijn.
+
 Beide vormen delen vijf leerelementen die de onderlinge band versterken — plezier, verbinding, competitie & coöperatie, gelijkwaardigheid en ontdekken. Het verschil is of die elementen toevallig ontstaan, of bewust zijn ingebouwd in een programma met een uitkomst.
 
 ## Wat ik zag toen ik nog aan de andere kant van de tafel zat
