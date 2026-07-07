@@ -17,6 +17,8 @@ Een touwbrug parcours zegt niets over hoe een team samenwerkt in de dagelijkse p
 
 Wat ik in mijn werk als interim projectleider bij Stichting de Baan regelmatig zag, was dat teams na een teambuildingdag terugvielen in oude patronen. De tijdelijke euforie van het samen een puzzel oplossen was binnen een week vergeten. Er was geen brug tussen de activiteit en de dagelijkse praktijk. Geen gesprek over wat het betekende. Geen follow up. Gewoon terug naar de waan van de dag.
 
+Die brug slaan tussen een eenmalige ervaring en blijvende verandering is precies waar [AI-gedreven verandermanagement in het sociaal domein](https://weareimpact.nl/interim-verandermanagement-ai-sociaal-domein) het verschil maakt — niet alleen voor teams, maar voor hele organisaties in zorg en welzijn.
+
 **De paradox van de leidinggevende**
 
 Wat ik leidinggevenden vaak hoor zeggen is: "Ik wil dat mijn team beter samenwerkt." Maar de manier waarop ze dat organiseren werkt averechts. Ze sturen mensen naar een activiteit alsof het een verplichte cursus is, in plaats van een gezamenlijke ervaring waar teamleden zelf actief in participeren. De paradox is dat je verbinding niet kunt afdwingen. Je kunt er wel de juiste omstandigheden voor scheppen.
