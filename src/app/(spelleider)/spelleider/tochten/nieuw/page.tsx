@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-type Variant = 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie'
+type Variant = 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag'
 
 const VARIANTS: { value: Variant; label: string; description: string }[] = [
   {
@@ -31,6 +31,11 @@ const VARIANTS: { value: Variant; label: string; description: string }[] = [
     value: 'voetbalmissie',
     label: 'VoetbalMissie',
     description: '9-12 jaar, voetbal-thema, 5 checkpoints, 90 min, €6/kind',
+  },
+  {
+    value: 'vrijwilligersdankdag',
+    label: 'Vrijwilligers Dankdag',
+    description: 'Erkenning & impacttocht voor vrijwilligers, 5-7 checkpoints, 2,5-3,5 uur',
   },
 ]
 

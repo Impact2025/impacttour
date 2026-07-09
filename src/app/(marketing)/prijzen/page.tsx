@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, ArrowRight, Zap, MapPin, Heart, Shield, Target } from 'lucide-react'
+import { CheckCircle2, ArrowRight, Zap, MapPin, Heart, Shield, Target, HandHeart } from 'lucide-react'
 
 const VARIANTS = [
   {
@@ -112,6 +112,29 @@ const VARIANTS = [
       'Trainer/coach dashboard',
     ],
     cta: 'Boek VoetbalMissie',
+  },
+  {
+    icon: HandHeart,
+    slug: 'vrijwilligersdankdag',
+    name: 'Vrijwilligers Dankdag',
+    target: 'Gemeenten · welzijn · cultuur · sport',
+    pricePerPerson: 12,
+    priceFixed: 0,
+    minPersons: 10,
+    popular: false,
+    color: '#00E676',
+    bg: '#00E67615',
+    badge: 'Erkenning + impactdata',
+    features: [
+      '5–7 checkpoints rond erkenning & verbinding',
+      'Thema\'s: betekenis, samenwerking, impact',
+      'AI Scout-begeleiding (warm & verbindend)',
+      'Live scorebord + groepsrapport',
+      'Professioneel impactrapport (subsidie)',
+      'Foto\'s/video voor eigen communicatie',
+    ],
+    cta: 'Plan de Dankdag',
+    ctaHref: '/impact-vrijwilligers-dankdag',
   },
 ]
 
@@ -376,7 +399,7 @@ export default function PrijzenPage() {
                 </ul>
 
                 <Link
-                  href={`/tochten?variant=${v.slug}`}
+                  href={v.ctaHref ?? `/tochten?variant=${v.slug}`}
                   className={`w-full py-3 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-1.5 transition-colors ${
                     v.popular
                       ? 'bg-[#00E676] text-[#0F172A] hover:bg-[#00C853]'

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, ArrowLeft, MapPin, Users, Clock, Sparkles, CheckCircle2, Loader2, Mail,
-  Building2, Heart, Home, Dumbbell, GraduationCap,
+  Building2, Heart, Home, Dumbbell, GraduationCap, HandHeart,
   Smile, Zap, Leaf, Landmark, Trophy, CreditCard, Tag, X,
   type LucideProps,
 } from 'lucide-react'
@@ -53,6 +53,7 @@ const GROEP_OPTIES: { value: string; label: string; icon: IconComponent }[] = [
   { value: 'familie',       label: 'Familie',       icon: Home },
   { value: 'sportclub',     label: 'Sportclub',     icon: Dumbbell },
   { value: 'school',        label: 'School',        icon: GraduationCap },
+  { value: 'vrijwilligers', label: 'Vrijwilligers', icon: HandHeart },
 ]
 
 const SFEER_OPTIES: { value: string; label: string; icon: IconComponent }[] = [
@@ -416,6 +417,7 @@ function StapResultaat({
     familie:      { slug: 'familietocht',  label: 'Familie & Koppels',  prijs: '€9/pp' },
     sportclub:    { slug: 'voetbalmissie', label: 'VoetbalMissie',      prijs: '€6/pp · of €65 vast' },
     school:       { slug: 'jeugdtocht',    label: 'JeugdTocht',         prijs: '€6/pp · of €90 vast' },
+    vrijwilligers:{ slug: 'vrijwilligersdankdag', label: 'Vrijwilligers Dankdag', prijs: '€12/pp · erkenning + impactdata' },
   }
   const variant = variantInfo[wizardData.group] ?? { slug: 'wijktocht', label: 'WijkTocht', prijs: '€12/pp' }
 

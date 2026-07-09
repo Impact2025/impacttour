@@ -33,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/teambuilding-haarlemmermeer`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/gps-teamuitje`,             changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/maatschappelijk-teamuitje`, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/impact-vrijwilligers-dankdag`, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/teambuilding-zonder-wkr`,   changeFrequency: 'monthly', priority: 0.8 },
   ]
 

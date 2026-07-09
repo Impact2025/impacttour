@@ -34,8 +34,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Drizzle migrations (optioneel - bewaar in git)
-# drizzle/
+# Drizzle migrations
+# LET OP: bevat een gegenereerde full-create migratie (0000_...) die NIET op de
+# bestaande live DB mag draaien (crasht op "table already exists"). Negeer de map.
+drizzle/
 
 .vercel
 .env*.local

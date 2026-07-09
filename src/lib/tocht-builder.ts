@@ -36,9 +36,10 @@ function gmsForType(type: string): { c: number; m: number; j: number; g: number 
 // Variant mapping: wizard groeptype → tour variant
 export function variantFromGroep(
   groepType: string
-): 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' {
+): 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag' {
   if (groepType === 'stel' || groepType === 'familie') return 'familietocht'
   if (groepType === 'school')                          return 'jeugdtocht'
+  if (groepType === 'vrijwilligers')                   return 'vrijwilligersdankdag'
   return 'wijktocht'
 }
 

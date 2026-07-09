@@ -21,6 +21,7 @@ export const tourVariantEnum = pgEnum('tour_variant', [
   'familietocht',
   'jeugdtocht',
   'voetbalmissie', // Voetbal-thema JeugdTocht voor 9-12 jaar
+  'vrijwilligersdankdag', // Erkennings- & impacttocht voor vrijwilligers
 ])
 
 export const sessionStatusEnum = pgEnum('session_status', [

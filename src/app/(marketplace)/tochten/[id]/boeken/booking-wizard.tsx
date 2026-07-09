@@ -38,7 +38,7 @@ const VARIANT_LABELS: Record<string, string> = {
 
 const VARIANT_COLORS: Record<string, string> = {
   wijktocht: '#3B82F6', impactsprint: '#8B5CF6', familietocht: '#EC4899',
-  jeugdtocht: '#F59E0B', voetbalmissie: '#00C853',
+  jeugdtocht: '#F59E0B', voetbalmissie: '#00C853', vrijwilligersdankdag: '#00E676',
 }
 
 function formatEur(cents: number) {

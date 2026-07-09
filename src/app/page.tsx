@@ -48,6 +48,7 @@ const VARIANT_META: Record<string, { label: string; color: string; bg: string; t
   familietocht:  { label: 'Familie & Koppels',   color: '#EC4899', bg: '#FDF2F8', textColor: '#BE185D' },
   jeugdtocht:    { label: 'JeugdTocht',          color: '#F59E0B', bg: '#FFFBEB', textColor: '#B45309' },
   voetbalmissie: { label: 'VoetbalMissie',       color: '#00C853', bg: '#F0FDF4', textColor: '#166534' },
+  vrijwilligersdankdag: { label: 'Vrijwilligers Dankdag', color: '#00E676', bg: '#F0FDF4', textColor: '#15803D' },
 }
 
 function priceDisplay(tour: TourRow) {
@@ -389,6 +390,35 @@ export default async function HomePage() {
                   </span>
                 </div>
               </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Vrijwilligers Dankdag promo ──────────────────────────── */}
+      <section className="bg-[#F0FDF4] border-y border-[#DCFCE7] px-4 md:px-8 py-12 md:py-16">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+          <div className="flex-1">
+            <span className="inline-block text-[10px] font-bold text-[#00A84A] bg-[#00E676]/15 border border-[#00E676]/20 rounded-full px-3 py-1 mb-3 uppercase tracking-widest">
+              Nieuw · rond Vrijwilligersdag
+            </span>
+            <h2
+              className="text-2xl md:text-4xl font-black text-[#0F172A] leading-tight mb-2"
+              style={{ fontFamily: 'var(--font-display, "Barlow Condensed", sans-serif)' }}
+            >
+              Impact Vrijwilligers Dankdag
+            </h2>
+            <p className="text-[#64748B] text-sm md:text-base max-w-xl leading-relaxed">
+              Een betekenisvolle ervaring die vrijwilligers laat voelen hoe waardevol ze zijn —
+              terwijl jouw organisatie concrete impactdata krijgt voor subsidieaanvragen.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <Link
+              href="/impact-vrijwilligers-dankdag"
+              className="inline-flex items-center justify-center gap-2 bg-[#0F172A] text-white font-bold text-sm px-7 py-3.5 rounded-2xl hover:bg-[#1E293B] transition-colors"
+            >
+              Ontdek de Dankdag <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

@@ -129,7 +129,7 @@ export async function aiCompleteJSON<T = unknown>(
 export interface GenerateAssignmentParams {
   checkpointType: string
   teamSize: number
-  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie'
+  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag'
   location?: string
   themes?: string[]
 }
@@ -143,6 +143,7 @@ export async function generateAssignment(
     familietocht: 'gezinsactiviteit voor ouders en kinderen',
     jeugdtocht: 'activiteit voor kinderen van 9-13 jaar, eenvoudige taal',
     voetbalmissie: 'GPS speurtocht voor voetbaljongens van 9-12 jaar, voetbal-thema, eenvoudige taal, maatschappelijke impact verborgen in opdrachten',
+    vrijwilligersdankdag: 'erkennings- en impacttocht voor volwassen vrijwilligers, warme toon, thema\'s: erkenning, verbinding, betekenis, plezier, groei',
   }
 
   const result = await aiCompleteJSON<{ title: string; description: string }>(
@@ -432,7 +433,7 @@ ${params.highlights?.length ? `\nHighlights: ${params.highlights.join(', ')}` : 
 
 export interface TourGeneratorParams {
   name: string
-  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie'
+  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag'
   location: string
   teamSize: number
   durationMinutes: number
