@@ -323,6 +323,17 @@ export default function ImpactVrijwilligersDankdagPage() {
                 communicatie rond Vrijwilligersdag.
               </p>
             </div>
+            <div className="bg-[#0F172A] rounded-2xl p-6">
+              <div className="w-10 h-10 rounded-xl bg-[#00E676]/15 flex items-center justify-center mb-4">
+                <MapPin className="w-5 h-5 text-[#00E676]" />
+              </div>
+              <h3 className="font-black text-white mb-2">Ingezet op jullie locatie</h3>
+              <p className="text-sm text-[#94A3B8] leading-relaxed">
+                Wij zetten de GPS-route uit in jullie gemeente, dorp of bij jullie club —
+                van buurthuis tot sportpark. Jij prikt de datum, wij regelen de punten. Ook
+                op meerdere locaties tegelijk voor grote vrijwilligersteams.
+              </p>
+            </div>
           </div>
         </div>
       </section>

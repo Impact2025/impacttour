@@ -132,6 +132,7 @@ const VARIANTS = [
       'Live scorebord + groepsrapport',
       'Professioneel impactrapport (subsidie)',
       'Foto\'s/video voor eigen communicatie',
+      'Op jullie locatie uitgezet — jij prikt de datum',
     ],
     cta: 'Plan de Dankdag',
     ctaHref: '/impact-vrijwilligers-dankdag',
