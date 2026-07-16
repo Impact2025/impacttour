@@ -3,7 +3,7 @@ import { gameSessions, teams, checkpoints } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { haversineDistance } from '@/lib/geo'
+import { haversineDistance, effectiveDistance, isWithinUnlockRadius } from '@/lib/geo'
 import { broadcastCheckpointUnlocked } from '@/lib/pusher'
 import { checkOrigin, checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
@@ -13,6 +13,7 @@ const schema = z.object({
   checkpointId: z.string().uuid(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
+  accuracy: z.number().positive().max(10000).optional(),
 })
 
 /**
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Ongeldige gegevens' }, { status: 400 })
   }
 
-  const { sessionId, teamToken, checkpointId, latitude, longitude } = parsed.data
+  const { sessionId, teamToken, checkpointId, latitude, longitude, accuracy } = parsed.data
 
   // Haal sessie op
   const session = await db.query.gameSessions.findFirst({
@@ -86,7 +87,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Checkpoint al voltooid' }, { status: 400 })
   }
 
-  // GPS afstandscheck: Haversine (overgeslagen in test mode)
+  // GPS afstandscheck: Haversine + accuracy-buffer (overgeslagen in test mode).
+  // We wegen de gerapporteerde GPS-onnauwkeurigheid mee zodat een team dat
+  // fysiek bij het checkpoint staat maar een slechte fix heeft niet onterecht
+  // wordt geweigerd — de buffer is gecapt (MAX_ACCURACY_BUFFER_M) tegen spoofing.
   const distance = haversineDistance(
     latitude,
     longitude,
@@ -94,10 +98,13 @@ export async function POST(req: Request) {
     checkpoint.longitude
   )
 
-  if (!session.isTestMode && distance > checkpoint.unlockRadiusMeters) {
+  if (
+    !session.isTestMode &&
+    !isWithinUnlockRadius(distance, checkpoint.unlockRadiusMeters, accuracy)
+  ) {
     return NextResponse.json(
       {
-        error: `Te ver van checkpoint (${Math.round(distance)}m, max ${checkpoint.unlockRadiusMeters}m)`,
+        error: `Te ver van checkpoint (${Math.round(effectiveDistance(distance, accuracy))}m, max ${checkpoint.unlockRadiusMeters}m)`,
         distance: Math.round(distance),
         required: checkpoint.unlockRadiusMeters,
       },

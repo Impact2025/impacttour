@@ -12,7 +12,7 @@ import { useGPS, type GPSPosition } from '@/hooks/use-gps'
 import { usePusherChannel } from '@/hooks/use-pusher-channel'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { useCheckpointAlert } from '@/hooks/use-checkpoint-alert'
-import { haversineDistance } from '@/lib/geo'
+import { haversineDistance, effectiveDistance, calculateBearing, bearingToCardinal } from '@/lib/geo'
 import { MissionPanel } from './mission-panel'
 import { Scoreboard } from './scoreboard'
 import { ImpactPanel } from './impact-panel'
@@ -152,8 +152,13 @@ export default function GamePage() {
   const [celebrationScore, setCelebrationScore] = useState(0)
 
   const { onNearbyCheckpoint } = useCheckpointAlert()
+  // Hysterese-vlag: eenmaal "nabij" blijft het checkpoint nabij tot je duidelijk
+  // (radius + marge) buiten bent. Voorkomt knipperende unlock-knop + herhaald
+  // trillen/piepen op de rand van de radius bij GPS-jitter.
+  const nearbyRef = useRef(false)
+  const NEARBY_EXIT_MARGIN = 12
 
-  const { position, error: gpsError, isWatching, startWatching } = useGPS({
+  const { position, signal: gpsSignal, error: gpsError, isWatching, startWatching } = useGPS({
     onPosition: useCallback(
       async (pos: GPSPosition) => {
         if (!teamToken) return
@@ -176,10 +181,19 @@ export default function GamePage() {
         const current = checkpoints.find((c) => c.isCurrent)
         if (!current) return
         if (isTestMode) {
+          nearbyRef.current = true
           setNearbyCheckpoint(current)
         } else {
-          const dist = haversineDistance(pos.latitude, pos.longitude, current.latitude, current.longitude)
-          setNearbyCheckpoint(dist <= current.unlockRadiusMeters ? current : null)
+          const raw = haversineDistance(pos.latitude, pos.longitude, current.latitude, current.longitude)
+          const eff = effectiveDistance(raw, pos.accuracy)
+          // Accuracy-bewuste nabijheid met hysterese
+          if (!nearbyRef.current && eff <= current.unlockRadiusMeters) {
+            nearbyRef.current = true
+            setNearbyCheckpoint(current)
+          } else if (nearbyRef.current && eff > current.unlockRadiusMeters + NEARBY_EXIT_MARGIN) {
+            nearbyRef.current = false
+            setNearbyCheckpoint(null)
+          }
         }
       },
       [sessionId, teamToken, team, checkpoints, isTestMode]
@@ -280,6 +294,7 @@ export default function GamePage() {
   useEffect(() => {
     if (!isTestMode) return
     const current = checkpoints.find((c) => c.isCurrent)
+    nearbyRef.current = !!current
     setNearbyCheckpoint(current ?? null)
   }, [isTestMode, checkpoints])
 
@@ -297,11 +312,12 @@ export default function GamePage() {
       const res = await fetch('/api/game/checkpoint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, teamToken, checkpointId: nearbyCheckpoint.id, latitude: lat, longitude: lng }),
+        body: JSON.stringify({ sessionId, teamToken, checkpointId: nearbyCheckpoint.id, latitude: lat, longitude: lng, accuracy: position?.accuracy }),
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error || 'Unlock mislukt'); return }
       const cpToShow = nearbyCheckpoint
+      nearbyRef.current = false
       setNearbyCheckpoint(null)
       setCelebratingCheckpoint(cpToShow)
       setIsUnlockCelebrating(true)
@@ -547,6 +563,14 @@ export default function GamePage() {
               <span className="flex items-center gap-1 text-[9px] font-semibold text-[#F59E0B] bg-[#FEF3C7] px-2 py-1 rounded-full">
                 <Radio className="w-3 h-3" /> GPS: off
               </span>
+            ) : !isTestMode && isWatching && gpsSignal === 'weak' ? (
+              <span className="flex items-center gap-1 text-[9px] font-semibold text-[#F59E0B] bg-[#FEF3C7] px-2 py-1 rounded-full">
+                <Navigation className="w-3 h-3" /> GPS zwak
+              </span>
+            ) : !isTestMode && isWatching && (gpsSignal === 'searching' || gpsSignal === 'none') ? (
+              <span className="flex items-center gap-1 text-[9px] font-semibold text-[#94A3B8] bg-[#F1F5F9] px-2 py-1 rounded-full">
+                <Radio className="w-3 h-3 animate-pulse" /> GPS zoeken
+              </span>
             ) : !isTestMode && isWatching ? (
               <span className="flex items-center gap-1 text-[9px] font-semibold text-[#00C853] bg-[#DCFCE7] px-2 py-1 rounded-full">
                 <Navigation className="w-3 h-3" /> GPS
@@ -575,6 +599,14 @@ export default function GamePage() {
         <div className="bg-[#FEF3C7] text-[#92400E] px-4 py-2 text-xs text-center shrink-0 flex items-center justify-center gap-1.5">
           <Radio className="w-3.5 h-3.5 shrink-0" />
           Locatie niet beschikbaar — controleer je browserinstellingen
+        </div>
+      )}
+      {!isTestMode && !gpsError && (gpsSignal === 'weak' || gpsSignal === 'none') && (
+        <div className="bg-[#FEF3C7] text-[#92400E] px-4 py-2 text-xs text-center shrink-0 flex items-center justify-center gap-1.5">
+          <Radio className="w-3.5 h-3.5 shrink-0" />
+          {gpsSignal === 'none'
+            ? 'GPS-signaal zwak — loop naar open lucht voor een betere fix'
+            : 'GPS minder nauwkeurig — de afstand kan iets afwijken'}
         </div>
       )}
       {team?.isOutsideGeofence && (
@@ -663,17 +695,33 @@ export default function GamePage() {
                     {currentCheckpoint.name}
                   </p>
                 </div>
-                {position && (
-                  <div className="text-right shrink-0">
-                    <p
-                      className="text-2xl font-black text-[#0F172A] leading-none"
-                      style={{ fontFamily: 'var(--font-display)' }}
-                    >
-                      {Math.round(haversineDistance(position.latitude, position.longitude, currentCheckpoint.latitude, currentCheckpoint.longitude))}
-                    </p>
-                    <p className="text-[9px] text-[#94A3B8] font-semibold uppercase">meter</p>
-                  </div>
-                )}
+                {position && (() => {
+                  const dist = Math.round(haversineDistance(position.latitude, position.longitude, currentCheckpoint.latitude, currentCheckpoint.longitude))
+                  const bearing = calculateBearing(position.latitude, position.longitude, currentCheckpoint.latitude, currentCheckpoint.longitude)
+                  const cardinal = bearingToCardinal(bearing)
+                  return (
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      {/* Kompaspijl richting checkpoint */}
+                      <div className="flex flex-col items-center">
+                        <Navigation
+                          className="w-5 h-5 text-[#00C853]"
+                          style={{ transform: `rotate(${bearing}deg)`, transition: 'transform 0.4s ease-out' }}
+                          fill="#00C853"
+                        />
+                        <span className="text-[9px] text-[#94A3B8] font-bold uppercase mt-0.5">{cardinal}</span>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className="text-2xl font-black text-[#0F172A] leading-none"
+                          style={{ fontFamily: 'var(--font-display)' }}
+                        >
+                          {dist}
+                        </p>
+                        <p className="text-[9px] text-[#94A3B8] font-semibold uppercase">meter</p>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
               {/* Voortgangsbalk */}
               <div className="mt-3 flex items-center gap-2">
