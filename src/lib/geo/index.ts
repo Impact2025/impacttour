@@ -37,6 +37,42 @@ export function isNearCheckpoint(
   )
 }
 
+/**
+ * Maximale GPS-onnauwkeurigheid (meters) die als buffer bij een unlock-check
+ * wordt meegewogen. Voorkomt dat een team dat pal op het checkpoint staat,
+ * maar een slechte fix heeft (stad/bomen), onterecht wordt geweigerd — zonder
+ * de deur wagenwijd open te zetten voor spoofing.
+ */
+export const MAX_ACCURACY_BUFFER_M = 35
+
+/**
+ * Accuracy-bewuste afstand: trekt de (gecapte) GPS-onnauwkeurigheid van de
+ * gemeten afstand af. Dit is de afstand die telt voor unlock/nabijheid.
+ * Zonder accuracy gedraagt dit zich als de rauwe afstand.
+ */
+export function effectiveDistance(
+  rawDistance: number,
+  accuracy?: number | null
+): number {
+  if (accuracy == null || !Number.isFinite(accuracy) || accuracy <= 0) {
+    return rawDistance
+  }
+  const buffer = Math.min(accuracy, MAX_ACCURACY_BUFFER_M)
+  return Math.max(0, rawDistance - buffer)
+}
+
+/**
+ * Accuracy-bewuste unlock-check. Een team is "bij" een checkpoint als de
+ * effectieve afstand (rauw minus onzekerheidsbuffer) binnen de radius valt.
+ */
+export function isWithinUnlockRadius(
+  rawDistance: number,
+  radiusMeters: number,
+  accuracy?: number | null
+): boolean {
+  return effectiveDistance(rawDistance, accuracy) <= radiusMeters
+}
+
 export interface GeoPoint {
   lat: number
   lng: number
