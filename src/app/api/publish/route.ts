@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
     `
     const isUpdate = (existing as unknown as { length: number }).length > 0
 
-    let slug = baseSlug
+    const slug = baseSlug
     if (isUpdate) {
       await sql`
         UPDATE posts SET

@@ -1,5 +1,5 @@
 import type { Article, ArticleCategory } from './types'
-import { articles, getArticlesByCategory, getArticleBySlug } from './index'
+import { articles, getArticleBySlug } from './index'
 import { getDbArticles, getDbArticleBySlug } from './db'
 
 // Merge-laag: CMS-artikelen uit de DB krijgen voorrang op de in-repo
