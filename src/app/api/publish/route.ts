@@ -8,6 +8,8 @@ import { getSiteUrl } from '@/lib/seo/site-url'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+const PUBLISH_BUILD = 'v2-2026-07-17'
+
 const SITE_URL = getSiteUrl()
 const VALID_CATEGORIES = ['blog', 'kennisbank']
 
@@ -109,7 +111,7 @@ function deriveExcerpt(text: string, max = 200): string {
 
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: { 'X-Publish-Build': PUBLISH_BUILD } })
   }
 
   try {
@@ -231,8 +233,9 @@ export async function POST(request: NextRequest) {
         category: safeCategory,
         source,
         action: isUpdate ? 'updated' : 'created',
+        build: PUBLISH_BUILD,
       },
-      { status: 201 }
+      { status: 201, headers: { 'X-Publish-Build': PUBLISH_BUILD } }
     )
   } catch (error) {
     console.error('[publish] error:', error)
