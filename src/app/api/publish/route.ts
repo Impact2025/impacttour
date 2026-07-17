@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
           body = ${markdownBody},
           excerpt = ${finalExcerpt},
           image = COALESCE(${image ?? null}, image),
-          keywords = ${Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : [])},
+          keywords = ${JSON.stringify(Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : []))},
           cluster = COALESCE(${cluster ?? null}, cluster),
           updated_at = NOW(),
           reading_time_min = ${readingTime},
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
         ) VALUES (
           ${baseSlug}, ${safeCategory}, ${title.trim()}, ${heading},
           ${seoDescription?.trim() || finalExcerpt}, ${markdownBody}, ${finalExcerpt},
-          ${image ?? ''}, ${Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : [])},
+          ${image ?? ''}, ${JSON.stringify(Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : []))},
           ${cluster ?? ''}, ${readingTime}, ${seoTitle?.trim() || title.trim()},
           ${seoDescription?.trim() || finalExcerpt}, ${source}, 'published', ${cta}
         )
