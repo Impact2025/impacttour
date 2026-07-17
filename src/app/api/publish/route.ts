@@ -8,8 +8,6 @@ import { getSiteUrl } from '@/lib/seo/site-url'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-const PUBLISH_BUILD = 'v2-2026-07-17'
-
 const SITE_URL = getSiteUrl()
 const VALID_CATEGORIES = ['blog', 'kennisbank']
 
@@ -22,17 +20,13 @@ const sql = neon(process.env.DATABASE_URL || 'postgresql://dummy:***@dummy.neon.
 async function isAuthorized(request: NextRequest): Promise<boolean> {
   const key = process.env.PUBLISH_API_KEY
   const auth = request.headers.get('authorization')
-  const decision = (() => {
-    if (key && auth?.startsWith('Bearer ')) {
-      const provided = auth.slice(7)
-      const a = createHash('sha256').update(provided).digest()
-      const b = createHash('sha256').update(key).digest()
-      if (timingSafeEqual(a, b)) return true
-    }
-    return false
-  })()
-  console.error('[AUTH-DECISION]', decision, 'hasKey=', !!key, 'hasAuth=', !!auth)
-  return decision
+  if (key && auth?.startsWith('Bearer ')) {
+    const provided = auth.slice(7)
+    const a = createHash('sha256').update(provided).digest()
+    const b = createHash('sha256').update(key).digest()
+    if (timingSafeEqual(a, b)) return true
+  }
+  return false
 }
 
 // ── HTML → Markdown ──────────────────────────────────────────────────────────
@@ -115,7 +109,7 @@ function deriveExcerpt(text: string, max = 200): string {
 
 export async function POST(request: NextRequest) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: { 'X-Publish-Build': PUBLISH_BUILD } })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
@@ -237,9 +231,8 @@ export async function POST(request: NextRequest) {
         category: safeCategory,
         source,
         action: isUpdate ? 'updated' : 'created',
-        build: PUBLISH_BUILD,
       },
-      { status: 201, headers: { 'X-Publish-Build': PUBLISH_BUILD } }
+      { status: 201 }
     )
   } catch (error) {
     console.error('[publish] error:', error)
