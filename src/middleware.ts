@@ -14,6 +14,11 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(url, 301)
   }
 
+  // ── Jaar-alias → kanonieke Dankdag-LP (SEO: geen duplicate content) ──
+  if (pathname === '/vrijwilligers-dankdag-2026') {
+    return NextResponse.redirect(new URL('/impact-vrijwilligers-dankdag', req.url), 301)
+  }
+
   // Rest alleen checken voor beschermde routes
   if (
     !pathname.startsWith('/spelleider') &&

@@ -22,6 +22,8 @@ Tijdens mijn tien jaar in het sociaal domein — ik was tot 1 oktober 2025 direc
 
 Onder de Corporate Sustainability Reporting Directive rapporteren grote ondernemingen vanaf verslagjaar 2025/2026 volgens de ESRS-standaarden. Twee daarvan raken direct aan wat ik dagelijks bouw: **ESRS S1 (Own Workforce)** en **ESRS S3 (Affected Communities)**. De SER bevestigt expliciet dat sociale bijdragen zoals vrijwilligerswerk en sociale stages in het duurzaamheidsverslag kunnen worden opgenomen als ze materieel zijn voor de onderneming — en dat ze zowel onder S1 als onder S3 gepositioneerd kunnen worden. Dat is geen vage aanbeveling; het is een concreet rapportagekader waarin een goed ontworpen GPS-teamuitje of vrijwilligersdag een aantoonbare plek krijgt.
 
+Voor gemeenten en welzijnsorganisaties die vrijwilligers wíllen eren, koppelt de [Impact Vrijwilligers Dankdag 2026](/impact-vrijwilligers-dankdag) diezelfde meetbaarheid aan een moment van erkenning.
+
 ## ESRS S1: teambuilding als HR-instrument
 
 Onder S1-1 (beleid voor eigen personeel) kun je een paragraaf "maatschappelijke inzet van medewerkers" opnemen die doel, kaders en koppeling aan talentontwikkeling beschrijft. De structuur die ik organisaties adviseer:
