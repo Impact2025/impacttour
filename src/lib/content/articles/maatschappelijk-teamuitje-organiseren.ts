@@ -52,6 +52,8 @@ Toen ik nog directeur was van een maatschappelijke stichting, verwierf ik strate
 
 Het grootste rendement zit niet in één maatschappelijk teamuitje, maar in herhaling — zie ook mijn stuk over [corporate volunteering als jaarlijks programma](/kennisbank/corporate-volunteering-jaarlijks-programma). Een terugkerend ritme bouwt aan cultuur, aan CSRD-datareeksen die trends laten zien, en aan een reputatie die verder reikt dan de eigen organisatie.
 
+Zoek je juist een moment van erkenning vóór vrijwilligers — los van het personeel? De [Impact Vrijwilligers Dankdag 2026](/impact-vrijwilligers-dankdag) is daar specifiek voor ontwikkeld.
+
 Wil je onderzoeken wat een maatschappelijk teamuitje voor jullie specifieke situatie kan opleveren — fiscaal, cultureel en in rapportage? Ik denk graag mee via [www.WeAreImpact.nl](https://www.weareimpact.nl).
 `.trim(),
 }

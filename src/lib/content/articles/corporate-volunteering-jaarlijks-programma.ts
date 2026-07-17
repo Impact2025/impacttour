@@ -47,5 +47,7 @@ Een sociale GPS-tocht via IctusGo kan een corporate volunteering-programma een c
 Je hoeft niet in één keer een compleet programma te lanceren. Begin met één terugkerend moment per jaar, één duidelijke partnerkeuze en één simpele meting. Bouw vanuit daar uit. De organisaties die ik zie slagen, zijn niet de organisaties met het grootste budget — het zijn de organisaties die consistent blijven herhalen wat werkt.
 
 Wil je hulp bij het ontwerpen van zo'n programma, van eerste pilot tot CSRD-klare rapportage? Dat is precies het soort werk waar ik via [www.WeAreImpact.nl](https://www.weareimpact.nl) organisaties in begeleid.
+
+Ben je specifiek op zoek naar een moment van erkenning voor vrijwilligers? Kijk dan bij de [Impact Vrijwilligers Dankdag 2026](/impact-vrijwilligers-dankdag) — een kant-en-klaar format met meetbare GMS-impact.
 `.trim(),
 }
