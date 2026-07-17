@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { getArticlesByCategory } from '@/lib/content'
+import { getArticlesByCategoryMerged } from '@/lib/content/resolve'
 
 export const metadata: Metadata = {
   title: 'Blog — inzichten over teambuilding met impact',
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/blog' },
 }
 
-export default function BlogIndexPage() {
-  const posts = getArticlesByCategory('blog')
+export default async function BlogIndexPage() {
+  const posts = await getArticlesByCategoryMerged('blog')
 
   return (
     <main className="min-h-screen bg-white">

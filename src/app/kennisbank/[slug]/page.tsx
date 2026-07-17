@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ArticleLayout } from '@/components/content/ArticleLayout'
 import { articles, getArticleBySlug } from '@/lib/content'
+import { getArticleBySlugMerged } from '@/lib/content/resolve'
 import { getSiteUrl } from '@/lib/seo/site-url'
 
 const SITE_URL = getSiteUrl()
@@ -16,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const article = getArticleBySlug('kennisbank', slug)
+  const article = await getArticleBySlugMerged('kennisbank', slug)
   if (!article) return {}
 
   return {
@@ -47,12 +48,13 @@ export default async function KennisbankArticlePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const article = getArticleBySlug('kennisbank', slug)
+  const article =
+    getArticleBySlug('kennisbank', slug) ?? (await getArticleBySlugMerged('kennisbank', slug))
   if (!article) notFound()
 
   const articleSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: article.title,
     description: article.description,
     image: `${SITE_URL}${article.image}`,
