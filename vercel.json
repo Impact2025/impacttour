@@ -1,5 +1,8 @@
 {
   "functions": {
+    "src/app/api/publish/route.ts": {
+      "maxDuration": 60
+    },
     "src/app/api/pdf/[sessionId]/route.ts": {
       "maxDuration": 60
     },
