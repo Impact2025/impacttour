@@ -42,6 +42,8 @@ export default async function TochtDetailPage({
     familietocht: 'FamilieTocht',
     jeugdtocht: 'JeugdTocht',
     voetbalmissie: 'VoetbalMissie',
+    vrijwilligersdankdag: 'Vrijwilligers Dankdag',
+    vaartocht: 'VaarTocht',
   }
 
   const checkpointTypeLabel: Record<string, string> = {

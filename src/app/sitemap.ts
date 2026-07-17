@@ -27,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/organisaties`,              changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/jeugdtocht`,                changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/voetbalmissie`,             changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/vaartocht`,                 changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/blog`,                      changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE}/kennisbank`,                changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${BASE}/teambuilding-hoofddorp`,     changeFrequency: 'monthly', priority: 0.8 },

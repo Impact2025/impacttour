@@ -415,6 +415,8 @@ const variantLabel: Record<string, string> = {
   familietocht: 'FamilieTocht',
   jeugdtocht:   'JeugdTocht',
   voetbalmissie:'VoetbalMissie',
+  vrijwilligersdankdag:'Vrijwilligers Dankdag',
+  vaartocht:'VaarTocht',
 }
 
 function gmsLevel(pct: number): { label: string; color: string } {

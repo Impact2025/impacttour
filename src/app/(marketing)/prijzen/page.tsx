@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, ArrowRight, Zap, MapPin, Heart, Shield, Target, HandHeart } from 'lucide-react'
+import { CheckCircle2, ArrowRight, Zap, MapPin, Heart, Shield, Target, HandHeart, Sailboat } from 'lucide-react'
 
 const VARIANTS = [
   {
@@ -136,6 +136,29 @@ const VARIANTS = [
     ],
     cta: 'Plan de Dankdag',
     ctaHref: '/impact-vrijwilligers-dankdag',
+  },
+  {
+    icon: Sailboat,
+    slug: 'vaartocht',
+    name: 'VaarTocht',
+    target: 'Teams · families · vrienden',
+    pricePerPerson: 12.5,
+    priceFixed: 0,
+    minPersons: 4,
+    popular: false,
+    color: '#0EA5E9',
+    bg: '#0EA5E915',
+    badge: 'Per sloep op het water',
+    features: [
+      'GPS-tocht per sloep, max 4 uur',
+      'Checkpoints bij molens, eilanden & dorpen',
+      'Ruime unlock-zones op het water',
+      'Reflectie-missie met de motor uit',
+      'AI Scout-begeleiding + live scorebord',
+      'Sloephuur via de jachthaven (excl.)',
+    ],
+    cta: 'Bekijk VaarTocht',
+    ctaHref: '/vaartocht',
   },
 ]
 

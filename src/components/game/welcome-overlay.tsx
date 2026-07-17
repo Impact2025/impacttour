@@ -29,6 +29,25 @@ const STEPS = [
   },
 ]
 
+// VaarTocht: navigeren gaat per sloep en de unlock-zones op het water zijn ruimer
+const STEPS_VAREN = [
+  {
+    icon: MapPin,
+    title: 'Vaar naar het checkpoint',
+    description: 'De kaart wijst de koers. GPS geeft aan hoe ver je nog bent.',
+  },
+  {
+    icon: Zap,
+    title: 'Ontgrendel op het water',
+    description: 'De zones zijn ruim — vaar rustig aan, de unlock-knop verschijnt vanzelf.',
+  },
+  {
+    icon: FileText,
+    title: 'Doe de missie',
+    description: 'Aan boord of aan land — hoe echter, hoe meer punten. Veiligheid eerst.',
+  },
+]
+
 export function WelcomeOverlay({
   tourName,
   teamName,
@@ -39,6 +58,8 @@ export function WelcomeOverlay({
 }: WelcomeOverlayProps) {
   const isKoppel = variant === 'familietocht' || variant === 'koppeltocht'
   const isKids = variant === 'jeugdtocht' || variant === 'voetbalmissie'
+  const isVaren = variant === 'vaartocht'
+  const steps = isVaren ? STEPS_VAREN : STEPS
 
   return (
     <div className="absolute inset-0 z-[2000] flex items-end justify-center bg-black/60 backdrop-blur-sm">
@@ -75,7 +96,7 @@ export function WelcomeOverlay({
 
           {/* Hoe werkt het — 3 stappen */}
           <div className="space-y-3 mb-6">
-            {STEPS.map(({ icon: Icon, title, description }, i) => (
+            {steps.map(({ icon: Icon, title, description }, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-[#F1F5F9] flex items-center justify-center shrink-0 mt-0.5">
                   <Icon className="w-4.5 h-4.5 text-[#0F172A]" strokeWidth={2} />

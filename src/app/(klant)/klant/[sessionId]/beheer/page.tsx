@@ -36,6 +36,7 @@ type BeheerData = {
 const VARIANT_LABELS: Record<string, string> = {
   wijktocht: 'WijkTocht', impactsprint: 'ImpactSprint',
   familietocht: 'FamilieTocht', jeugdtocht: 'JeugdTocht', voetbalmissie: 'VoetbalMissie',
+  vrijwilligersdankdag: 'Vrijwilligers Dankdag', vaartocht: 'VaarTocht',
 }
 
 const STATUS_NL: Record<string, string> = {

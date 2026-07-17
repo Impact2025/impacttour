@@ -49,6 +49,7 @@ const VARIANT_META: Record<string, { label: string; color: string; bg: string; t
   jeugdtocht:    { label: 'JeugdTocht',          color: '#F59E0B', bg: '#FFFBEB', textColor: '#B45309' },
   voetbalmissie: { label: 'VoetbalMissie',       color: '#00C853', bg: '#F0FDF4', textColor: '#166534' },
   vrijwilligersdankdag: { label: 'Vrijwilligers Dankdag', color: '#00E676', bg: '#F0FDF4', textColor: '#15803D' },
+  vaartocht:     { label: 'VaarTocht',           color: '#0EA5E9', bg: '#F0F9FF', textColor: '#0369A1' },
 }
 
 function priceDisplay(tour: TourRow) {
@@ -840,6 +841,7 @@ export default async function HomePage() {
                   <p>FamilieTocht</p>
                   <Link href="/jeugdtocht" className="block hover:text-white transition-colors">JeugdTocht</Link>
                   <Link href="/voetbalmissie" className="block hover:text-white transition-colors">VoetbalMissie</Link>
+                  <Link href="/vaartocht" className="block hover:text-white transition-colors">VaarTocht</Link>
                 </div>
               </div>
               <div>
