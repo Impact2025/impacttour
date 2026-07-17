@@ -31,7 +31,7 @@ async function isAuthorized(request: NextRequest): Promise<boolean> {
     }
     return false
   })()
-  console.error('[publish-auth]', JSON.stringify({ hasKey: !!key, keyLen: key?.length, hasAuth: !!auth, authStarts: auth?.slice(0, 7), decision }))
+  console.error('[AUTH-DECISION]', decision, 'hasKey=', !!key, 'hasAuth=', !!auth)
   return decision
 }
 
