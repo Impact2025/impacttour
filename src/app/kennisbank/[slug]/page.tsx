@@ -7,6 +7,11 @@ import { getSiteUrl } from '@/lib/seo/site-url'
 
 const SITE_URL = getSiteUrl()
 
+// Agent OS publiceert naar de DB (posts-tabel); die slugs zitten NIET in de
+// statische generateStaticParams. Zonder dynamicParams=true geeft Next.js voor
+// een nieuwe DB-slug altijd 404 — ook al staat de post wel in de DB.
+export const dynamicParams = true
+
 export function generateStaticParams() {
   return articles.filter((a) => a.category === 'kennisbank').map((a) => ({ slug: a.slug }))
 }
