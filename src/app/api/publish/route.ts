@@ -22,13 +22,17 @@ const sql = neon(process.env.DATABASE_URL || 'postgresql://dummy:***@dummy.neon.
 async function isAuthorized(request: NextRequest): Promise<boolean> {
   const key = process.env.PUBLISH_API_KEY
   const auth = request.headers.get('authorization')
-  if (key && auth?.startsWith('Bearer ')) {
-    const provided = auth.slice(7)
-    const a = createHash('sha256').update(provided).digest()
-    const b = createHash('sha256').update(key).digest()
-    if (timingSafeEqual(a, b)) return true
-  }
-  return false
+  const decision = (() => {
+    if (key && auth?.startsWith('Bearer ')) {
+      const provided = auth.slice(7)
+      const a = createHash('sha256').update(provided).digest()
+      const b = createHash('sha256').update(key).digest()
+      if (timingSafeEqual(a, b)) return true
+    }
+    return false
+  })()
+  console.error('[publish-auth]', JSON.stringify({ hasKey: !!key, keyLen: key?.length, hasAuth: !!auth, authStarts: auth?.slice(0, 7), decision }))
+  return decision
 }
 
 // ── HTML → Markdown ──────────────────────────────────────────────────────────
