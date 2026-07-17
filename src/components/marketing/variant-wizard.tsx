@@ -80,6 +80,15 @@ const RESULT_MAP: Record<string, {
     href: '/tochten?variant=familietocht',
     features: ['Vanaf 2 pers.', 'Gezinsroutes', 'AI Buddy', 'Herinneringsrapport'],
   },
+  vaartocht: {
+    name: 'VaarTocht',
+    tagline: 'GPS-teambuilding per sloep over het water',
+    price: '€12,50/p.p.',
+    color: '#0EA5E9',
+    bg: '#F0F9FF',
+    href: '/tochten?variant=vaartocht',
+    features: ['Per sloep', 'Max 4 uur', 'Molens & eilanden', 'Geen vaarbewijs nodig'],
+  },
   maatwerk: {
     name: 'Maatwerk',
     tagline: 'Volledig op maat voor grote groepen',

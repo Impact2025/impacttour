@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   MapPin, Clock, Users, Star, ChevronRight, Zap, Heart, Shield, Target,
-  Search, SlidersHorizontal,
+  Search, SlidersHorizontal, Sailboat,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ const VARIANT_META: Record<string, {
   familietocht:  { label: 'Familie & Koppels',  color: '#EC4899', bg: '#FDF2F8', textColor: '#BE185D', icon: Heart },
   jeugdtocht:    { label: 'JeugdTocht',    color: '#F59E0B', bg: '#FFFBEB', textColor: '#B45309', icon: Shield },
   voetbalmissie: { label: 'VoetbalMissie', color: '#00C853', bg: '#F0FDF4', textColor: '#166534', icon: Target },
+  vaartocht:     { label: 'VaarTocht',     color: '#0EA5E9', bg: '#F0F9FF', textColor: '#0369A1', icon: Sailboat },
 }
 
 const FILTER_TABS = [
@@ -45,6 +46,7 @@ const FILTER_TABS = [
   { key: 'familietocht', label: 'Familie & Koppels' },
   { key: 'jeugdtocht',   label: 'JeugdTocht' },
   { key: 'voetbalmissie', label: 'VoetbalMissie' },
+  { key: 'vaartocht',    label: 'VaarTocht' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

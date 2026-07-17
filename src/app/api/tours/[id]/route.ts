@@ -8,7 +8,7 @@ import { z } from 'zod'
 const updateTourSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   description: z.string().max(500).nullable().optional(),
-  variant: z.enum(['wijktocht', 'impactsprint', 'familietocht', 'jeugdtocht', 'voetbalmissie', 'vrijwilligersdankdag']).optional(),
+  variant: z.enum(['wijktocht', 'impactsprint', 'familietocht', 'jeugdtocht', 'voetbalmissie', 'vrijwilligersdankdag', 'vaartocht']).optional(),
   estimatedDurationMin: z.number().int().min(30).max(480).optional(),
   maxTeams: z.number().int().min(1).max(100).optional(),
   priceInCents: z.number().int().min(0).optional(),

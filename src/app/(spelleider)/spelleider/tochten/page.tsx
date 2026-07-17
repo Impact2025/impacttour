@@ -13,6 +13,8 @@ const variantLabel: Record<string, string> = {
   familietocht: 'FamilieTocht',
   jeugdtocht: 'JeugdTocht',
   voetbalmissie: 'VoetbalMissie',
+  vrijwilligersdankdag: 'Vrijwilligers Dankdag',
+  vaartocht: 'VaarTocht',
 }
 
 const variantColor: Record<string, string> = {
@@ -21,6 +23,8 @@ const variantColor: Record<string, string> = {
   familietocht: 'bg-orange-100 text-orange-700',
   jeugdtocht: 'bg-purple-100 text-purple-700',
   voetbalmissie: 'bg-yellow-100 text-yellow-700',
+  vrijwilligersdankdag: 'bg-pink-100 text-pink-700',
+  vaartocht: 'bg-sky-100 text-sky-700',
 }
 
 export default async function TochtenPage() {

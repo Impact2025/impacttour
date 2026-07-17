@@ -4,6 +4,8 @@ export const VARIANT_LABELS: Record<string, string> = {
   familietocht: 'FamilieTocht',
   jeugdtocht: 'JeugdTocht',
   voetbalmissie: 'VoetbalMissie',
+  vrijwilligersdankdag: 'Vrijwilligers Dankdag',
+  vaartocht: 'VaarTocht',
 }
 
 export const VARIANT_COLORS: Record<string, string> = {
@@ -12,6 +14,8 @@ export const VARIANT_COLORS: Record<string, string> = {
   familietocht: '#F59E0B',
   jeugdtocht: '#8B5CF6',
   voetbalmissie: '#EF4444',
+  vrijwilligersdankdag: '#EC4899',
+  vaartocht: '#0EA5E9',
 }
 
 export const VARIANT_OPTIONS = Object.entries(VARIANT_LABELS).map(([value, label]) => ({ value, label }))

@@ -54,6 +54,7 @@ export function SiteFooter() {
                 <p>FamilieTocht</p>
                 <p>JeugdTocht</p>
                 <Link href="/voetbalmissie" className="block hover:text-white transition-colors">VoetbalMissie</Link>
+                <Link href="/vaartocht" className="block hover:text-white transition-colors">VaarTocht</Link>
               </div>
             </div>
           </div>

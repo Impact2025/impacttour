@@ -20,6 +20,8 @@ const VARIANT_LABEL_META: Record<string, string> = {
   familietocht: 'FamilieTocht',
   jeugdtocht: 'JeugdTocht',
   voetbalmissie: 'VoetbalMissie',
+  vrijwilligersdankdag: 'Vrijwilligers Dankdag',
+  vaartocht: 'VaarTocht',
 }
 
 export async function generateMetadata({
@@ -63,6 +65,7 @@ const VARIANT_META: Record<string, { label: string; color: string; bg: string }>
   familietocht:  { label: 'FamilieTocht',  color: '#EC4899', bg: '#FDF2F8' },
   jeugdtocht:    { label: 'JeugdTocht',    color: '#F59E0B', bg: '#FFFBEB' },
   voetbalmissie: { label: 'VoetbalMissie', color: '#00C853', bg: '#F0FDF4' },
+  vaartocht: { label: 'VaarTocht', color: '#0EA5E9', bg: '#F0F9FF' },
 }
 
 const MISSION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {

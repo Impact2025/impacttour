@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 const schema = z.object({
   name: z.string().min(2).max(100),
-  variant: z.enum(['wijktocht', 'impactsprint', 'familietocht', 'jeugdtocht', 'voetbalmissie', 'vrijwilligersdankdag']),
+  variant: z.enum(['wijktocht', 'impactsprint', 'familietocht', 'jeugdtocht', 'voetbalmissie', 'vrijwilligersdankdag', 'vaartocht']),
   location: z.string().min(2),
   teamSize: z.number().int().min(2).max(50).default(8),
   durationMinutes: z.number().int().min(30).max(480).default(120),

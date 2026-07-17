@@ -129,7 +129,7 @@ export async function aiCompleteJSON<T = unknown>(
 export interface GenerateAssignmentParams {
   checkpointType: string
   teamSize: number
-  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag'
+  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag' | 'vaartocht'
   location?: string
   themes?: string[]
 }
@@ -144,6 +144,7 @@ export async function generateAssignment(
     jeugdtocht: 'activiteit voor kinderen van 9-13 jaar, eenvoudige taal',
     voetbalmissie: 'GPS speurtocht voor voetbaljongens van 9-12 jaar, voetbal-thema, eenvoudige taal, maatschappelijke impact verborgen in opdrachten',
     vrijwilligersdankdag: 'erkennings- en impacttocht voor volwassen vrijwilligers, warme toon, thema\'s: erkenning, verbinding, betekenis, plezier, groei',
+    vaartocht: 'GPS-tocht per sloep over het water voor teams, families en vriendengroepen; checkpoints zijn aanlegplekken, molens en herkenningspunten op het water; opdrachten moeten uitvoerbaar zijn aan boord of bij een aanlegplek, houd rekening met varen, aanleggen en veiligheid op het water',
   }
 
   const result = await aiCompleteJSON<{ title: string; description: string }>(
@@ -237,6 +238,8 @@ export async function evaluateSubmission(
     familietocht: 'gezinsactiviteit voor ouders en kinderen',
     jeugdtocht: 'kinderen van 9-13 jaar',
     voetbalmissie: 'voetbaljongens van 9-12 jaar',
+    vrijwilligersdankdag: 'volwassen vrijwilligers, warme waarderende toon',
+    vaartocht: 'teams, families en vriendengroepen op een sloeptocht over het water',
   }
   const doelgroep = isKids
     ? 'kinderen (wees mild, aanmoedigend en eenvoudig in taal)'
@@ -433,7 +436,7 @@ ${params.highlights?.length ? `\nHighlights: ${params.highlights.join(', ')}` : 
 
 export interface TourGeneratorParams {
   name: string
-  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag'
+  variant: 'wijktocht' | 'impactsprint' | 'familietocht' | 'jeugdtocht' | 'voetbalmissie' | 'vrijwilligersdankdag' | 'vaartocht'
   location: string
   teamSize: number
   durationMinutes: number
@@ -490,6 +493,15 @@ VERPLICHT: minimaal 1 checkpoint waarbij deelnemers iets doen VOOR of MET een on
 - Doe een kleine vriendelijkheid voor een buurtbewoner
 - Koop iets voor de volgende persoon in de rij
 Dit maakt de GMS impact-claim eerlijk: verbinding gaat ook naar buiten de eigen groep.`
+    : params.variant === 'vaartocht'
+    ? `SPECIALE INSTRUCTIES voor VaarTocht (sloeptocht over het water):
+- Deelnemers varen met een sloep; checkpoints zijn aanlegplekken, molens, eilanden en herkenningspunten op het water
+- Opdrachten moeten uitvoerbaar zijn aan boord van een varende/stilliggende sloep of bij een aanlegplek
+- Wissel af: opdrachten vanaf het water (motor uit, drijven) en opdrachten aan land (aanleggen, eiland verkennen)
+- Gebruik het landschap: molens, rietkragen, dorpsgezichten, pontjes, havens
+- Veiligheid: nooit zwemmen als opdracht verplichten, geen haast op het water, schipper blijft nuchter
+- Minimaal 1 reflectie-checkpoint met de motor uit (stilte op het water)
+- Adviseer per checkpoint een ruime unlock-radius (75-150 m) — op water lig je nooit exact op een punt`
     : params.variant === 'impactsprint'
     ? 'Compact format, snelle opdrachten, zakelijke teams.'
     : 'Zakelijke teambuilding voor volwassenen, maatschappelijke impact.'
