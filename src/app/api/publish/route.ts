@@ -122,7 +122,8 @@ export async function POST(request: NextRequest) {
       excerpt,
       seoTitle,
       seoDescription,
-      keywords = [],
+      keywords,
+      tags,
       cluster,
       image,
       source = 'agent-os',
@@ -136,6 +137,7 @@ export async function POST(request: NextRequest) {
       seoTitle?: string
       seoDescription?: string
       keywords?: string[]
+      tags?: string[]
       cluster?: string
       image?: string
       source?: string
@@ -182,7 +184,7 @@ export async function POST(request: NextRequest) {
           body = ${markdownBody},
           excerpt = ${finalExcerpt},
           image = COALESCE(${image ?? null}, image),
-          keywords = ${Array.isArray(keywords) ? keywords : []},
+          keywords = ${Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : [])},
           cluster = COALESCE(${cluster ?? null}, cluster),
           updated_at = NOW(),
           reading_time_min = ${readingTime},
@@ -202,7 +204,7 @@ export async function POST(request: NextRequest) {
         ) VALUES (
           ${baseSlug}, ${safeCategory}, ${title.trim()}, ${heading},
           ${seoDescription?.trim() || finalExcerpt}, ${markdownBody}, ${finalExcerpt},
-          ${image ?? ''}, ${Array.isArray(keywords) ? keywords : []},
+          ${image ?? ''}, ${Array.isArray(tags) && tags.length ? tags : (Array.isArray(keywords) ? keywords : [])},
           ${cluster ?? ''}, ${readingTime}, ${seoTitle?.trim() || title.trim()},
           ${seoDescription?.trim() || finalExcerpt}, ${source}, 'published', ${cta}
         )
