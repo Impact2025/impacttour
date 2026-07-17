@@ -191,7 +191,9 @@ export default function JaarVanDeVrijwilligerPage() {
           <div className="md:w-72 shrink-0 bg-[#F0FDF4] border border-[#DCFCE7] rounded-2xl p-6">
             <Sparkles className="w-6 h-6 text-[#16a34a] mb-3" />
             <p className="text-sm text-[#475569] leading-relaxed">
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
               "Een jaar lang aandacht voor vrijwilligers is mooi. Wij maken er een ervaring van
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
               die ze niet vergeten — en waarvan je de impact kunt aantonen."
             </p>
             <p className="text-xs font-bold text-[#0F172A] mt-3">Vincent van Munster</p>
