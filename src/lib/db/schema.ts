@@ -495,3 +495,31 @@ export const ordersRelations = relations(orders, ({ one }) => ({
     references: [coupons.code],
   }),
 }))
+
+// ─── CMS-artikelen (blog + kennisbank) ───────────────────────────────────────
+// Agent OS publiceert hiernaartoe via /api/publish (Bearer-auth). Deze tabel
+// leeft naast de 23 in-repo geschreven artikelen in src/lib/content/articles/*;
+// de blog-/kennisbank-pagina's mergen beide bronnen. `body` is Markdown (de
+// ArticleLayout rendert via renderMarkdown), dus de publish-route converteert
+// HTML→Markdown vóórdat het hier wordt opgeslagen.
+export const posts = pgTable('posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  category: text('category').notNull().default('blog'), // 'blog' | 'kennisbank'
+  title: text('title').notNull(), // <title> / browser tab
+  heading: text('heading').notNull(), // H1 op de pagina
+  description: text('description').notNull().default(''), // SEO meta description
+  body: text('body').notNull(), // Markdown
+  excerpt: text('excerpt').notNull().default(''),
+  image: text('image').notNull().default(''), // pad of URL naar hero-image
+  keywords: jsonb('keywords').$type<string[]>().notNull().default([]),
+  cluster: text('cluster').notNull().default(''),
+  publishedAt: timestamp('published_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow(),
+  readingTimeMin: integer('reading_time_min').notNull().default(3),
+  seoTitle: text('seo_title'),
+  seoDescription: text('seo_description'),
+  source: text('source').notNull().default('agent-os'), // 'agent-os' | 'manual'
+  status: text('status').notNull().default('published'), // 'published' | 'draft'
+  cta: text('cta').notNull().default('ictusgo'), // zie CTA_CONTENT in lib/content
+})

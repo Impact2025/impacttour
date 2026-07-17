@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ArticleLayout } from '@/components/content/ArticleLayout'
 import { articles, getArticleBySlug } from '@/lib/content'
+import { getArticleBySlugMerged } from '@/lib/content/resolve'
 import { getSiteUrl } from '@/lib/seo/site-url'
 
 const SITE_URL = getSiteUrl()
@@ -16,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const article = getArticleBySlug('blog', slug)
+  const article = await getArticleBySlugMerged('blog', slug)
   if (!article) return {}
 
   return {
@@ -47,7 +48,8 @@ export default async function BlogArticlePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const article = getArticleBySlug('blog', slug)
+  // Statische fallback eerst (snelle SSG), daarna DB (Agent OS artikelen).
+  const article = getArticleBySlug('blog', slug) ?? (await getArticleBySlugMerged('blog', slug))
   if (!article) notFound()
 
   const articleSchema = {

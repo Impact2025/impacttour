@@ -45,6 +45,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }))
 
+  // CMS-artikelen uit de database (Agent OS → posts-tabel)
+  let dbArticlePages: MetadataRoute.Sitemap = []
+  try {
+    const { getDbArticles } = await import('@/lib/content/db')
+    const dbArticlesList = await getDbArticles()
+    dbArticlePages = dbArticlesList.map((a) => ({
+      url: `${BASE}/${a.category}/${a.slug}`,
+      lastModified: new Date(a.updatedAt),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  } catch {
+    // Sitemap works without DB
+  }
+
   // Dynamic tours from DB
   let tourPages: MetadataRoute.Sitemap = []
   try {
@@ -63,5 +78,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Sitemap works without DB during build
   }
 
-  return [...staticPages, ...articlePages, ...tourPages]
+  return [...staticPages, ...articlePages, ...dbArticlePages, ...tourPages]
 }

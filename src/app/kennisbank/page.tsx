@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { getArticlesByCategory } from '@/lib/content'
+import { getArticlesByCategoryMerged } from '@/lib/content/resolve'
 
 export const metadata: Metadata = {
   title: 'Kennisbank — praktische gidsen over GPS-teambuilding',
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/kennisbank' },
 }
 
-export default function KennisbankIndexPage() {
-  const posts = getArticlesByCategory('kennisbank')
+export default async function KennisbankIndexPage() {
+  const posts = await getArticlesByCategoryMerged('kennisbank')
 
   return (
     <main className="min-h-screen bg-white">
