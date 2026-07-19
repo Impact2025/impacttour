@@ -462,7 +462,7 @@ export function MissionPanel({ checkpoint, sessionId, teamToken, isKids, variant
           {isSubmitting ? (
             <>
               <div className="w-4 h-4 border-2 border-[#0F172A]/30 border-t-[#0F172A] rounded-full animate-spin" />
-              AI beoordeelt je inzending...
+              Ictus analyseert je inzending...
             </>
           ) : (
             <>
